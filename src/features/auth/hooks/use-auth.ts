@@ -10,6 +10,7 @@ export function useAuth() {
     queryFn: async () => {
       const supabase = createClient();
       const { data, error } = await supabase.auth.getSession();
+      // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions
       if (error) throw error;
       return data.session;
     },

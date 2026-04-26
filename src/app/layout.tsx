@@ -4,8 +4,8 @@ import "./globals.css";
 import { Providers } from "@/shared/components/providers";
 
 export const metadata: Metadata = {
-  title: "Hackathon App",
-  description: "Built with nextjs-hackathon-stack",
+  title: "IPS | Sistema de Gestion Documental",
+  description: "Plataforma interna para gestionar documentos y accesos por rol.",
 };
 
 export default function RootLayout({
@@ -15,7 +15,7 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en" suppressHydrationWarning>
-      <body>
+      <body suppressHydrationWarning>
         <Providers>{children}</Providers>
       </body>
     </html>

@@ -87,7 +87,11 @@ describe("LoginForm", () => {
 
   it("displays server-side error message and toast when action returns error", async () => {
     // Arrange
-    mockLoginAction.mockResolvedValue({ status: "error", message: "Invalid credentials" });
+    mockLoginAction.mockResolvedValue({
+      status: "error",
+      message:
+        "Credenciales inválidas. Si no tienes cuenta, solicita el alta al administrador de tu área.",
+    });
     const user = userEvent.setup();
     render(<LoginForm />);
 
@@ -99,8 +103,12 @@ describe("LoginForm", () => {
     // Assert
     await waitFor(() => {
       expect(screen.getByRole("alert")).toBeInTheDocument();
-      expect(screen.getByText(/invalid credentials/i)).toBeInTheDocument();
-      expect(mockToastError).toHaveBeenCalledWith("Invalid credentials");
+      expect(
+        screen.getByText(/credenciales inválidas\. si no tienes cuenta/i)
+      ).toBeInTheDocument();
+      expect(mockToastError).toHaveBeenCalledWith(
+        "Credenciales inválidas. Si no tienes cuenta, solicita el alta al administrador de tu área."
+      );
     });
   });
 });

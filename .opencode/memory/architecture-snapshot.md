@@ -2,9 +2,13 @@
 
 > Auto-updated after each feature. Agents MUST read this before exploring the codebase.
 
+## Project: Sistema de Gestión Documental - IPS Salud Integral
+
+Sistema web para digitalización, organización y gestión de documentos administrativos en la IPS Salud Integral (Cartago, Valle del Cauca).
+
 ## Installed shadcn/ui Components
 
-button, card, input, label, spinner
+button, card, input, label, spinner, sonner
 
 _Add new components here after `shadcn add <component>`_
 
@@ -13,18 +17,21 @@ _Add new components here after `shadcn add <component>`_
 | Table | Columns |
 |-------|---------|
 | `profiles` | id (uuid PK), email (text unique), createdAt, updatedAt |
-| `todos` | id (uuid PK), userId (uuid), title (text), completed (bool), createdAt |
+| `categories` | id (uuid PK), name (text), description (text), color (text), createdAt, updatedAt |
+| `documents` | id (uuid PK), title (text), description (text), fileName (text), filePath (text), fileSize (text), mimeType (text), categoryId (uuid FK), ownerId (uuid FK), tags (text[]), createdAt, updatedAt |
+| `user_roles` | id (uuid PK), userId (uuid FK), role (enum: admin/user), createdAt, updatedAt |
 
-_Add new tables here after `pnpm db:generate && pnpm db:migrate`_
+_Schema files: `src/shared/db/*.schema.ts` — edit schema files, then run `pnpm db:generate && pnpm db:migrate`_
+
+**Pending migrations:** Run `pnpm db:generate && pnpm db:migrate` after schema changes.
 
 ## Existing Features
 
 | Feature | Path | Description |
 |---------|------|-------------|
-| auth | `src/features/auth/` | Login/logout, cookie-based sessions via Supabase |
-| todos | `src/features/todos/` | CRUD todos with Supabase RLS |
+| auth | `src/features/auth/` | Login/logout with Supabase Auth, cookie-based sessions |
 
-_Add new features here after implementation_
+_Implementation pending: documents, categories, user management (admin)_
 
 ## Canonical Pattern References
 
@@ -32,11 +39,11 @@ Read these files to understand the project's proven patterns before writing new 
 
 | Pattern | File |
 |---------|------|
-| Server Action | `src/features/todos/actions/todos.action.ts` |
-| Query (repository) | `src/features/todos/queries/todos.queries.ts` |
-| Client component | `src/features/todos/components/todo-list.tsx` |
-| Action test | `src/features/todos/__tests__/todos.action.test.ts` |
-| Component test | `src/features/todos/__tests__/todo-list.test.tsx` |
+| Server Action | `src/features/auth/actions/login.action.ts` |
+| Client component | `src/features/auth/components/login-form.tsx` |
+| Auth hook | `src/features/auth/hooks/use-auth.ts` |
+| Action test | `src/features/auth/__tests__/login.action.test.ts` |
+| Component test | `src/features/auth/__tests__/login-form.test.tsx` |
 | Supabase mock chain | `src/shared/test-utils/supabase-mock.ts` |
 
 ## Key Rules (summary)
@@ -77,7 +84,7 @@ Read this before writing any code. These are the rules that most often cause pos
 | `noUnusedLocals` / `noUnusedParameters` | No unused vars/params | Prefix unused params with `_` |
 | `useUnknownInCatchVariables` | `catch (e)` → `e` is `unknown` | Narrow: `if (e instanceof Error)` before `.message` |
 
-### ESLint — Rules That Most Often Trip AI Agents
+### ESLint — Rules That Most often Trip AI Agents
 
 Preset: `tseslint.configs.strictTypeChecked` + `stylisticTypeChecked`. Runs with `--max-warnings 0` (warnings = errors).
 
@@ -125,3 +132,36 @@ Preset: `tseslint.configs.strictTypeChecked` + `stylisticTypeChecked`. Runs with
 ### File-specific exceptions
 - `**/error.tsx`: `no-console` disabled (Next.js error boundaries)
 - `src/shared/lib/supabase/server.ts`, `middleware.ts`: `no-deprecated` disabled (Supabase SSR)
+
+## Environment Variables
+
+| Variable | Visibility | Where to get it |
+|---|---|---|
+| `NEXT_PUBLIC_SUPABASE_URL` | Client + Server | Supabase > Project Settings > API |
+| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Client + Server | Supabase > Project Settings > API |
+| `DATABASE_URL` | Server only | Supabase > Project Settings > Database > Connection string (Session mode) |
+
+## Scripts
+
+| Command | Purpose |
+|---------|---------|
+| `pnpm dev` | Start development server |
+| `pnpm build` | Build for production |
+| `pnpm lint` | Run ESLint |
+| `pnpm typecheck` | Run TypeScript compiler check |
+| `pnpm test` | Run unit tests |
+| `pnpm test:coverage` | Run tests with coverage report |
+| `pnpm test:e2e` | Run Playwright E2E tests |
+| `pnpm db:generate` | Generate Drizzle migrations |
+| `pnpm db:migrate` | Apply Drizzle migrations |
+| `pnpm db:push` | Push schema to DB (dev only) |
+| `pnpm db:studio` | Open Drizzle Studio |
+
+## Pending Features (Not Yet Implemented)
+
+- Document upload and storage (Supabase Storage)
+- Document categories and tagging
+- Document search and filtering
+- User management (admin panel)
+- Role-based access control (RBAC)
+- Document preview and download

@@ -23,12 +23,12 @@ describe("proxy", () => {
     expect(response).toBe(mockResponse);
   });
 
-  it("exports a matcher config", async () => {
-    // Arrange + Act
-    const mod = await import("../../../proxy") as { config: { matcher: string[] } };
+  it("exports a matcher config that excludes Server Actions (next-action header)", async () => {
+    const mod = await import("../../../proxy") as {
+      config: { matcher: { source: string; missing: { type: string; key: string }[] }[] };
+    };
 
-    // Assert
-    expect(mod.config.matcher).toBeDefined();
-    expect(Array.isArray(mod.config.matcher)).toBe(true);
+    expect(mod.config.matcher).toHaveLength(1);
+    expect(mod.config.matcher[0]?.missing).toEqual([{ type: "header", key: "next-action" }]);
   });
 });

@@ -8,6 +8,7 @@ export async function GET(request: Request) {
   const rawNext = searchParams.get("next") ?? "/";
   const next = rawNext.startsWith("/") && !rawNext.startsWith("//") ? rawNext : "/";
 
+  // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions
   if (!code) {
     return NextResponse.redirect(`${origin}/login?error=no_code`);
   }
@@ -15,6 +16,7 @@ export async function GET(request: Request) {
   const supabase = await createClient();
   const { error } = await supabase.auth.exchangeCodeForSession(code);
 
+  // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions
   if (error) {
     return NextResponse.redirect(`${origin}/login?error=auth_error`);
   }

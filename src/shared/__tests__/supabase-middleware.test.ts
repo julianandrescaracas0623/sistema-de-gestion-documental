@@ -139,7 +139,7 @@ describe("supabase middleware (updateSession)", () => {
     expect(mockNextResponseRedirect).not.toHaveBeenCalled();
   });
 
-  it("does not redirect unauthenticated user on root path", async () => {
+  it("redirects unauthenticated user from root path to login", async () => {
     // Arrange
     mockGetUser.mockResolvedValue({ data: { user: null } });
     const { updateSession } = await import("../lib/supabase/middleware");
@@ -149,7 +149,7 @@ describe("supabase middleware (updateSession)", () => {
     await updateSession(req);
 
     // Assert
-    expect(mockNextResponseRedirect).not.toHaveBeenCalled();
+    expect(mockNextResponseRedirect).toHaveBeenCalled();
   });
 
   it("does not redirect on /api/auth routes", async () => {

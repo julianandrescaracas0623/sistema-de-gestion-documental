@@ -1,15 +1,28 @@
 # Requirements
 
-This directory contains feature requirements written in Given/When/Then format.
+Mezcla de documentación **en español** (IPS / trabajo académico) y plantillas **en inglés** para features puntuales.
 
-## Structure
-- `README.md` — this file
-- `template.md` — requirement template
-- `auth.md` — authentication requirements
-- `<feature>.md` — per-feature requirements
+## Contenido principal
 
-## Process
-1. Define requirements BEFORE starting implementation
-2. Each acceptance criterion maps to at least one test case
-3. Validate implementation against criteria before marking done
-4. Use the `business-analyst` agent to help define requirements
+| Archivo | Propósito |
+| --- | --- |
+| [requerimiento_funcional.md](requerimiento_funcional.md) | Comportamiento del producto (RF numerados) |
+| [non-functional.md](non-functional.md) | Seguridad, rendimiento, usabilidad, etc. (RNF) |
+| [use-cases.md](use-cases.md) | Casos de uso y flujos |
+| [auth.md](auth.md) | Autenticación, sesión y rutas protegidas (criterios CA + checklist) |
+
+## Docs del proyecto
+
+- [Contexto operacional](../docs/contexto_operacional.md) — entorno, actores, stack
+- [Planteamiento del problema](../docs/problema.md) — motivación e investigación
+
+## Plantilla y features en inglés
+
+- [template.md](template.md) — plantilla Given / When / Then
+- `<feature>.md` — requisitos por feature siguiendo la plantilla
+
+## Proceso sugerido
+
+1. Definir o actualizar RF/RNF y casos de uso antes de implementar cambios amplios
+2. Cada criterio de aceptación debe poder comprobarse (prueba manual o automatizada)
+3. Validar la implementación contra los criterios antes de dar por cerrada la tarea

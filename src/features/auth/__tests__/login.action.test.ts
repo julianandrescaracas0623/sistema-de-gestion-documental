@@ -62,7 +62,11 @@ describe("loginAction", () => {
     const result = await loginAction({ status: "idle" }, fd);
 
     // Assert
-    expect(result).toEqual({ status: "error", message: "Invalid credentials" });
+    expect(result).toEqual({
+      status: "error",
+      message:
+        "Credenciales inválidas. Si no tienes cuenta, solicita el alta al administrador de tu área.",
+    });
   });
 
   it("redirects to / on successful login", async () => {

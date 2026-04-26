@@ -6,6 +6,13 @@ export async function proxy(request: NextRequest) {
   return updateSession(request);
 }
 
+// Skip proxy for Server Action POSTs: middleware redirects break the RSC action response
+// ("An unexpected response was received from the server"). Auth is enforced inside each action.
 export const config = {
-  matcher: ["/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)"],
+  matcher: [
+    {
+      source: "/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)",
+      missing: [{ type: "header", key: "next-action" }],
+    },
+  ],
 };

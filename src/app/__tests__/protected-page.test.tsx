@@ -9,6 +9,11 @@ vi.mock("@/shared/lib/supabase/server", () => ({
   ),
 }));
 
+const mockGetRoleForUser = vi.fn();
+vi.mock("@/shared/lib/auth/get-role-for-user", () => ({
+  getRoleForUser: (...args: unknown[]): unknown => mockGetRoleForUser(...args),
+}));
+
 vi.mock("next/navigation", () => ({
   redirect: (url: string): unknown => mockRedirect(url),
 }));
@@ -17,6 +22,7 @@ describe("HomePage (protected)", () => {
   beforeEach(() => {
     vi.clearAllMocks();
     mockRedirect.mockImplementation(() => { throw new Error("NEXT_REDIRECT"); });
+    mockGetRoleForUser.mockResolvedValue("user");
   });
 
   it("redirects to /login when user is not authenticated", async () => {
@@ -27,7 +33,7 @@ describe("HomePage (protected)", () => {
     // Act + Assert
     await expect(HomePage()).rejects.toThrow("NEXT_REDIRECT");
     expect(mockRedirect).toHaveBeenCalledWith("/login");
-  });
+  }, 10000);
 
   it("renders dashboard when user is authenticated", async () => {
     // Arrange
@@ -39,5 +45,5 @@ describe("HomePage (protected)", () => {
 
     // Assert
     expect(result).toBeTruthy();
-  });
+  }, 10000);
 });

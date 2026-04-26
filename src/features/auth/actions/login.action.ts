@@ -31,8 +31,12 @@ export async function loginAction(
   const supabase = await createClient();
   const { error } = await supabase.auth.signInWithPassword(parsed.data);
 
-  if (error) {
-    return { status: "error", message: error.message };
+  if (error !== null) {
+    return {
+      status: "error",
+      message:
+        "Credenciales inválidas. Si no tienes cuenta, solicita el alta al administrador de tu área.",
+    };
   }
 
   redirect("/");

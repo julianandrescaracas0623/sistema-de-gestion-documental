@@ -1,326 +1,251 @@
-# {{projectName}}
+# 📄 Sistema de Gestión Documental - IPS Salud Integral
 
-Full-stack Next.js 16 hackathon starter with pre-built auth and todos.
+## 🚀 Descripción
 
-## Stack
+Sistema web desarrollado para la digitalización, organización y gestión de documentos administrativos en la IPS Salud Integral (Cartago, Valle del Cauca).
 
-| Layer | Tool |
-|---|---|
-| Framework | Next.js 16 + App Router |
-| Database | Supabase (PostgreSQL) |
-| Auth | Supabase Auth |
-| ORM | Drizzle (schema + migrations) |
-| Runtime Queries | supabase-js (RLS active) |
-| State | TanStack Query v5 |
-| Forms | React Hook Form + Zod |
-| UI | shadcn/ui + Tailwind CSS v4 |
-| Testing | Vitest + Playwright |
-| Code Quality | ESLint 9 + Husky + lint-staged |
+Permite reemplazar el manejo manual de archivos físicos por una plataforma digital segura, accesible y eficiente.
 
-## Getting Started
+---
 
-### 1. Add your API keys
+## 🎯 Objetivo
 
-`.env.local` was created automatically. Fill in the values:
+Optimizar la gestión documental mediante una aplicación web que permita:
 
-```bash
-# Supabase — https://supabase.com > Project Settings > API
-NEXT_PUBLIC_SUPABASE_URL=https://your-project-id.supabase.co
-NEXT_PUBLIC_SUPABASE_ANON_KEY=your-anon-key
-DATABASE_URL=postgresql://postgres.your-project-id:[password]@aws-0-[region].pooler.supabase.com:6543/postgres
+- Carga de documentos
+- Organización por categorías
+- Búsqueda rápida
+- Control de acceso por usuarios
+
+---
+
+## 🧠 Problema
+
+Actualmente, la IPS maneja documentos en formato físico, lo que genera:
+
+- Dificultad en la búsqueda
+- Riesgo de pérdida
+- Ineficiencia operativa
+
+Más detalles en [docs/problema.md](./docs/problema.md).
+
+---
+
+## 🛠️ Tecnologías
+
+- ⚛️ React 19
+- ⚡ Next.js 16
+- 🟢 Supabase (Auth, DB, Storage)
+- 🐘 PostgreSQL
+- 🎨 Tailwind CSS v4
+- 📋 shadcn/ui
+- ✅ Vitest + Playwright (testing)
+- 🔷 TypeScript (strict mode)
+
+---
+
+## 📦 Funcionalidades principales
+
+- [x] Autenticación de usuarios (login/logout)
+- [x] Alta de usuarios y roles solo para administrador (`/admin/users`, sin registro público en la app)
+- [x] Subida de documentos (`/documents/new`, bucket `documents` en Supabase Storage)
+- [x] Clasificación por categorías y etiquetas (`document_tags`, edición en detalle)
+- [x] Búsqueda y listado paginado (`/documents` con filtros)
+- [x] Descarga y visualización (URLs firmadas en detalle `/documents/[id]`)
+- [x] Eliminación lógica y borrado de objeto en Storage
+
+---
+
+## 👥 Roles
+
+- **Administrador**: Gestiona usuarios, controla acceso, supervisa el sistema
+- **Usuario administrativo**: Sube documentos, consulta información, organiza archivos
+
+---
+
+## 🧱 Arquitectura
+
+```
+Frontend (Next.js)
+       ⬇
+Supabase (Backend as a Service)
+       ⬇
+PostgreSQL + Storage
 ```
 
-### 2. Start the MCP memory service
+### Patrones de código
 
-```bash
-docker compose up -d memory
-```
+- **Server Actions** para mutaciones
+- **Supabase Client** para consultas en runtime
+- **RLS (Row Level Security)** para seguridad a nivel de fila
+- **Zod** para validación de esquemas
+- **TDD** — tests antes de implementación
 
-MCP endpoint: `http://localhost:8765/mcp` (used by all AI harnesses)
+---
 
-Memory is stored in `.memory/` (gitignored). The service starts automatically on next boot (`restart: unless-stopped`).
-
-### 3. Apply database migrations
-
-```bash
-pnpm db:migrate
-```
-
-### 3. Run the dev server
-
-```bash
-pnpm dev
-```
-
-## Scripts
-
-```bash
-pnpm dev             # Start dev server
-pnpm build           # Production build
-pnpm lint            # Lint (0 warnings allowed)
-pnpm lint:fix        # Lint and auto-fix
-pnpm typecheck       # TypeScript check
-pnpm test            # Unit tests
-pnpm test:unit       # Unit tests (verbose)
-pnpm test:watch      # Watch mode
-pnpm test:coverage   # Tests with coverage (100% required)
-pnpm test:e2e        # Playwright e2e tests
-pnpm db:generate     # Generate Drizzle migrations from schema
-pnpm db:migrate      # Apply migrations to database
-pnpm db:pull         # Introspect DB and generate schema
-pnpm db:push         # Push schema directly (dev only)
-pnpm db:studio       # Open Drizzle Studio GUI
-```
-
-## Environment Variables
-
-| Variable | Where to get it |
-|---|---|
-| `NEXT_PUBLIC_SUPABASE_URL` | Supabase > Project Settings > API |
-| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Supabase > Project Settings > API |
-| `DATABASE_URL` | Supabase > Project Settings > Database > Connection string > Session mode |
-| `NEXT_PUBLIC_APP_URL` | Your deployment URL (default: `http://localhost:3000`) |
-
-See `.env.example` for all required variables with comments.
-
-## Architecture
-
-Feature-based structure:
+## 📂 Estructura del proyecto
 
 ```
 src/
-├── app/           # Next.js routing + layouts
-├── features/
-│   ├── auth/      # Email+password login, logout, session hook, protected routes
-│   └── todos/     # CRUD server actions, add form, todo list
-├── shared/        # lib | db | components/ui
-└── e2e/           # Playwright tests
+├── app/                          # Next.js App Router
+│   ├── (auth)/                   # Auth routes (public)
+│   │   └── login/
+│   │       └── page.tsx
+│   ├── (protected)/              # Protected routes
+│   │   ├── layout.tsx
+│   │   └── page.tsx
+│   ├── api/                      # API routes
+│   │   └── auth/callback/
+│   │       └── route.ts
+│   ├── __tests__/                # Page/component tests
+│   ├── layout.tsx                # Root layout
+│   └── error.tsx                 # Error boundary
+├── features/                     # Feature modules
+│   └── auth/                     # Auth feature
+│       ├── actions/              # Server Actions
+│       │   ├── login.action.ts
+│       │   └── logout.action.ts
+│       ├── components/           # React components
+│       │   └── login-form.tsx
+│       ├── hooks/                # Custom hooks
+│       │   └── use-auth.ts
+│       └── __tests__/            # Feature tests
+├── shared/                       # Shared code
+│   ├── components/
+│   │   ├── providers.tsx         # Context providers
+│   │   └── ui/                   # shadcn/ui components
+│   │       ├── button.tsx
+│   │       ├── card.tsx
+│   │       ├── input.tsx
+│   │       ├── label.tsx
+│   │       ├── spinner.tsx
+│   │       └── sonner.tsx
+│   ├── db/                       # Database
+│   │   ├── schema.ts             # Schema exports
+│   │   ├── profiles.schema.ts    # Profiles table
+│   │   └── migrations/           # Drizzle migrations
+│   ├── lib/                      # Utilities
+│   │   ├── utils.ts              # cn() and others
+│   │   ├── action-result.ts      # Action result types
+│   │   ├── form-utils.ts         # FormData helpers
+│   │   ├── zod-utils.ts          # Zod helpers
+│   │   ├── upload-utils.ts       # File upload helpers
+│   │   └── supabase/             # Supabase clients
+│   │       ├── client.ts
+│   │       ├── server.ts
+│   │       └── middleware.ts
+│   └── test-utils/               # Test utilities
+│       └── supabase-mock.ts
+├── e2e/                          # Playwright E2E tests
+│   ├── login.spec.ts
+│   └── home.spec.ts
+└── test-setup.ts                # Vitest setup
 ```
 
-Dependency direction: `features/* → shared/*` (never reverse).
+---
 
-## Pre-commit Hooks
+## 🚴 Scripts
 
-Husky runs `vitest --coverage` on every commit. The commit is blocked if coverage drops below 100%.
+| Comando | Descripción |
+|---------|-------------|
+| `pnpm dev` | Iniciar servidor de desarrollo |
+| `pnpm build` | Construir para producción |
+| `pnpm start` | Iniciar servidor de producción |
+| `pnpm lint` | Ejecutar ESLint |
+| `pnpm lint:fix` | Corregir errores de lint automáticamente |
+| `pnpm typecheck` | Verificar tipos TypeScript |
+| `pnpm test` | Ejecutar tests unitarios |
+| `pnpm test:watch` | Ejecutar tests en modo watch |
+| `pnpm test:coverage` | Ejecutar tests con cobertura |
+| `pnpm test:e2e` | Ejecutar tests E2E con Playwright |
+| `pnpm db:generate` | Generar migraciones Drizzle |
+| `pnpm db:migrate` | Aplicar migraciones |
+| `pnpm db:push` | Push schema a DB (solo desarrollo) |
+| `pnpm db:studio` | Abrir Drizzle Studio |
 
-## Cursor AI Setup
+---
 
-Cursor rules, agents, and skills are preconfigured in `.cursor/`:
+## 🔧 Configuración
 
-- **Rules** (11): always-on guardrails for coding standards, architecture, security, and more
-- **Agents** (7): specialized roles (`technical-lead`, `frontend`, `backend`, `test-qa`, `business-analyst`, `code-reviewer`, `security-researcher`)
-- **Skills** (5): `/discover-feature`, `/build-feature`, `/create-api-route`, `/review-branch`, `/security-audit`
+### Variables de entorno
 
-### Initial Setup (once per project)
-
-**1. Install mcp-memory-service** (if not already installed):
+Copia `.env.example` a `.env.local` y completa los valores:
 
 ```bash
-# macOS
-brew install pipx && pipx ensurepath
-pipx install mcp-memory-service
-
-# Linux / Windows
-pip install pipx
-pipx install mcp-memory-service
+cp .env.example .env.local
 ```
 
-> **macOS note:** If you see `SQLite extension loading not supported`, run:
-> `pipx install mcp-memory-service --python $(brew --prefix python@3.12)/bin/python3.12`
+Variables requeridas:
 
-**2. Populate MCP memory** so agents load context efficiently:
+| Variable | Descripción |
+|----------|-------------|
+| `NEXT_PUBLIC_SUPABASE_URL` | URL del proyecto Supabase |
+| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Clave pública de Supabase |
+| `DATABASE_URL` | URL de conexión PostgreSQL |
+| `SUPABASE_SERVICE_ROLE_KEY` | Clave service role (solo servidor; alta de usuarios en `/admin/users`) |
+| `DOCUMENT_UPLOAD_MAX_MB` | (Opcional) Tamaño máximo de subida en MB; por defecto 25 |
 
-```
-/memory sync
-```
+### Configuración de Supabase
 
-This parses `.cursor/memory/architecture-snapshot.md` into semantic memory. Agents query only what they need instead of reading the full file.
+1. Crea un proyecto en [supabase.com](https://supabase.com)
+2. Habilita **Auth** > Authentication > Providers > Email
+3. **Desactiva el registro público** (p. ej. *Disable sign ups* / impedir que cualquiera cree cuenta con el endpoint público). Las cuentas deben crearse desde el panel de administración de la app (`/admin/users`) o por procedimiento operativo acordado con la IPS.
+4. Añade `SUPABASE_SERVICE_ROLE_KEY` en `.env.local` (solo servidor; nunca en el cliente ni en variables `NEXT_PUBLIC_*`). Es necesaria para que un administrador pueda crear usuarios desde la aplicación.
+5. **Primer administrador:** crea el usuario en Supabase (Auth) y asegúrate de tener filas coherentes en `profiles` y `user_roles` con rol `admin` (o usa el flujo de `/admin/users` si ya existe otro admin).
+6. Tras `pnpm db:migrate`, ejecuta en el SQL Editor de Supabase (en este orden): migraciones ya aplicadas, luego [docs/sql/seed-categories.sql](docs/sql/seed-categories.sql) para categorías iniciales, y [docs/sql/storage-documents-bucket.sql](docs/sql/storage-documents-bucket.sql) para el bucket privado `documents` y sus políticas de Storage.
+7. Copia las credenciales a `.env.local`
 
 ---
 
-### New Feature Workflow
+## 🧪 Testing
 
-Everything runs in **Agent mode**. Only two prompts across two conversations.
+```bash
+# Tests unitarios
+pnpm test
 
-#### Conversation 1 — Requirements
+# Tests con cobertura
+pnpm test:coverage
 
-**Prompt:**
+# Tests E2E (requiere que el servidor esté corriendo)
+pnpm test:e2e
 ```
-/discover-feature <describe your feature in plain language>
-```
 
-**What happens:**
-1. Loads existing features from MCP memory to identify relationships
-2. Asks you 9 discovery questions (problem, user flows, edge cases, access rules, etc.)
-3. Confirms understanding with you before writing anything
-4. Writes the functional issue to `.requirements/<feature-name>.md`
-5. Stores the requirement in MCP memory
+### Coverage thresholds
 
-**Output:** `.requirements/<feature-name>.md` with user story, acceptance criteria, and functional test cases.
-
-> Start a new conversation before the next step.
+- Statements: 95%
+- Functions: 95%
+- Lines: 95%
+- Branches: 90%
 
 ---
 
-#### Conversation 2 — Build (fresh conversation)
+## 📖 Documentación adicional
 
-**Prompt:**
-```
-/build-feature @.requirements/<feature-name>.md
-```
-
-**What happens (automated, step by step):**
-
-| Step | What it does |
-|------|-------------|
-| 1. Read spec | Reads `.requirements/<feature-name>.md` |
-| 2. Load context | Queries MCP memory for schema, features, patterns, rules (targeted — no full file read) |
-| 3. **Plan** | Tech-lead role: maps acceptance criteria to tasks, plans test structure, identifies reusable patterns → **asks your approval before coding** |
-| 4. Feature structure | Creates `src/features/<name>/` directory layout |
-| 5. Pre-test setup | Updates `vitest.config.ts` exclusions |
-| 6. TDD RED | Writes all test files. Runs `pnpm test:unit` → must FAIL |
-| 7. TDD GREEN | Runs `@backend` + `@frontend` in parallel. Runs `pnpm test:unit` → must PASS |
-| 8. Refactor | Cleans up while keeping tests green |
-| 9. Verify | Runs `pnpm test:coverage` + `pnpm lint` + `pnpm typecheck` in single pass |
-| 10. Review gate | Runs `@code-reviewer` + `@security-researcher` in parallel |
-| 11. Memory sync | Updates architecture snapshot + runs `/memory sync` |
-
-**Output:** Fully implemented, tested, reviewed feature. Memory updated for the next session.
+| Archivo | Descripción |
+|---------|-------------|
+| [docs/problema.md](./docs/problema.md) | Planteamiento del problema |
+| [docs/contexto_operacional.md](./docs/contexto_operacional.md) | Contexto operacional |
+| [.requirements/README.md](./.requirements/README.md) | Guía de requerimientos |
+| [.requirements/auth.md](./.requirements/auth.md) | Requerimientos de autenticación |
+| [.requirements/use-cases.md](./.requirements/use-cases.md) | Casos de uso |
+| [.requirements/requerimiento_funcional.md](./.requirements/requerimiento_funcional.md) | Requerimientos funcionales |
+| [.requirements/non-functional.md](./.requirements/non-functional.md) | Requerimientos no funcionales |
+| [.opencode/memory/architecture-snapshot.md](./.opencode/memory/architecture-snapshot.md) | Snapshot de arquitectura |
 
 ---
 
-### Example: Hiring Candidates Feature
+## 🤝 Guía de contribución
 
-A real end-to-end walkthrough using the two-conversation workflow.
-
-#### Conversation 1 — Requirements
-
-**Prompt (Agent mode):**
-```
-/discover-feature Gestión de candidatos de contratación.
-
-Vista principal: tabla de candidatos con columnas nombre e identificación (la
-identificación es única por candidato).
-Comportamiento maestro-detalle: al seleccionar una fila de la tabla, mostrar en
-un panel lateral derecho todos los soportes (documentos adjuntos) que pertenecen
-al candidato seleccionado.
-Encima de la tabla, un botón "Agregar candidato" que abre un formulario con los
-campos nombre e identificación. El número de identificación no puede repetirse.
-Toda la UI en español.
-```
-
-> **Why this prompt works well:**
-> - One concern per line — table, selection behavior, side panel, add form, uniqueness rule
-> - Names the UI pattern ("maestro-detalle") so the agent picks the right shadcn components (`ResizablePanelGroup`)
-> - Clarifies "soportes" = documentos adjuntos — no ambiguity
-> - States uniqueness constraint explicitly (becomes a DB unique index + validation rule)
-> - Declares language upfront — no back-and-forth later
-
-**What happens:** The BI agent asks clarifying questions (upload limits? who can add candidates? pagination?), then writes `.requirements/hiring-candidates.md`.
-
-**Output:**
-```
-.requirements/hiring-candidates.md
-├── User Story
-├── Acceptance Criteria (AC1–AC6)
-└── Functional Test Cases (TC1–TC8)
-```
-
-> Start a new conversation before the next step.
+1. **Nueva feature**: Usa `/discover-feature` para definir requerimientos primero
+2. **Workflow de 2 conversaciones**:
+   - Conversación 1: Discovery con `/discover-feature`
+   - Conversación 2: Implementación con `/build-feature`
+3. **Tests primero**: Escribe los tests antes de implementar
+4. **Coverage**: Mantén el coverageabove los thresholds
+5. **RLS**: Siempre implementa RLS cuando crees nuevas tablas
 
 ---
 
-#### Conversation 2 — Build
+## 📝 Licencia
 
-**Prompt (Agent mode):**
-```
-/build-feature @.requirements/hiring-candidates.md
-```
-
-**What the automated pipeline produces:**
-
-```
-src/features/hiring-candidates/
-├── components/
-│   ├── candidates-table.tsx         # Table with row selection
-│   ├── candidate-detail-panel.tsx   # Right panel — soportes list
-│   ├── add-candidate-dialog.tsx     # Dialog with name + ID form
-│   └── __tests__/
-│       ├── candidates-table.test.tsx
-│       ├── candidate-detail-panel.test.tsx
-│       └── add-candidate-dialog.test.tsx
-├── actions/
-│   ├── candidates.action.ts         # createCandidate Server Action
-│   └── __tests__/
-│       └── candidates.action.test.ts
-└── queries/
-    ├── candidates.queries.ts        # getCandidates, getSoportes
-    └── __tests__/
-        └── candidates.queries.test.ts
-```
-
-**Planning output (step 3 — shown before coding starts):**
-
-> Backend: new `candidates` table (name, identification UNIQUE), new `soportes` table (candidateId FK), RLS policies, Server Action for createCandidate with Zod validation.
-> Frontend: ResizablePanelGroup layout, CandidatesTable with row selection state, CandidateDetailPanel, AddCandidateDialog with React Hook Form + zodResolver.
-> Tests: 8 unit tests covering unauthenticated, duplicate ID, DB error, happy path for action; RTL tests for each component.
-> Approve to proceed?
-
-**Final output:** Fully tested feature, 0 lint warnings, review gate passed, architecture snapshot updated.
-
----
-
-### Other Workflows
-
-#### Bug Fix (Agent mode)
-
-```
-@test-qa Reproduce this bug: <describe what's broken and where>
-```
-→ Produces a failing test, then:
-```
-@backend Fix the failing test in <file>
-```
-or `@frontend` for UI bugs, then:
-```
-@code-reviewer Review the changes in src/features/<feature>/
-```
-
-#### Refactor (Agent mode)
-
-```
-@technical-lead Plan refactor for <scope/reason>
-```
-→ Plan output, then:
-```
-@backend Implement the refactor plan
-```
-Then verify + review:
-```
-@test-qa Verify all tests still pass
-@code-reviewer Review the refactor changes
-```
-
-#### Find Context Fast (any mode)
-
-```
-/memory recall "form validation patterns"
-/memory recall "existing auth tables"
-/memory recall "how are errors handled in actions"
-```
-
----
-
-### Quick Reference
-
-| Task | Mode | Prompt |
-|------|------|--------|
-| Define requirements | Agent | `/discover-feature <description>` |
-| Implement feature | Agent | `/build-feature @.requirements/<name>.md` |
-| Sync memory after changes | Agent | `/memory sync` |
-| Search project knowledge | Any | `/memory recall "query"` |
-| Create API route | Agent | `/create-api-route` |
-| Review a branch or PR | Agent | `/review-branch` |
-| Security audit | Agent | `/security-audit` |
-| Reproduce a bug | Agent | `@test-qa Reproduce: <description>` |
-| Plan an architectural change | Agent | `@technical-lead Plan: <description>` |
+Privado — IPS Salud Integral

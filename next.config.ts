@@ -29,6 +29,8 @@ const nextConfig: NextConfig = {
             "img-src 'self' data: blob: https:",
             "font-src 'self'",
             "connect-src 'self' https://*.supabase.co wss://*.supabase.co",
+            // Signed Storage URLs are loaded in <iframe> on document detail
+            "frame-src 'self' https://*.supabase.co",
           ].join("; "),
         },
       ],

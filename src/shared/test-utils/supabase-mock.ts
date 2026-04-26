@@ -29,7 +29,7 @@ export function makeChain(resolvedValue: unknown): Chain {
   for (const method of methods) {
     chain[method] = vi.fn().mockReturnValue(chain);
   }
-  chain["then"] = vi.fn((cb: (v: unknown) => unknown) => cb(resolvedValue));
+  chain.then = vi.fn((cb: (v: unknown) => unknown) => cb(resolvedValue));
   return chain;
 }
 
