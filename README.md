@@ -224,6 +224,6 @@ pnpm test:e2e
 ---
 ## 📝 Licencia
 
-Privado — IPS Salud Integral
+Privado — IPS Salud Integral (esto debe definirse)
 
 ---
