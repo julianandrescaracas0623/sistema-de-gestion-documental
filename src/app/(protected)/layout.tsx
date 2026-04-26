@@ -19,6 +19,7 @@ export default async function ProtectedLayout({
 
   if (user === null) {
     redirect("/login");
+    return null;
   }
 
   const role = await getRoleForUser(user.id);

@@ -21,7 +21,6 @@ vi.mock("next/navigation", () => ({
 describe("HomePage (protected)", () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    mockRedirect.mockImplementation(() => { throw new Error("NEXT_REDIRECT"); });
     mockGetRoleForUser.mockResolvedValue("user");
   });
 
@@ -30,8 +29,10 @@ describe("HomePage (protected)", () => {
     mockGetUser.mockResolvedValue({ data: { user: null } });
     const { default: HomePage } = await import("../(protected)/page");
 
-    // Act + Assert
-    await expect(HomePage()).rejects.toThrow("NEXT_REDIRECT");
+    // Act
+    await HomePage();
+
+    // Assert
     expect(mockRedirect).toHaveBeenCalledWith("/login");
   }, 10000);
 

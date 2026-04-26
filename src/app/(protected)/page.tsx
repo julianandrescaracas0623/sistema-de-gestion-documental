@@ -27,7 +27,10 @@ export default async function HomePage() {
   const {
     data: { user },
   } = await supabase.auth.getUser();
-  if (user === null) redirect("/login");
+  if (user === null) {
+    redirect("/login");
+    return null;
+  }
 
   const role = await getRoleForUser(user.id);
 
