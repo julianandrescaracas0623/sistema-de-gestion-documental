@@ -31,7 +31,7 @@ Más detalles en [docs/problema.md](./docs/problema.md).
 
 ---
 
-## 🛠️ Tecnologías
+## 🛠️ Tecnologías estas tecnologias deben incluirse en el documento 
 
 - ⚛️ React 19
 - ⚡ Next.js 16
@@ -44,7 +44,7 @@ Más detalles en [docs/problema.md](./docs/problema.md).
 
 ---
 
-## 📦 Funcionalidades principales
+## 📦 Funcionalidades principales (ignorar esto) 
 
 - [x] Autenticación de usuarios (login/logout)
 - [x] Alta de usuarios y roles solo para administrador (`/admin/users`, sin registro público en la app)
@@ -175,7 +175,7 @@ Copia `.env.example` a `.env.local` y completa los valores:
 cp .env.example .env.local
 ```
 
-Variables requeridas:
+Variables de entorno requeridas:
 
 | Variable | Descripción |
 |----------|-------------|
@@ -185,17 +185,6 @@ Variables requeridas:
 | `SUPABASE_SERVICE_ROLE_KEY` | Clave service role (solo servidor; alta de usuarios en `/admin/users`) |
 | `DOCUMENT_UPLOAD_MAX_MB` | (Opcional) Tamaño máximo de subida en MB; por defecto 25 |
 
-### Configuración de Supabase
-
-1. Crea un proyecto en [supabase.com](https://supabase.com)
-2. Habilita **Auth** > Authentication > Providers > Email
-3. **Desactiva el registro público** (p. ej. *Disable sign ups* / impedir que cualquiera cree cuenta con el endpoint público). Las cuentas deben crearse desde el panel de administración de la app (`/admin/users`) o por procedimiento operativo acordado con la IPS.
-4. Añade `SUPABASE_SERVICE_ROLE_KEY` en `.env.local` (solo servidor; nunca en el cliente ni en variables `NEXT_PUBLIC_*`). Es necesaria para que un administrador pueda crear usuarios desde la aplicación.
-5. **Primer administrador:** crea el usuario en Supabase (Auth) y asegúrate de tener filas coherentes en `profiles` y `user_roles` con rol `admin` (o usa el flujo de `/admin/users` si ya existe otro admin).
-6. Tras `pnpm db:migrate`, ejecuta en el SQL Editor de Supabase (en este orden): migraciones ya aplicadas, luego [docs/sql/seed-categories.sql](docs/sql/seed-categories.sql) para categorías iniciales, y [docs/sql/storage-documents-bucket.sql](docs/sql/storage-documents-bucket.sql) para el bucket privado `documents` y sus políticas de Storage.
-7. Copia las credenciales a `.env.local`
-
----
 
 ## 🧪 Testing
 
@@ -233,19 +222,8 @@ pnpm test:e2e
 | [.opencode/memory/architecture-snapshot.md](./.opencode/memory/architecture-snapshot.md) | Snapshot de arquitectura |
 
 ---
-
-## 🤝 Guía de contribución
-
-1. **Nueva feature**: Usa `/discover-feature` para definir requerimientos primero
-2. **Workflow de 2 conversaciones**:
-   - Conversación 1: Discovery con `/discover-feature`
-   - Conversación 2: Implementación con `/build-feature`
-3. **Tests primero**: Escribe los tests antes de implementar
-4. **Coverage**: Mantén el coverageabove los thresholds
-5. **RLS**: Siempre implementa RLS cuando crees nuevas tablas
-
----
-
 ## 📝 Licencia
 
 Privado — IPS Salud Integral
+
+---
