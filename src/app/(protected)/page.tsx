@@ -9,6 +9,7 @@ import {
 import Link from "next/link";
 import { redirect } from "next/navigation";
 
+import { countDocuments, listRecentDocuments } from "@/features/documents/queries/documents.queries";
 import { Avatar, AvatarFallback } from "@/shared/components/ui/avatar";
 import { Badge } from "@/shared/components/ui/badge";
 import {
@@ -32,7 +33,7 @@ export default async function HomePage() {
     return null;
   }
 
-  const role = await getRoleForUser(user.id);
+  const role = await getRoleForUser(supabase, user.id);
 
   const emailRaw: string | null = user.email as string | null;
   let emailLocalPart: string | null = null;
@@ -45,6 +46,12 @@ export default async function HomePage() {
   const metadata = user.user_metadata as Record<string, string | null> | null;
   const firstNameMetadata = metadata != null ? metadata.first_name ?? null : null;
   const firstName = firstNameMetadata ?? emailLocalPart ?? "Usuario";
+
+  // Fetch document stats
+  const [{ count: totalDocuments }, { data: recentDocuments }] = await Promise.all([
+    countDocuments(supabase),
+    listRecentDocuments(supabase, 5),
+  ]);
 
   return (
     <main className="min-h-screen bg-muted/20 px-4 py-8">
@@ -78,10 +85,10 @@ export default async function HomePage() {
         </section>
 
         <section className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          <Card className="shadow-sm">
+          <Card className="shadow-sm bg-[rgba(0,0,1,0)]">
             <CardHeader className="pb-2">
               <CardDescription>Documentos</CardDescription>
-              <CardTitle className="text-3xl">—</CardTitle>
+              <CardTitle className="text-3xl">{totalDocuments ?? "—"}</CardTitle>
             </CardHeader>
             <CardContent className="flex items-center gap-2 text-xs text-muted-foreground">
               <Files className="size-4 text-primary" />
@@ -91,11 +98,24 @@ export default async function HomePage() {
           <Card className="shadow-sm">
             <CardHeader className="pb-2">
               <CardDescription>Recientes</CardDescription>
-              <CardTitle className="text-3xl">—</CardTitle>
+              <CardTitle className="text-2xl">{recentDocuments?.length ?? 0}</CardTitle>
             </CardHeader>
-            <CardContent className="flex items-center gap-2 text-xs text-muted-foreground">
-              <Clock className="size-4 text-secondary" />
-              Actividad en las ultimas horas
+            <CardContent className="flex flex-col gap-1 text-xs text-muted-foreground">
+              <div className="flex items-center gap-2">
+                <Clock className="size-4 text-secondary" />
+                Últimos documentos subidos
+              </div>
+              {recentDocuments !== null && recentDocuments.length > 0 ? (
+                <ul className="mt-2 space-y-1">
+                  {recentDocuments.slice(0, 3).map((doc) => (
+                    <li key={doc.id} className="truncate text-muted-foreground">
+                      {doc.title}
+                    </li>
+                  ))}
+                </ul>
+              ) : (
+                <span className="text-muted-foreground/60">Sin documentos recientes</span>
+              )}
             </CardContent>
           </Card>
           <Card className="shadow-sm sm:col-span-2 lg:col-span-1">

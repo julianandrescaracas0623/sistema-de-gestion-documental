@@ -22,7 +22,7 @@ export default async function ProtectedLayout({
     return null;
   }
 
-  const role = await getRoleForUser(user.id);
+  const role = await getRoleForUser(supabase, user.id);
   const email = user.email ?? "usuario@ips.com";
 
   return (

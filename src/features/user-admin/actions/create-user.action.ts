@@ -54,7 +54,7 @@ export async function createUserByAdminAction(
     return { status: "error", message: "Debes iniciar sesión como administrador." };
   }
 
-  const adminRole = await getRoleForUser(adminUser.id);
+  const adminRole = await getRoleForUser(supabase, adminUser.id);
   if (adminRole !== "admin") {
     return { status: "error", message: "No tienes permiso para crear usuarios." };
   }

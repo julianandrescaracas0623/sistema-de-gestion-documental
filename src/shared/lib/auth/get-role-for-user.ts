@@ -1,15 +1,24 @@
-import { eq } from "drizzle-orm";
+import type { SupabaseServer } from "@/features/documents/queries/documents.queries";
+import { ROLE_NAMES, type RoleName } from "@/shared/db/user_roles.schema";
 
-import { db } from "@/shared/db";
-import { userRoles, type RoleName } from "@/shared/db/user_roles.schema";
+function isRoleName(value: unknown): value is RoleName {
+  return typeof value === "string" && (ROLE_NAMES as readonly string[]).includes(value);
+}
 
-export async function getRoleForUser(userId: string): Promise<RoleName | null> {
-  const rows = await db
-    .select({ role: userRoles.role })
-    .from(userRoles)
-    .where(eq(userRoles.userId, userId))
-    .limit(1);
+export async function getRoleForUser(
+  supabase: SupabaseServer,
+  userId: string
+): Promise<RoleName | null> {
+  const { data, error } = await supabase
+    .from("user_roles")
+    .select("role")
+    .eq("user_id", userId)
+    .limit(1)
+    .maybeSingle();
 
-  const role = rows[0]?.role;
-  return role ?? null;
+  if (error !== null || data === null || !isRoleName(data.role)) {
+    return null;
+  }
+
+  return data.role;
 }

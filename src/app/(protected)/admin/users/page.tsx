@@ -15,7 +15,7 @@ export default async function AdminUsersPage() {
     redirect("/login");
   }
 
-  const role = await getRoleForUser(user.id);
+  const role = await getRoleForUser(supabase, user.id);
   if (role !== "admin") {
     redirect("/");
   }

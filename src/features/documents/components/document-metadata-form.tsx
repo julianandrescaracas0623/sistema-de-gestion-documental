@@ -1,6 +1,7 @@
 "use client";
 
 import { useActionState, useEffect } from "react";
+import type { ReactNode } from "react";
 import { toast } from "sonner";
 
 import { updateDocumentMetadataAction } from "@/features/documents/actions/update-document-metadata.action";
@@ -30,9 +31,11 @@ function tagsToInput(doc: DocumentDetailRow): string {
 export function DocumentMetadataForm({
   document,
   categories,
+  secondaryAction,
 }: {
   document: DocumentDetailRow;
   categories: CategoryRow[];
+  secondaryAction?: ReactNode;
 }) {
   const [state, formAction, isPending] = useActionState(updateDocumentMetadataAction, null);
 
@@ -48,7 +51,7 @@ export function DocumentMetadataForm({
   }, [state]);
 
   return (
-    <form action={formAction} className="space-y-4 rounded-lg border border-border p-4">
+    <form action={formAction} className="space-y-4">
       <input type="hidden" name="documentId" value={document.id} />
       <div className="space-y-2">
         <Label htmlFor="title">Título</Label>
@@ -86,9 +89,12 @@ export function DocumentMetadataForm({
         <Label htmlFor="tags">Etiquetas</Label>
         <Input id="tags" name="tags" defaultValue={tagsToInput(document)} disabled={isPending} placeholder="Separadas por coma" />
       </div>
-      <Button type="submit" variant="secondary" disabled={isPending}>
-        {isPending ? "Guardando…" : "Guardar cambios"}
-      </Button>
+      <div className="flex flex-wrap items-center gap-2">
+        <Button type="submit" variant="secondary" disabled={isPending}>
+          {isPending ? "Guardando…" : "Guardar cambios"}
+        </Button>
+        {secondaryAction ?? null}
+      </div>
     </form>
   );
 }

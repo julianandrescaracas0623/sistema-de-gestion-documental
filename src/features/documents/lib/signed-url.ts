@@ -6,9 +6,10 @@ export async function createSignedDocumentUrl(
   storageObjectPath: string,
   options?: { downloadFileName?: string }
 ): Promise<{ url: string | null; error: Error | null }> {
+  const signedUrlExpiresInSeconds = 60 * 15;
   const { data, error } = await supabase.storage
     .from(DOCUMENTS_STORAGE_BUCKET)
-    .createSignedUrl(storageObjectPath, 120, {
+    .createSignedUrl(storageObjectPath, signedUrlExpiresInSeconds, {
       ...(options?.downloadFileName !== undefined
         ? { download: options.downloadFileName }
         : {}),

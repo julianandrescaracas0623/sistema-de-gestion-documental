@@ -93,6 +93,35 @@ export async function listTagsForFilter(supabase: SupabaseServer): Promise<{
   return { data, error: null };
 }
 
+export async function countDocuments(supabase: SupabaseServer): Promise<{ count: number | null; error: Error | null }> {
+  const { count, error } = await supabase
+    .from("documents")
+    .select("*", { count: "exact", head: true })
+    .is("deleted_at", null);
+
+  if (error !== null) {
+    return { count: null, error: new Error(error.message) };
+  }
+  return { count, error: null };
+}
+
+export async function listRecentDocuments(
+  supabase: SupabaseServer,
+  limit = 5
+): Promise<{ data: DocumentListRow[] | null; error: Error | null }> {
+  const { data, error } = await supabase
+    .from("documents")
+    .select(listSelect)
+    .is("deleted_at", null)
+    .order("created_at", { ascending: false })
+    .limit(limit);
+
+  if (error !== null) {
+    return { data: null, error: new Error(error.message) };
+  }
+  return { data: data as unknown as DocumentListRow[], error: null };
+}
+
 export async function getDocumentById(
   supabase: SupabaseServer,
   id: string
