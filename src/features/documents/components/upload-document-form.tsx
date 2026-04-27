@@ -66,6 +66,19 @@ export function UploadDocumentForm({ categories }: { categories: CategoryRow[] }
             </select>
           </div>
           <div className="space-y-2">
+            <Label htmlFor="categoryName">Nueva categoría (opcional)</Label>
+            <Input
+              id="categoryName"
+              name="categoryName"
+              disabled={isPending}
+              maxLength={120}
+              placeholder="Escribe para crear una categoría nueva"
+            />
+            <p className="text-xs text-muted-foreground">
+              Si escribes una categoría aquí, tendrá prioridad sobre la seleccionada.
+            </p>
+          </div>
+          <div className="space-y-2">
             <Label htmlFor="tags">Etiquetas (opcional)</Label>
             <Input
               id="tags"

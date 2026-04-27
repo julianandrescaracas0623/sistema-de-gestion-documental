@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
 
+import { resolveCategoryId } from "@/features/documents/lib/resolve-category-id";
 import { parseTagInput } from "@/features/documents/lib/tag-utils";
 import type { ActionResult } from "@/shared/lib/action-result";
 import { formFieldText } from "@/shared/lib/form-utils";
@@ -23,6 +24,7 @@ const schema = z.object({
     (v) => (v === "" || v === null || v === undefined ? undefined : v),
     z.string().uuid().optional()
   ),
+  categoryName: z.string().trim().max(120, "La categoría es demasiado larga.").optional(),
   tagsRaw: z.string().max(2000).optional(),
 });
 
@@ -41,6 +43,7 @@ export async function updateDocumentMetadataAction(_prev: unknown, formData: For
     title: formFieldText(formData, "title"),
     description: formFieldText(formData, "description"),
     categoryId: formFieldText(formData, "categoryId"),
+    categoryName: formFieldText(formData, "categoryName"),
     tagsRaw: formFieldText(formData, "tags"),
   });
 
@@ -49,7 +52,7 @@ export async function updateDocumentMetadataAction(_prev: unknown, formData: For
     return { status: "error", message: msg };
   }
 
-  const { documentId, title, description, categoryId, tagsRaw } = parsed.data;
+  const { documentId, title, description, categoryId, categoryName, tagsRaw } = parsed.data;
 
   const { data: existing, error: fetchErr } = await supabase
     .from("documents")
@@ -75,12 +78,21 @@ export async function updateDocumentMetadataAction(_prev: unknown, formData: For
   const descriptionValue =
     description === undefined || description === "" ? null : description;
 
+  const { categoryId: resolvedCategoryId, error: categoryError } = await resolveCategoryId(
+    supabase,
+    categoryId,
+    categoryName
+  );
+  if (categoryError !== null) {
+    return { status: "error", message: categoryError };
+  }
+
   const { error: updErr } = await supabase
     .from("documents")
     .update({
       title,
       description: descriptionValue,
-      category_id: categoryId ?? null,
+      category_id: resolvedCategoryId,
       updated_at: new Date().toISOString(),
     })
     .eq("id", documentId);

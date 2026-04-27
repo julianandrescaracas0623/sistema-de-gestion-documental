@@ -86,6 +86,19 @@ export function DocumentMetadataForm({
         </select>
       </div>
       <div className="space-y-2">
+        <Label htmlFor="categoryName">Nueva categoría (opcional)</Label>
+        <Input
+          id="categoryName"
+          name="categoryName"
+          maxLength={120}
+          disabled={isPending}
+          placeholder="Escribe para crear una categoría nueva"
+        />
+        <p className="text-xs text-muted-foreground">
+          Si escribes una categoría aquí, tendrá prioridad sobre la seleccionada.
+        </p>
+      </div>
+      <div className="space-y-2">
         <Label htmlFor="tags">Etiquetas</Label>
         <Input id="tags" name="tags" defaultValue={tagsToInput(document)} disabled={isPending} placeholder="Separadas por coma" />
       </div>
