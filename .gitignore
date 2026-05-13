@@ -3,12 +3,15 @@ node_modules/
 .pnp
 .pnp.js
 
+
+
 # Next.js
 .next/
 out/
 build/
 
 # Env — NEVER commit real keys
+.env
 .env.local
 .env.*.local
 # .env.example is committed intentionally
