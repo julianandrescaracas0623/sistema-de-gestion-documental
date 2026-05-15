@@ -20,6 +20,10 @@ vi.mock("@/shared/lib/auth/get-role-for-user", () => ({
   getRoleForUser: (...args: unknown[]): unknown => mockGetRoleForUser(...args),
 }));
 
+vi.mock("@/shared/components/ips-app-shell", () => ({
+  IpsAppShell: ({ children }: { children: React.ReactNode }) => <div data-testid="ips-shell">{children}</div>,
+}));
+
 describe("ProtectedLayout", () => {
   beforeEach(() => {
     vi.clearAllMocks();

@@ -14,6 +14,11 @@ vi.mock("@/shared/lib/auth/get-role-for-user", () => ({
   getRoleForUser: (...args: unknown[]): unknown => mockGetRoleForUser(...args),
 }));
 
+vi.mock("@/features/documents/queries/documents.queries", () => ({
+  countDocuments: vi.fn(() => Promise.resolve({ count: 0, error: null })),
+  listRecentDocuments: vi.fn(() => Promise.resolve({ data: [], error: null })),
+}));
+
 vi.mock("next/navigation", () => ({
   redirect: (url: string): unknown => mockRedirect(url),
 }));

@@ -50,11 +50,17 @@ export default async function DocumentDetailPage({ params }: { params: Promise<{
 
   if (error !== null) {
     return (
-      <main className="container mx-auto max-w-3xl p-8">
-        <p className="text-destructive" role="alert">
-          Error al cargar: {error.message}
-        </p>
-      </main>
+      <div className="flex min-h-0 flex-1 flex-col">
+        <header className="bg-card shrink-0 border-b px-7 py-4">
+          <p className="text-muted-foreground text-xs tracking-wide">Documentos</p>
+          <h1 className="text-lg font-semibold tracking-tight text-foreground">Detalle</h1>
+        </header>
+        <div className="mx-auto w-full max-w-5xl flex-1 px-7 py-7">
+          <p className="text-destructive" role="alert">
+            Error al cargar: {error.message}
+          </p>
+        </div>
+      </div>
     );
   }
   if (doc === null) {
@@ -80,9 +86,15 @@ export default async function DocumentDetailPage({ params }: { params: Promise<{
     .filter((n): n is string => n !== null && n !== "");
 
   return (
-    <main className="min-h-screen bg-muted/20 px-4 py-8">
-      <div className="mx-auto flex w-full max-w-5xl flex-col gap-6">
-        <header className="flex flex-wrap items-center justify-between gap-3 rounded-xl border bg-card/95 px-5 py-4 shadow-sm">
+    <div className="flex min-h-0 flex-1 flex-col">
+      <header className="bg-card flex shrink-0 flex-wrap items-center justify-between gap-3 border-b px-7 py-4">
+        <div>
+          <p className="text-muted-foreground text-xs tracking-wide">
+            Inicio <span className="opacity-50">/</span> Documentos <span className="opacity-50">/</span> Detalle
+          </p>
+          <h1 className="text-lg font-semibold tracking-tight text-foreground">Documento</h1>
+        </div>
+        <div className="flex flex-wrap items-center gap-2">
           <Button variant="ghost" size="sm" asChild>
             <Link href="/documents">← Volver</Link>
           </Button>
@@ -94,8 +106,10 @@ export default async function DocumentDetailPage({ params }: { params: Promise<{
               </a>
             </Button>
           ) : null}
-        </header>
+        </div>
+      </header>
 
+      <div className="mx-auto flex w-full max-w-5xl flex-1 flex-col gap-6 px-7 py-7">
         <Card>
           <CardHeader className="gap-2">
             <div className="flex flex-wrap items-center gap-2">
@@ -197,6 +211,6 @@ export default async function DocumentDetailPage({ params }: { params: Promise<{
           </>
         ) : null}
       </div>
-    </main>
+    </div>
   );
 }

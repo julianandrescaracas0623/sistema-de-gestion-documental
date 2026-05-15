@@ -1,26 +1,40 @@
 @import "tailwindcss";
 
 @theme {
-  --color-background: #ffffff;
-  --color-foreground: #0f172a;
-  --color-primary: #1d4ed8;
+  /* IPS mockup: surfaces & text */
+  --color-background: #f7f8fa;
+  --color-foreground: #111827;
+  --color-card: #ffffff;
+  --color-card-foreground: #111827;
+  --color-popover: #ffffff;
+  --color-popover-foreground: #111827;
+  /* Primary = teal */
+  --color-primary: #0b8fc9;
   --color-primary-foreground: #ffffff;
-  --color-secondary: #3b82f6;
-  --color-secondary-foreground: #ffffff;
-  --color-muted: #eff6ff;
-  --color-muted-foreground: #475569;
-  --color-accent: #2563eb;
-  --color-accent-foreground: #ffffff;
-  --color-destructive: hsl(0 84.2% 60.2%);
+  /* Secondary = neutral surface (mockup btn-secondary) */
+  --color-secondary: #f0f2f5;
+  --color-secondary-foreground: #4b5563;
+  --color-muted: #f0f2f5;
+  --color-muted-foreground: #4b5563;
+  --color-accent: #e8f6fd;
+  --color-accent-foreground: #0369a1;
+  --color-destructive: #dc2626;
   --color-destructive-foreground: #ffffff;
-  --color-success: hsl(142 71% 45%);
+  --color-success: hsl(142 71% 36%);
   --color-success-foreground: #ffffff;
-  --color-warning: hsl(38 92% 50%);
+  --color-warning: #d97706;
   --color-warning-foreground: #ffffff;
-  --color-info: hsl(199 89% 48%);
+  --color-info: #0b8fc9;
   --color-info-foreground: #ffffff;
-  --color-border: #dbeafe;
-  --color-input: #dbeafe;
-  --color-ring: #2563eb;
-  --radius: 0.5rem;
+  --color-border: #e2e6ec;
+  --color-input: #e2e6ec;
+  --color-ring: #0b8fc9;
+  /* App shell (sidebar) */
+  --color-sidebar: #1a2744;
+  --color-sidebar-foreground: #ffffff;
+  --color-sidebar-muted: rgb(255 255 255 / 0.45);
+  --color-sidebar-accent: rgb(11 143 201 / 0.25);
+  --color-sidebar-accent-foreground: #7dd3f7;
+  --color-sidebar-border: rgb(255 255 255 / 0.08);
+  --radius: 0.625rem;
 }

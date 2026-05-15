@@ -1,7 +1,14 @@
 import type { Metadata } from "next";
+import { DM_Sans } from "next/font/google";
 
 import "./globals.css";
 import { Providers } from "@/shared/components/providers";
+
+const dmSans = DM_Sans({
+  subsets: ["latin"],
+  weight: ["400", "500", "600", "700"],
+  display: "swap",
+});
 
 export const metadata: Metadata = {
   title: "IPS | Sistema de Gestion Documental",
@@ -14,8 +21,8 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en" suppressHydrationWarning>
-      <body suppressHydrationWarning>
+    <html lang="es" suppressHydrationWarning>
+      <body suppressHydrationWarning className={`${dmSans.className} antialiased`}>
         <Providers>{children}</Providers>
       </body>
     </html>

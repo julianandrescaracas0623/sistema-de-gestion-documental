@@ -60,11 +60,17 @@ export default async function DocumentsPage({ searchParams }: { searchParams: Pr
 
   if (listErr !== null) {
     return (
-      <main className="container mx-auto max-w-5xl p-8">
-        <p className="text-destructive" role="alert">
-          No se pudo cargar el listado: {listErr.message}
-        </p>
-      </main>
+      <div className="flex min-h-0 flex-1 flex-col">
+        <header className="bg-card shrink-0 border-b px-7 py-4">
+          <p className="text-muted-foreground text-xs tracking-wide">Documentos</p>
+          <h1 className="text-lg font-semibold tracking-tight text-foreground">Listado</h1>
+        </header>
+        <div className="mx-auto w-full max-w-6xl flex-1 px-7 py-7">
+          <p className="text-destructive" role="alert">
+            No se pudo cargar el listado: {listErr.message}
+          </p>
+        </div>
+      </div>
     );
   }
 
@@ -90,18 +96,21 @@ export default async function DocumentsPage({ searchParams }: { searchParams: Pr
   }
 
   return (
-    <main className="min-h-screen bg-muted/20 px-4 py-8">
-      <div className="mx-auto flex w-full max-w-6xl flex-col gap-6">
-        <header className="flex flex-wrap items-center justify-between gap-3 rounded-xl border bg-card/95 px-5 py-4 shadow-sm">
-          <div>
-            <h1 className="text-xl font-bold tracking-tight text-primary">Documentos</h1>
-            <p className="text-sm text-muted-foreground">Busca, filtra y abre tus archivos autorizados.</p>
-          </div>
-          <Button asChild>
-            <Link href="/documents/new">Subir documento</Link>
-          </Button>
-        </header>
+    <div className="flex min-h-0 flex-1 flex-col">
+      <header className="bg-card flex shrink-0 flex-wrap items-center justify-between gap-3 border-b px-7 py-4">
+        <div>
+          <p className="text-muted-foreground text-xs tracking-wide">
+            Inicio <span className="opacity-50">/</span> Documentos
+          </p>
+          <h1 className="text-lg font-semibold tracking-tight text-foreground">Documentos</h1>
+          <p className="text-muted-foreground mt-0.5 text-sm">Busca, filtra y abre tus archivos autorizados.</p>
+        </div>
+        <Button asChild>
+          <Link href="/documents/new">Subir documento</Link>
+        </Button>
+      </header>
 
+      <div className="mx-auto flex w-full max-w-6xl flex-1 flex-col gap-6 px-7 py-7">
         <Card>
           <CardHeader className="gap-2">
             <CardTitle className="flex items-center gap-2 text-base">
@@ -176,13 +185,23 @@ export default async function DocumentsPage({ searchParams }: { searchParams: Pr
           <CardContent className="px-0">
             <div className="overflow-x-auto">
               <table className="w-full text-left text-sm">
-                <thead className="bg-muted/40">
-                  <tr>
-                    <th className="px-6 py-3 font-medium">Título</th>
-                    <th className="px-6 py-3 font-medium">Categoría</th>
-                    <th className="px-6 py-3 font-medium">Tamaño</th>
-                    <th className="px-6 py-3 font-medium">Fecha</th>
-                    <th className="px-6 py-3 font-medium text-right">Acción</th>
+                <thead>
+                  <tr className="border-b">
+                    <th className="text-muted-foreground px-6 py-2.5 text-left text-[11.5px] font-semibold tracking-wide uppercase">
+                      Título
+                    </th>
+                    <th className="text-muted-foreground px-6 py-2.5 text-left text-[11.5px] font-semibold tracking-wide uppercase">
+                      Categoría
+                    </th>
+                    <th className="text-muted-foreground px-6 py-2.5 text-left text-[11.5px] font-semibold tracking-wide uppercase">
+                      Tamaño
+                    </th>
+                    <th className="text-muted-foreground px-6 py-2.5 text-left text-[11.5px] font-semibold tracking-wide uppercase">
+                      Fecha
+                    </th>
+                    <th className="text-muted-foreground px-6 py-2.5 text-right text-[11.5px] font-semibold tracking-wide uppercase">
+                      Acción
+                    </th>
                   </tr>
                 </thead>
                 <tbody>
@@ -197,7 +216,10 @@ export default async function DocumentsPage({ searchParams }: { searchParams: Pr
                     </tr>
                   ) : (
                     (rows ?? []).map((row) => (
-                      <tr key={row.id} className="border-t border-border/70 transition-colors hover:bg-muted/30">
+                      <tr
+                        key={row.id}
+                        className="border-border hover:bg-muted/50 border-b transition-colors last:border-b-0"
+                      >
                         <td className="px-6 py-4 font-medium">{row.title}</td>
                         <td className="px-6 py-4 text-muted-foreground">
                           {row.category?.name != null && row.category.name !== "" ? (
@@ -235,18 +257,18 @@ export default async function DocumentsPage({ searchParams }: { searchParams: Pr
             <div className="flex gap-2">
               {pageNum > 1 ? (
                 <Button variant="outline" size="sm" asChild>
-                  <Link href={buildQuery(pageNum - 1)}>Anterior</Link>
+                  <a href={buildQuery(pageNum - 1)}>Anterior</a>
                 </Button>
               ) : null}
               {pageNum < totalPages ? (
                 <Button variant="outline" size="sm" asChild>
-                  <Link href={buildQuery(pageNum + 1)}>Siguiente</Link>
+                  <a href={buildQuery(pageNum + 1)}>Siguiente</a>
                 </Button>
               ) : null}
             </div>
           </CardFooter>
         </Card>
       </div>
-    </main>
+    </div>
   );
 }
