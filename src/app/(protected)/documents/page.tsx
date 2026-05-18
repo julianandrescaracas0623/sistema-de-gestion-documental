@@ -157,12 +157,12 @@ export default async function DocumentsPage({ searchParams }: { searchParams: Pr
                   ))}
                 </select>
               </div>
-              <div className="flex items-end gap-2">
-                <Button type="submit" className="w-full sm:w-auto">
+              <div className="flex flex-wrap items-end gap-2">
+                <Button type="submit" className="flex-1 sm:flex-initial">
                   <Search className="size-4" />
                   Buscar
                 </Button>
-                <Button type="button" variant="outline" asChild>
+                <Button type="button" variant="outline" asChild className="flex-1 sm:flex-initial">
                   <Link href="/documents">Limpiar</Link>
                 </Button>
               </div>
