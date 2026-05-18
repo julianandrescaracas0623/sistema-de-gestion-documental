@@ -61,11 +61,11 @@ export default async function DocumentsPage({ searchParams }: { searchParams: Pr
   if (listErr !== null) {
     return (
       <div className="flex min-h-0 flex-1 flex-col">
-        <header className="bg-card shrink-0 border-b px-7 py-4">
+        <header className="bg-card shrink-0 border-b px-4 py-4 sm:px-6 lg:px-7">
           <p className="text-muted-foreground text-xs tracking-wide">Documentos</p>
           <h1 className="text-lg font-semibold tracking-tight text-foreground">Listado</h1>
         </header>
-        <div className="mx-auto w-full max-w-6xl flex-1 px-7 py-7">
+        <div className="mx-auto w-full max-w-6xl flex-1 px-4 py-4 sm:px-6 sm:py-6 lg:px-7 lg:py-7">
           <p className="text-destructive" role="alert">
             No se pudo cargar el listado: {listErr.message}
           </p>
@@ -97,7 +97,7 @@ export default async function DocumentsPage({ searchParams }: { searchParams: Pr
 
   return (
     <div className="flex min-h-0 flex-1 flex-col">
-      <header className="bg-card flex shrink-0 flex-wrap items-center justify-between gap-3 border-b px-7 py-4">
+      <header className="bg-card flex shrink-0 flex-col gap-3 border-b px-4 py-4 sm:px-6 lg:px-7 md:flex-row md:items-center md:justify-between">
         <div>
           <p className="text-muted-foreground text-xs tracking-wide">
             Inicio <span className="opacity-50">/</span> Documentos
@@ -105,12 +105,12 @@ export default async function DocumentsPage({ searchParams }: { searchParams: Pr
           <h1 className="text-lg font-semibold tracking-tight text-foreground">Documentos</h1>
           <p className="text-muted-foreground mt-0.5 text-sm">Busca, filtra y abre tus archivos autorizados.</p>
         </div>
-        <Button asChild>
+        <Button asChild className="w-full sm:w-auto">
           <Link href="/documents/new">Subir documento</Link>
         </Button>
       </header>
 
-      <div className="mx-auto flex w-full max-w-6xl flex-1 flex-col gap-6 px-7 py-7">
+      <div className="mx-auto flex w-full max-w-6xl flex-1 flex-col gap-6 px-4 py-4 sm:px-6 sm:py-6 lg:px-7 lg:py-7">
         <Card>
           <CardHeader className="gap-2">
             <CardTitle className="flex items-center gap-2 text-base">
