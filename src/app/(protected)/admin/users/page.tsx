@@ -22,7 +22,7 @@ export default async function AdminUsersPage() {
 
   return (
     <div className="flex min-h-0 flex-1 flex-col">
-      <header className="bg-card shrink-0 border-b px-7 py-4">
+      <header className="bg-card shrink-0 border-b px-4 py-4 sm:px-6 lg:px-7">
         <p className="text-muted-foreground text-xs tracking-wide">
           Inicio <span className="opacity-50">/</span> Administración <span className="opacity-50">/</span> Usuarios
         </p>
@@ -31,7 +31,7 @@ export default async function AdminUsersPage() {
           Alta de cuentas y asignación de roles. No hay registro público.
         </p>
       </header>
-      <div className="mx-auto w-full max-w-lg flex-1 px-7 py-7">
+      <div className="mx-auto w-full max-w-lg flex-1 px-4 py-4 sm:px-6 sm:py-6 lg:px-7 lg:py-7">
         <Link
           href="/"
           className="text-muted-foreground text-sm underline-offset-4 hover:underline"
