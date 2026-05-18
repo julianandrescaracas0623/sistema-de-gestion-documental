@@ -45,13 +45,13 @@ export default async function HomePage() {
 
   return (
     <div className="flex min-h-0 flex-1 flex-col">
-      <header className="bg-card shrink-0 border-b px-7 py-4">
+      <header className="bg-card shrink-0 border-b px-4 py-4 sm:px-6 lg:px-7">
         <p className="text-muted-foreground text-xs tracking-wide">Inicio</p>
         <h1 className="text-lg font-semibold tracking-tight text-foreground">Panel principal</h1>
         <p className="text-muted-foreground mt-0.5 text-sm">Resumen general del sistema</p>
       </header>
 
-      <div className="mx-auto w-full max-w-6xl flex-1 space-y-6 px-7 py-7">
+      <div className="mx-auto w-full max-w-6xl flex-1 space-y-4 overflow-y-auto px-4 py-4 sm:px-6 sm:py-4 lg:px-7 lg:py-5">
         <section className="flex flex-wrap items-end justify-between gap-3">
           <div className="space-y-1">
             <h2 className="text-3xl font-bold tracking-tight text-foreground">Bienvenido, {displayName}</h2>
@@ -66,7 +66,7 @@ export default async function HomePage() {
           ) : null}
         </section>
 
-        <section className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        <section className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
           <Card className="shadow-sm">
             <CardHeader className="pb-2">
               <CardDescription className="text-xs font-medium tracking-wide uppercase">
@@ -124,14 +124,14 @@ export default async function HomePage() {
 
         <Separator />
 
-        <section className="space-y-4">
+        <section className="space-y-3">
           <div className="space-y-1">
             <h3 className="text-lg font-semibold">Accesos rapidos</h3>
             <p className="text-muted-foreground text-sm">
               Acciones principales para el flujo diario de gestión documental.
             </p>
           </div>
-          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+          <div className="grid gap-3 md:grid-cols-2 lg:grid-cols-3">
             <Link href="/documents" className="group block rounded-[var(--radius)]">
               <Card className="border-border h-full transition-all group-hover:-translate-y-0.5 group-hover:shadow-md">
                 <CardHeader className="gap-3">
