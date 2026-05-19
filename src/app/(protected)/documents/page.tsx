@@ -2,9 +2,11 @@ import { CalendarDays, FileText, Filter, Search, Tag } from "lucide-react";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 
+import { DocumentDeleteListButton } from "@/features/documents/components/document-delete-list-button";
 import { formatFileSize } from "@/features/documents/lib/format-bytes";
 import { listCategories } from "@/features/documents/queries/categories.queries";
 import { listDocuments, listTagsForFilter } from "@/features/documents/queries/documents.queries";
+import { LocalDate } from "@/shared/components/local-date";
 import { Badge } from "@/shared/components/ui/badge";
 import { Button } from "@/shared/components/ui/button";
 import {
@@ -22,10 +24,6 @@ import { createClient } from "@/shared/lib/supabase/server";
 const PAGE_SIZE = 10;
 
 type SearchParams = Record<string, string | string[] | undefined>;
-const DATE_FORMATTER = new Intl.DateTimeFormat("es-CO", {
-  dateStyle: "medium",
-  timeStyle: "short",
-});
 
 function firstParam(v: string | string[] | undefined): string {
   if (v === undefined) {
@@ -235,13 +233,16 @@ export default async function DocumentsPage({ searchParams }: { searchParams: Pr
                         <td className="px-6 py-4 text-muted-foreground">
                           <span className="inline-flex items-center gap-1.5">
                             <CalendarDays className="size-3.5" />
-                            {DATE_FORMATTER.format(new Date(row.created_at))}
+                            <LocalDate date={row.created_at} />
                           </span>
                         </td>
                         <td className="px-6 py-4 text-right">
-                          <Button size="sm" variant="ghost" asChild>
-                            <Link href={`/documents/${row.id}`}>Ver</Link>
-                          </Button>
+                          <div className="flex justify-end gap-1">
+                            <Button size="sm" variant="ghost" asChild>
+                              <Link href={`/documents/${row.id}`}>Ver</Link>
+                            </Button>
+                            <DocumentDeleteListButton documentId={row.id} title={row.title} />
+                          </div>
                         </td>
                       </tr>
                     ))

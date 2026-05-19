@@ -14,6 +14,7 @@ import { formatFileSize } from "@/features/documents/lib/format-bytes";
 import { createSignedDocumentUrl } from "@/features/documents/lib/signed-url";
 import { listCategories } from "@/features/documents/queries/categories.queries";
 import { getDocumentById } from "@/features/documents/queries/documents.queries";
+import { LocalDate } from "@/shared/components/local-date";
 import { Badge } from "@/shared/components/ui/badge";
 import { Button } from "@/shared/components/ui/button";
 import {
@@ -28,10 +29,6 @@ import { createClient } from "@/shared/lib/supabase/server";
 function canPreviewInline(mime: string): boolean {
   return mime === "application/pdf" || mime.startsWith("image/");
 }
-const DATE_FORMATTER = new Intl.DateTimeFormat("es-CO", {
-  dateStyle: "medium",
-  timeStyle: "short",
-});
 
 export default async function DocumentDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
@@ -132,7 +129,7 @@ export default async function DocumentDetailPage({ params }: { params: Promise<{
               </span>
               <span className="inline-flex items-center gap-1.5">
                 <CalendarDays className="size-3.5" />
-                {DATE_FORMATTER.format(new Date(doc.created_at))}
+                <LocalDate date={doc.created_at} />
               </span>
             </div>
             {tagLabels.length > 0 ? (
