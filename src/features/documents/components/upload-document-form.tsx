@@ -65,27 +65,29 @@ export function UploadDocumentForm({ categories }: { categories: CategoryRow[] }
               ))}
             </select>
           </div>
-          <div className="space-y-2">
-            <Label htmlFor="categoryName">Nueva categoría (opcional)</Label>
-            <Input
-              id="categoryName"
-              name="categoryName"
-              disabled={isPending}
-              maxLength={120}
-              placeholder="Escribe para crear una categoría nueva"
-            />
-            <p className="text-xs text-muted-foreground">
-              Si escribes una categoría aquí, tendrá prioridad sobre la seleccionada.
-            </p>
-          </div>
-          <div className="space-y-2">
-            <Label htmlFor="tags">Etiquetas (opcional)</Label>
-            <Input
-              id="tags"
-              name="tags"
-              disabled={isPending}
-              placeholder="Separadas por coma, ej: factura, 2024"
-            />
+          <div className="grid grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <Label htmlFor="categoryName">Nueva categoría (opcional)</Label>
+              <Input
+                id="categoryName"
+                name="categoryName"
+                disabled={isPending}
+                maxLength={120}
+                placeholder="Crear categoría nueva"
+              />
+              <p className="text-xs text-muted-foreground">
+                Tiene prioridad sobre la seleccionada.
+              </p>
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="tags">Etiquetas (opcional)</Label>
+              <Input
+                id="tags"
+                name="tags"
+                disabled={isPending}
+                placeholder="factura, 2024"
+              />
+            </div>
           </div>
           <Button type="submit" disabled={isPending}>
             {isPending ? "Subiendo…" : "Subir"}
