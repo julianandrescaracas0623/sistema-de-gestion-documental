@@ -51,7 +51,7 @@ export function DocumentDeleteListButton({ documentId, title }: { documentId: st
             ¿Estás seguro que deseas eliminar "{title}"? Esta acción no se puede deshacer desde la app.
           </SheetDescription>
         </SheetHeader>
-        <div className="flex gap-3 pt-6">
+        <div className="grid grid-cols-2 gap-3 pt-6">
           <Button
             type="button"
             variant="destructive"
