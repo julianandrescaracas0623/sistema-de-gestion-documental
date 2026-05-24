@@ -14,6 +14,7 @@ import { formatFileSize } from "@/features/documents/lib/format-bytes";
 import { createSignedDocumentUrl } from "@/features/documents/lib/signed-url";
 import { listCategories } from "@/features/documents/queries/categories.queries";
 import { getDocumentById } from "@/features/documents/queries/documents.queries";
+import { LocalDate } from "@/shared/components/local-date";
 import { Badge } from "@/shared/components/ui/badge";
 import { Button } from "@/shared/components/ui/button";
 import {
@@ -28,10 +29,6 @@ import { createClient } from "@/shared/lib/supabase/server";
 function canPreviewInline(mime: string): boolean {
   return mime === "application/pdf" || mime.startsWith("image/");
 }
-const DATE_FORMATTER = new Intl.DateTimeFormat("es-CO", {
-  dateStyle: "medium",
-  timeStyle: "short",
-});
 
 export default async function DocumentDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
@@ -51,11 +48,11 @@ export default async function DocumentDetailPage({ params }: { params: Promise<{
   if (error !== null) {
     return (
       <div className="flex min-h-0 flex-1 flex-col">
-        <header className="bg-card shrink-0 border-b px-7 py-4">
+        <header className="bg-card shrink-0 border-b px-4 py-4 sm:px-6 lg:px-7">
           <p className="text-muted-foreground text-xs tracking-wide">Documentos</p>
           <h1 className="text-lg font-semibold tracking-tight text-foreground">Detalle</h1>
         </header>
-        <div className="mx-auto w-full max-w-5xl flex-1 px-7 py-7">
+        <div className="mx-auto w-full max-w-5xl flex-1 px-4 py-4 sm:px-6 sm:py-6 lg:px-7 lg:py-7">
           <p className="text-destructive" role="alert">
             Error al cargar: {error.message}
           </p>
@@ -87,7 +84,7 @@ export default async function DocumentDetailPage({ params }: { params: Promise<{
 
   return (
     <div className="flex min-h-0 flex-1 flex-col">
-      <header className="bg-card flex shrink-0 flex-wrap items-center justify-between gap-3 border-b px-7 py-4">
+      <header className="bg-card flex shrink-0 flex-col gap-3 border-b px-4 py-4 sm:px-6 lg:px-7 md:flex-row md:items-center md:justify-between">
         <div>
           <p className="text-muted-foreground text-xs tracking-wide">
             Inicio <span className="opacity-50">/</span> Documentos <span className="opacity-50">/</span> Detalle
@@ -109,7 +106,7 @@ export default async function DocumentDetailPage({ params }: { params: Promise<{
         </div>
       </header>
 
-      <div className="mx-auto flex w-full max-w-5xl flex-1 flex-col gap-6 px-7 py-7">
+      <div className="mx-auto flex w-full max-w-5xl flex-1 flex-col gap-6 px-4 py-4 sm:px-6 sm:py-6 lg:px-7 lg:py-7">
         <Card>
           <CardHeader className="gap-2">
             <div className="flex flex-wrap items-center gap-2">
@@ -132,7 +129,7 @@ export default async function DocumentDetailPage({ params }: { params: Promise<{
               </span>
               <span className="inline-flex items-center gap-1.5">
                 <CalendarDays className="size-3.5" />
-                {DATE_FORMATTER.format(new Date(doc.created_at))}
+                <LocalDate date={doc.created_at} />
               </span>
             </div>
             {tagLabels.length > 0 ? (

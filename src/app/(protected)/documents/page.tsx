@@ -2,9 +2,11 @@ import { CalendarDays, FileText, Filter, Search, Tag } from "lucide-react";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 
+import { DocumentDeleteListButton } from "@/features/documents/components/document-delete-list-button";
 import { formatFileSize } from "@/features/documents/lib/format-bytes";
 import { listCategories } from "@/features/documents/queries/categories.queries";
 import { listDocuments, listTagsForFilter } from "@/features/documents/queries/documents.queries";
+import { LocalDate } from "@/shared/components/local-date";
 import { Badge } from "@/shared/components/ui/badge";
 import { Button } from "@/shared/components/ui/button";
 import {
@@ -22,10 +24,6 @@ import { createClient } from "@/shared/lib/supabase/server";
 const PAGE_SIZE = 10;
 
 type SearchParams = Record<string, string | string[] | undefined>;
-const DATE_FORMATTER = new Intl.DateTimeFormat("es-CO", {
-  dateStyle: "medium",
-  timeStyle: "short",
-});
 
 function firstParam(v: string | string[] | undefined): string {
   if (v === undefined) {
@@ -61,11 +59,11 @@ export default async function DocumentsPage({ searchParams }: { searchParams: Pr
   if (listErr !== null) {
     return (
       <div className="flex min-h-0 flex-1 flex-col">
-        <header className="bg-card shrink-0 border-b px-7 py-4">
+        <header className="bg-card shrink-0 border-b px-4 py-4 sm:px-6 lg:px-7">
           <p className="text-muted-foreground text-xs tracking-wide">Documentos</p>
           <h1 className="text-lg font-semibold tracking-tight text-foreground">Listado</h1>
         </header>
-        <div className="mx-auto w-full max-w-6xl flex-1 px-7 py-7">
+        <div className="mx-auto w-full max-w-6xl flex-1 px-4 py-4 sm:px-6 sm:py-6 lg:px-7 lg:py-7">
           <p className="text-destructive" role="alert">
             No se pudo cargar el listado: {listErr.message}
           </p>
@@ -97,7 +95,7 @@ export default async function DocumentsPage({ searchParams }: { searchParams: Pr
 
   return (
     <div className="flex min-h-0 flex-1 flex-col">
-      <header className="bg-card flex shrink-0 flex-wrap items-center justify-between gap-3 border-b px-7 py-4">
+      <header className="bg-card flex shrink-0 flex-col gap-3 border-b px-4 py-4 sm:px-6 lg:px-7 md:flex-row md:items-center md:justify-between">
         <div>
           <p className="text-muted-foreground text-xs tracking-wide">
             Inicio <span className="opacity-50">/</span> Documentos
@@ -105,12 +103,12 @@ export default async function DocumentsPage({ searchParams }: { searchParams: Pr
           <h1 className="text-lg font-semibold tracking-tight text-foreground">Documentos</h1>
           <p className="text-muted-foreground mt-0.5 text-sm">Busca, filtra y abre tus archivos autorizados.</p>
         </div>
-        <Button asChild>
+        <Button asChild className="w-full sm:w-auto">
           <Link href="/documents/new">Subir documento</Link>
         </Button>
       </header>
 
-      <div className="mx-auto flex w-full max-w-6xl flex-1 flex-col gap-6 px-7 py-7">
+      <div className="mx-auto flex w-full max-w-6xl flex-1 flex-col gap-6 px-4 py-4 sm:px-6 sm:py-6 lg:px-7 lg:py-7">
         <Card>
           <CardHeader className="gap-2">
             <CardTitle className="flex items-center gap-2 text-base">
@@ -157,12 +155,12 @@ export default async function DocumentsPage({ searchParams }: { searchParams: Pr
                   ))}
                 </select>
               </div>
-              <div className="flex items-end gap-2">
-                <Button type="submit" className="w-full sm:w-auto">
+              <div className="flex flex-wrap items-end gap-2">
+                <Button type="submit" className="flex-1 sm:flex-initial">
                   <Search className="size-4" />
                   Buscar
                 </Button>
-                <Button type="button" variant="outline" asChild>
+                <Button type="button" variant="outline" asChild className="flex-1 sm:flex-initial">
                   <Link href="/documents">Limpiar</Link>
                 </Button>
               </div>
@@ -235,13 +233,16 @@ export default async function DocumentsPage({ searchParams }: { searchParams: Pr
                         <td className="px-6 py-4 text-muted-foreground">
                           <span className="inline-flex items-center gap-1.5">
                             <CalendarDays className="size-3.5" />
-                            {DATE_FORMATTER.format(new Date(row.created_at))}
+                            <LocalDate date={row.created_at} />
                           </span>
                         </td>
                         <td className="px-6 py-4 text-right">
-                          <Button size="sm" variant="ghost" asChild>
-                            <Link href={`/documents/${row.id}`}>Ver</Link>
-                          </Button>
+                          <div className="flex justify-end gap-1">
+                            <Button size="sm" variant="ghost" asChild>
+                              <Link href={`/documents/${row.id}`}>Ver</Link>
+                            </Button>
+                            <DocumentDeleteListButton documentId={row.id} title={row.title} />
+                          </div>
                         </td>
                       </tr>
                     ))
