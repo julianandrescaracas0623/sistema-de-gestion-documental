@@ -23,14 +23,14 @@ export async function deleteCategoryAction(
     return { status: "error", message: "Debes iniciar sesión." };
   }
 
-  const role = await getRoleForUser(supabase, user.id);
-  if (role !== "admin") {
-    return { status: "error", message: "Solo los administradores pueden eliminar categorías." };
-  }
-
   const parsed = deleteCategorySchema.safeParse({ id: formData.get("id") });
   if (!parsed.success) {
     return { status: "error", message: parsed.error.issues[0]?.message ?? "ID inválido." };
+  }
+
+  const role = await getRoleForUser(supabase, user.id);
+  if (role !== "admin") {
+    return { status: "error", message: "Solo los administradores pueden eliminar categorías." };
   }
 
   const { count: docCount, error: countError } = await supabase

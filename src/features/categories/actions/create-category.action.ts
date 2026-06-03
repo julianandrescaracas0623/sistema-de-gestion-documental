@@ -27,11 +27,6 @@ export async function createCategoryAction(
     return { status: "error", message: "Debes iniciar sesión." };
   }
 
-  const role = await getRoleForUser(supabase, user.id);
-  if (role !== "admin") {
-    return { status: "error", message: "Solo los administradores pueden crear categorías." };
-  }
-
   const parsed = createCategorySchema.safeParse({
     name: formData.get("name"),
     description: formData.get("description"),
@@ -40,11 +35,19 @@ export async function createCategoryAction(
     return { status: "error", message: parsed.error.issues[0]?.message ?? "Datos inválidos." };
   }
 
-  const { data: existing } = await supabase
+  const role = await getRoleForUser(supabase, user.id);
+  if (role !== "admin") {
+    return { status: "error", message: "Solo los administradores pueden crear categorías." };
+  }
+
+  const { data: existing, error: existingError } = await supabase
     .from("categories")
     .select("id")
     .ilike("name", parsed.data.name)
     .maybeSingle();
+  if (existingError !== null) {
+    return { status: "error", message: "No se pudo validar el nombre de la categoría." };
+  }
 
   if (existing !== null) {
     return { status: "error", message: "Ya existe una categoría con ese nombre." };
