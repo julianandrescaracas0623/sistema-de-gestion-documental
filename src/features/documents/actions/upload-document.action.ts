@@ -7,7 +7,6 @@ import { redirect } from "next/navigation";
 import { z } from "zod";
 
 import { DOCUMENTS_STORAGE_BUCKET, getMaxDocumentUploadMb } from "@/features/documents/lib/documents-config";
-import { resolveCategoryId } from "@/features/documents/lib/resolve-category-id";
 import { sanitizeStorageFilename } from "@/features/documents/lib/sanitize-storage-filename";
 import { parseTagInput } from "@/features/documents/lib/tag-utils";
 import type { ActionResult } from "@/shared/lib/action-result";
@@ -23,7 +22,6 @@ const uploadDocumentSchema = z.object({
     (v) => (v === "" || v === null || v === undefined ? undefined : v),
     z.string().uuid("Categoría inválida.").optional()
   ),
-  categoryName: z.string().trim().max(120, "La categoría es demasiado larga.").optional(),
   tagsRaw: z.string().max(2000).optional(),
 });
 
@@ -63,7 +61,6 @@ export async function uploadDocumentAction(_prev: unknown, formData: FormData): 
   const parsed = uploadDocumentSchema.safeParse({
     title: formFieldText(formData, "title"),
     categoryId: formFieldText(formData, "categoryId"),
-    categoryName: formFieldText(formData, "categoryName"),
     tagsRaw: formFieldText(formData, "tags"),
   });
 
@@ -72,14 +69,7 @@ export async function uploadDocumentAction(_prev: unknown, formData: FormData): 
     return { status: "error", message: msg };
   }
 
-  const { categoryId, error: categoryError } = await resolveCategoryId(
-    supabase,
-    parsed.data.categoryId,
-    parsed.data.categoryName
-  );
-  if (categoryError !== null) {
-    return { status: "error", message: categoryError };
-  }
+  const categoryId = parsed.data.categoryId ?? null;
 
   const documentId = randomUUID();
   const safeName = sanitizeStorageFilename(file.name);
