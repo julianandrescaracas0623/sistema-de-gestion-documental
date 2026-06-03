@@ -1,7 +1,8 @@
-import { CalendarDays, FileText, Filter, Search, Tag } from "lucide-react";
+import { CalendarDays, Download, FileText, Filter, Search, Tag } from "lucide-react";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 
+import { QuickDateFilters } from "@/features/documents/components/QuickDateFilters";
 import { DocumentDeleteListButton } from "@/features/documents/components/document-delete-list-button";
 import { formatFileSize } from "@/features/documents/lib/format-bytes";
 import { listCategories } from "@/features/documents/queries/categories.queries";
@@ -45,13 +46,15 @@ export default async function DocumentsPage({ searchParams }: { searchParams: Pr
   const q = firstParam(sp.q);
   const categoryId = firstParam(sp.category);
   const tagId = firstParam(sp.tag);
+  const dateFrom = firstParam(sp.dateFrom);
+  const dateTo = firstParam(sp.dateTo);
   const pageRaw = firstParam(sp.page);
   const parsedPage = Number.parseInt(pageRaw === "" ? "1" : pageRaw, 10);
   const pageNum = Number.isNaN(parsedPage) || parsedPage < 1 ? 1 : parsedPage;
   const pageIndex = pageNum - 1;
 
   const [{ data: rows, count, error: listErr }, { data: categories }, { data: tags }] = await Promise.all([
-    listDocuments(supabase, { q, categoryId, tagId, page: pageIndex, pageSize: PAGE_SIZE }),
+    listDocuments(supabase, { q, categoryId, tagId, dateFrom, dateTo, page: pageIndex, pageSize: PAGE_SIZE }),
     listCategories(supabase),
     listTagsForFilter(supabase),
   ]);
@@ -77,18 +80,12 @@ export default async function DocumentsPage({ searchParams }: { searchParams: Pr
 
   function buildQuery(nextPage: number): string {
     const p = new URLSearchParams();
-    if (q !== "") {
-      p.set("q", q);
-    }
-    if (categoryId !== "") {
-      p.set("category", categoryId);
-    }
-    if (tagId !== "") {
-      p.set("tag", tagId);
-    }
-    if (nextPage > 1) {
-      p.set("page", String(nextPage));
-    }
+    if (q !== "") p.set("q", q);
+    if (categoryId !== "") p.set("category", categoryId);
+    if (tagId !== "") p.set("tag", tagId);
+    if (dateFrom !== "") p.set("dateFrom", dateFrom);
+    if (dateTo !== "") p.set("dateTo", dateTo);
+    if (nextPage > 1) p.set("page", String(nextPage));
     const s = p.toString();
     return s === "" ? "/documents" : `/documents?${s}`;
   }
@@ -115,7 +112,7 @@ export default async function DocumentsPage({ searchParams }: { searchParams: Pr
               <Filter className="size-4 text-primary" />
               Filtros de búsqueda
             </CardTitle>
-            <CardDescription>Refina el listado por texto, categoría o etiqueta.</CardDescription>
+            <CardDescription>Refina el listado por texto, categoría, etiqueta o fecha.</CardDescription>
           </CardHeader>
           <CardContent>
             <form method="get" className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
@@ -155,6 +152,28 @@ export default async function DocumentsPage({ searchParams }: { searchParams: Pr
                   ))}
                 </select>
               </div>
+              {/* Quick date filters — full width */}
+              <div className="space-y-2 sm:col-span-2 lg:col-span-4">
+                <Label>Período rápido</Label>
+                <QuickDateFilters
+                  currentDateFrom={dateFrom}
+                  currentDateTo={dateTo}
+                  currentQ={q}
+                  currentCategory={categoryId}
+                  currentTag={tagId}
+                />
+              </div>
+
+              {/* Custom date range */}
+              <div className="space-y-2">
+                <Label htmlFor="dateFrom">Desde</Label>
+                <Input id="dateFrom" name="dateFrom" type="date" defaultValue={dateFrom} />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="dateTo">Hasta</Label>
+                <Input id="dateTo" name="dateTo" type="date" defaultValue={dateTo} />
+              </div>
+
               <div className="flex flex-wrap items-end gap-2">
                 <Button type="submit" className="flex-1 sm:flex-initial">
                   <Search className="size-4" />
@@ -175,9 +194,26 @@ export default async function DocumentsPage({ searchParams }: { searchParams: Pr
                 <FileText className="size-4 text-primary" />
                 Listado de documentos
               </CardTitle>
-              <Badge variant="outline">
-                {String(total)} total
-              </Badge>
+              <div className="flex items-center gap-2">
+                <Badge variant="outline">
+                  {String(total)} total
+                </Badge>
+                {total > 0 ? (
+                  <a
+                    href={`/api/documents/export?${new URLSearchParams({
+                      ...(q !== "" ? { q } : {}),
+                      ...(categoryId !== "" ? { category: categoryId } : {}),
+                      ...(tagId !== "" ? { tag: tagId } : {}),
+                      ...(dateFrom !== "" ? { dateFrom } : {}),
+                      ...(dateTo !== "" ? { dateTo } : {}),
+                    }).toString()}`}
+                    className="inline-flex items-center gap-1.5 rounded-md border px-3 py-1.5 text-sm hover:bg-muted transition-colors"
+                  >
+                    <Download className="size-3.5" />
+                    Descargar archivos ({String(total)})
+                  </a>
+                ) : null}
+              </div>
             </div>
           </CardHeader>
           <CardContent className="px-0">
@@ -190,6 +226,9 @@ export default async function DocumentsPage({ searchParams }: { searchParams: Pr
                     </th>
                     <th className="text-muted-foreground px-6 py-2.5 text-left text-[11.5px] font-semibold tracking-wide uppercase">
                       Categoría
+                    </th>
+                    <th className="text-muted-foreground px-6 py-2.5 text-left text-[11.5px] font-semibold tracking-wide uppercase">
+                      Autor
                     </th>
                     <th className="text-muted-foreground px-6 py-2.5 text-left text-[11.5px] font-semibold tracking-wide uppercase">
                       Tamaño
@@ -205,7 +244,7 @@ export default async function DocumentsPage({ searchParams }: { searchParams: Pr
                 <tbody>
                   {(rows ?? []).length === 0 ? (
                     <tr>
-                      <td colSpan={5} className="p-10 text-center">
+                      <td colSpan={6} className="p-10 text-center">
                         <p className="text-sm font-medium text-foreground">No hay resultados</p>
                         <p className="mt-1 text-sm text-muted-foreground">
                           Ajusta los filtros o sube un documento nuevo.
@@ -228,6 +267,9 @@ export default async function DocumentsPage({ searchParams }: { searchParams: Pr
                           ) : (
                             "Sin categoría"
                           )}
+                        </td>
+                        <td className="px-6 py-4 text-muted-foreground text-xs">
+                          {row.uploader?.email ?? "—"}
                         </td>
                         <td className="px-6 py-4 text-muted-foreground">{formatFileSize(row.size_bytes)}</td>
                         <td className="px-6 py-4 text-muted-foreground">
