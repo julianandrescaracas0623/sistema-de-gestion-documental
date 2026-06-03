@@ -12,6 +12,7 @@ export interface DocumentListRow {
   created_at: string;
   uploaded_by: string;
   category: { id: string; name: string } | null;
+  uploader: { email: string } | null;
 }
 
 export interface DocumentDetailRow extends DocumentListRow {
@@ -29,7 +30,8 @@ const listSelect = `
   size_bytes,
   created_at,
   uploaded_by,
-  category:categories (id, name)
+  category:categories (id, name),
+  uploader:profiles!uploaded_by (email)
 `;
 
 export async function listDocuments(
@@ -38,11 +40,13 @@ export async function listDocuments(
     q?: string;
     categoryId?: string;
     tagId?: string;
+    dateFrom?: string;
+    dateTo?: string;
     page: number;
     pageSize: number;
   }
 ): Promise<{ data: DocumentListRow[] | null; count: number | null; error: Error | null }> {
-  const { q, categoryId, tagId, page, pageSize } = params;
+  const { q, categoryId, tagId, dateFrom, dateTo, page, pageSize } = params;
   const from = page * pageSize;
   const to = from + pageSize - 1;
 
@@ -71,6 +75,13 @@ export async function listDocuments(
   if (safeQ !== "") {
     const pattern = `%${safeQ}%`;
     query = query.or(`title.ilike.${pattern},file_name.ilike.${pattern}`);
+  }
+
+  if (dateFrom !== undefined && dateFrom !== "") {
+    query = query.gte("created_at", `${dateFrom}T00:00:00.000Z`);
+  }
+  if (dateTo !== undefined && dateTo !== "") {
+    query = query.lte("created_at", `${dateTo}T23:59:59.999Z`);
   }
 
   const { data, error, count } = await query;
@@ -141,6 +152,7 @@ export async function getDocumentById(
       storage_object_path,
       deleted_at,
       category:categories (id, name),
+      uploader:profiles!uploaded_by (email),
       document_tags (
         tag_id,
         tag:tags (id, name)
