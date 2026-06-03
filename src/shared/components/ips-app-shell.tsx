@@ -2,6 +2,7 @@
 
 import {
   FileText,
+  FolderOpen,
   Home,
   LogOut,
   Menu,
@@ -34,7 +35,8 @@ function useNavActive(pathname: string) {
   const isDocuments =
     pathname.startsWith("/documents") && !pathname.startsWith("/documents/new");
   const isUsers = pathname.startsWith("/admin/users");
-  return { isHome, isUpload, isDocuments, isUsers };
+  const isCategories = pathname.startsWith("/admin/categories");
+  return { isHome, isUpload, isDocuments, isUsers, isCategories };
 }
 
 function navClick(onNavigate: (() => void) | undefined): { onClick: () => void } | Record<string, never> {
@@ -59,7 +61,7 @@ function SidebarNavLinks({
   onNavigate?: () => void;
   className?: string;
 }) {
-  const { isHome, isUpload, isDocuments, isUsers } = useNavActive(pathname);
+  const { isHome, isUpload, isDocuments, isUsers, isCategories } = useNavActive(pathname);
 
   const linkClass = (active: boolean) =>
     cn(
@@ -95,6 +97,10 @@ function SidebarNavLinks({
           <Link href="/admin/users" className={linkClass(isUsers)} {...navClick(onNavigate)}>
             <Users className="size-4 shrink-0 opacity-90" aria-hidden />
             Usuarios
+          </Link>
+          <Link href="/admin/categories" className={linkClass(isCategories)} {...navClick(onNavigate)}>
+            <FolderOpen className="size-4 shrink-0 opacity-90" aria-hidden />
+            Categorías
           </Link>
         </>
       ) : null}
