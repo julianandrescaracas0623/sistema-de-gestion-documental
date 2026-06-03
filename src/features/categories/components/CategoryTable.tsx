@@ -1,6 +1,6 @@
 "use client";
 
-import { useActionState, useEffect } from "react";
+import { useState, useTransition } from "react";
 import { toast } from "sonner";
 
 import { deleteCategoryAction } from "@/features/categories/actions/delete-category.action";
@@ -9,32 +9,71 @@ import type { CategoryAdminRow } from "@/features/categories/queries/categories.
 import { LocalDate } from "@/shared/components/local-date";
 import { Badge } from "@/shared/components/ui/badge";
 import { Button } from "@/shared/components/ui/button";
+import {
+  Sheet,
+  SheetClose,
+  SheetContent,
+  SheetDescription,
+  SheetHeader,
+  SheetTitle,
+} from "@/shared/components/ui/sheet";
 
 function DeleteCategoryButton({ category }: { category: CategoryAdminRow }) {
-  const [state, formAction, isPending] = useActionState(deleteCategoryAction, null);
+  const [open, setOpen] = useState(false);
+  const [isPending, startTransition] = useTransition();
 
-  useEffect(() => {
-    if (state === null) return;
-    if (state.status === "error") {
-      toast.error(state.message);
-    } else {
-      toast.success(state.message);
-    }
-  }, [state]);
+  const handleDelete = () => {
+    startTransition(async () => {
+      const formData = new FormData();
+      formData.set("id", category.id);
+      const result = await deleteCategoryAction(null, formData);
+
+      if (result.status === "error") {
+        toast.error(result.message);
+      } else {
+        toast.success(result.message);
+        setOpen(false);
+      }
+    });
+  };
 
   return (
-    <form action={formAction}>
-      <input type="hidden" name="id" value={category.id} />
+    <Sheet open={open} onOpenChange={setOpen}>
       <Button
-        type="submit"
+        type="button"
         size="sm"
         variant="ghost"
         disabled={isPending}
         className="text-destructive hover:text-destructive hover:bg-destructive/10"
+        onClick={() => { setOpen(true); }}
       >
-        {isPending ? "…" : "Eliminar"}
+        Eliminar
       </Button>
-    </form>
+      <SheetContent side="right">
+        <SheetHeader>
+          <SheetTitle>Eliminar categoría</SheetTitle>
+          <SheetDescription>
+            ¿Estás seguro que deseas eliminar la categoría "{category.name}"? Esta acción no se puede
+            deshacer.
+          </SheetDescription>
+        </SheetHeader>
+        <div className="grid grid-cols-2 gap-3 pt-6">
+          <Button
+            type="button"
+            variant="destructive"
+            disabled={isPending}
+            onClick={handleDelete}
+          >
+            {isPending ? "Eliminando…" : "Confirmar"}
+          </Button>
+          <SheetClose asChild>
+            <Button type="button" variant="outline" disabled={isPending}>
+              Cancelar
+            </Button>
+          </SheetClose>
+        </div>
+      </SheetContent>
+    </Sheet>
   );
 }
 

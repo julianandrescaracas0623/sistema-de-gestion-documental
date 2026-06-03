@@ -1,6 +1,6 @@
 "use client";
 
-import { useActionState, useEffect, useRef } from "react";
+import { useActionState, useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 
 import { createCategoryAction } from "@/features/categories/actions/create-category.action";
@@ -28,6 +28,12 @@ export function CategoryForm({ mode, category, trigger, onSuccess }: CategoryFor
   const action = mode === "create" ? createCategoryAction : updateCategoryAction;
   const [state, formAction, isPending] = useActionState(action, null);
   const formRef = useRef<HTMLFormElement>(null);
+  const [open, setOpen] = useState(false);
+  const onSuccessRef = useRef(onSuccess);
+
+  useEffect(() => {
+    onSuccessRef.current = onSuccess;
+  }, [onSuccess]);
 
   useEffect(() => {
     if (state === null) return;
@@ -36,12 +42,13 @@ export function CategoryForm({ mode, category, trigger, onSuccess }: CategoryFor
     } else {
       toast.success(state.message);
       formRef.current?.reset();
-      onSuccess?.();
+      setOpen(false);
+      onSuccessRef.current?.();
     }
-  }, [state, onSuccess]);
+  }, [state]);
 
   return (
-    <Sheet>
+    <Sheet open={open} onOpenChange={setOpen}>
       <SheetTrigger asChild>{trigger}</SheetTrigger>
       <SheetContent>
         <SheetHeader>
