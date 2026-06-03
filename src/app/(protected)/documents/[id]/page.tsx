@@ -4,6 +4,7 @@ import {
   FileText,
   FolderClosed,
   Tag,
+  User,
 } from "lucide-react";
 import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
@@ -131,6 +132,12 @@ export default async function DocumentDetailPage({ params }: { params: Promise<{
                 <CalendarDays className="size-3.5" />
                 <LocalDate date={doc.created_at} />
               </span>
+              {doc.uploader !== null ? (
+                <span className="inline-flex items-center gap-1.5">
+                  <User className="size-3.5" />
+                  {doc.uploader.email}
+                </span>
+              ) : null}
             </div>
             {tagLabels.length > 0 ? (
               <div className="flex flex-wrap items-center gap-2">
