@@ -3,6 +3,8 @@ import type { PgTable } from "drizzle-orm/pg-core";
 import { integer, pgPolicy, pgTable, text, timestamp, uuid } from "drizzle-orm/pg-core";
 import { createInsertSchema, createSelectSchema } from "drizzle-zod";
 
+import { profiles } from "./profiles.schema";
+
 const isAdmin = sql`exists (
   select 1 from user_roles
   where user_roles.user_id = auth.uid()
@@ -20,6 +22,7 @@ export const categories = pgTable(
     description: text("description"),
     color: text("color").default("#6B7280"),
     sortOrder: integer("sort_order").notNull().default(0),
+    createdBy: uuid("created_by").references(() => profiles.id, { onDelete: "set null" }),
     createdAt: timestamp("created_at").notNull().defaultNow(),
     updatedAt: timestamp("updated_at").notNull().defaultNow(),
   },
