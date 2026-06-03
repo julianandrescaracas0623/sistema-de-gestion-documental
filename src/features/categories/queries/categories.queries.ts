@@ -33,19 +33,23 @@ export async function listCategoriesWithCount(supabase: SupabaseServer): Promise
     return { data: null, error: new Error(error.message) };
   }
 
-  const rows = data.map((row) => {
-    const r = row as Record<string, unknown>;
-    const docCountArr = r.doc_count as { count: number | string }[] | null | undefined;
-    const creatorObj = r.creator as { email?: string } | null;
-    return {
-      id: r.id as string,
-      name: r.name as string,
-      description: r.description as string | null,
-      doc_count: Number(docCountArr?.[0]?.count ?? 0),
-      created_by_email: creatorObj?.email ?? null,
-      created_at: r.created_at as string,
-    };
-  });
+  interface RawRow {
+    id: string;
+    name: string;
+    description: string | null;
+    created_at: string;
+    doc_count: { count: number | string }[] | null;
+    creator: { email?: string } | null;
+  }
+
+  const rows = (data as unknown as RawRow[]).map((row) => ({
+    id: row.id,
+    name: row.name,
+    description: row.description,
+    doc_count: Number(row.doc_count?.[0]?.count ?? 0),
+    created_by_email: row.creator?.email ?? null,
+    created_at: row.created_at,
+  }));
 
   return { data: rows, error: null };
 }
