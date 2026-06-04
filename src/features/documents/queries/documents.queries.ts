@@ -173,6 +173,53 @@ export async function getDocumentById(
   return { data: data as unknown as DocumentDetailRow, error: null };
 }
 
+export interface DocumentExportRow {
+  id: string;
+  file_name: string;
+  storage_object_path: string;
+}
+
+export async function listDocumentsForExport(
+  supabase: SupabaseServer,
+  params: { q?: string; categoryId?: string; tagId?: string; dateFrom?: string; dateTo?: string }
+): Promise<{ data: DocumentExportRow[] | null; error: Error | null }> {
+  const { q, categoryId, tagId, dateFrom, dateTo } = params;
+  const safeQ = q !== undefined && q !== "" ? sanitizeDocumentSearchQuery(q) : "";
+
+  let selectBody = "id, file_name, storage_object_path";
+  if (tagId !== undefined && tagId !== "") {
+    selectBody = `${selectBody}, document_tags!inner(tag_id)`;
+  }
+
+  let query = supabase
+    .from("documents")
+    .select(selectBody)
+    .is("deleted_at", null)
+    .order("created_at", { ascending: false })
+    .limit(500);
+
+  if (tagId !== undefined && tagId !== "") {
+    query = query.eq("document_tags.tag_id", tagId);
+  }
+  if (categoryId !== undefined && categoryId !== "") {
+    query = query.eq("category_id", categoryId);
+  }
+  if (safeQ !== "") {
+    const pattern = `%${safeQ}%`;
+    query = query.or(`title.ilike.${pattern},file_name.ilike.${pattern}`);
+  }
+  if (dateFrom !== undefined && dateFrom !== "") {
+    query = query.gte("created_at", `${dateFrom}T00:00:00.000Z`);
+  }
+  if (dateTo !== undefined && dateTo !== "") {
+    query = query.lte("created_at", `${dateTo}T23:59:59.999Z`);
+  }
+
+  const { data, error } = await query;
+  if (error !== null) return { data: null, error: new Error(error.message) };
+  return { data: data as unknown as DocumentExportRow[], error: null };
+}
+
 export async function getRolesForUploaders(userIds: string[]): Promise<Map<string, string>> {
   if (userIds.length === 0) return new Map();
   let client;
