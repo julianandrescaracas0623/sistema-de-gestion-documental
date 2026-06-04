@@ -19,25 +19,21 @@ import {
   CardTitle,
 } from "@/shared/components/ui/card";
 import { Separator } from "@/shared/components/ui/separator";
-import { getRoleForUser } from "@/shared/lib/auth/get-role-for-user";
+import { getSession } from "@/shared/lib/auth/get-session";
 import { getUserDisplay } from "@/shared/lib/auth/user-display";
 import { createClient } from "@/shared/lib/supabase/server";
 
 export default async function HomePage() {
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-  if (user === null) {
+  const session = await getSession();
+  if (session === null) {
     redirect("/login");
     return null;
   }
 
-  const role = await getRoleForUser(supabase, user.id);
-  const email = user.email as string | null;
-  const metadata = user.user_metadata as Record<string, string | null> | null;
-  const { displayName } = getUserDisplay(email, metadata);
+  const { role, email } = session;
+  const { displayName } = getUserDisplay(email, null);
 
+  const supabase = await createClient();
   const [{ count: totalDocuments }, { data: recentDocuments }] = await Promise.all([
     countDocuments(supabase),
     listRecentDocuments(supabase, 5),

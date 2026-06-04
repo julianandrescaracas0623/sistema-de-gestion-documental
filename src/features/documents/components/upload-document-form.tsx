@@ -4,6 +4,7 @@ import { useActionState, useEffect } from "react";
 import { toast } from "sonner";
 
 import { uploadDocumentAction } from "@/features/documents/actions/upload-document.action";
+import { TagInput } from "@/features/documents/components/tag-input";
 import type { CategoryRow } from "@/features/documents/queries/categories.queries";
 import { Button } from "@/shared/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/shared/components/ui/card";
@@ -20,16 +21,18 @@ function isActionResult(v: unknown): v is { status: "success" | "error"; message
   );
 }
 
-export function UploadDocumentForm({ categories }: { categories: CategoryRow[] }) {
+export function UploadDocumentForm({
+  categories,
+  availableTags,
+}: {
+  categories: CategoryRow[];
+  availableTags: { id: string; name: string }[];
+}) {
   const [state, formAction, isPending] = useActionState(uploadDocumentAction, null);
 
   useEffect(() => {
-    if (state === null || !isActionResult(state)) {
-      return;
-    }
-    if (state.status === "error") {
-      toast.error(state.message);
-    }
+    if (state === null || !isActionResult(state)) return;
+    if (state.status === "error") toast.error(state.message);
   }, [state]);
 
   return (
@@ -49,6 +52,10 @@ export function UploadDocumentForm({ categories }: { categories: CategoryRow[] }
             <Input id="title" name="title" required maxLength={500} disabled={isPending} placeholder="Nombre descriptivo" />
           </div>
           <div className="space-y-2">
+            <Label htmlFor="description">Descripción (opcional)</Label>
+            <Input id="description" name="description" maxLength={5000} disabled={isPending} placeholder="Opcional" />
+          </div>
+          <div className="space-y-2">
             <Label htmlFor="categoryId">Categoría (opcional)</Label>
             <select
               id="categoryId"
@@ -65,29 +72,9 @@ export function UploadDocumentForm({ categories }: { categories: CategoryRow[] }
               ))}
             </select>
           </div>
-          <div className="grid grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <Label htmlFor="categoryName">Nueva categoría (opcional)</Label>
-              <Input
-                id="categoryName"
-                name="categoryName"
-                disabled={isPending}
-                maxLength={120}
-                placeholder="Crear categoría nueva"
-              />
-              <p className="text-xs text-muted-foreground">
-                Tiene prioridad sobre la seleccionada.
-              </p>
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="tags">Etiquetas (opcional)</Label>
-              <Input
-                id="tags"
-                name="tags"
-                disabled={isPending}
-                placeholder="factura, 2024"
-              />
-            </div>
+          <div className="space-y-2">
+            <Label>Etiquetas (opcional)</Label>
+            <TagInput name="tags" availableTags={availableTags} disabled={isPending} />
           </div>
           <Button type="submit" disabled={isPending}>
             {isPending ? "Subiendo…" : "Subir"}

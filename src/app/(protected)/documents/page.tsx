@@ -1,11 +1,11 @@
-import { CalendarDays, FileText, Filter, Search, Tag } from "lucide-react";
+import { CalendarDays, Download, FileText, Filter, Search, Tag } from "lucide-react";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 
+import { QuickDateFilters } from "@/features/documents/components/QuickDateFilters";
 import { DocumentDeleteListButton } from "@/features/documents/components/document-delete-list-button";
 import { formatFileSize } from "@/features/documents/lib/format-bytes";
-import { listCategories } from "@/features/documents/queries/categories.queries";
-import { listDocuments, listTagsForFilter } from "@/features/documents/queries/documents.queries";
+import { getRolesForUploaders, listDocuments } from "@/features/documents/queries/documents.queries";
 import { LocalDate } from "@/shared/components/local-date";
 import { Badge } from "@/shared/components/ui/badge";
 import { Button } from "@/shared/components/ui/button";
@@ -19,6 +19,8 @@ import {
 } from "@/shared/components/ui/card";
 import { Input } from "@/shared/components/ui/input";
 import { Label } from "@/shared/components/ui/label";
+import { getSession } from "@/shared/lib/auth/get-session";
+import { getCachedCategories, getCachedTagsForFilter } from "@/shared/lib/cache/cached-queries";
 import { createClient } from "@/shared/lib/supabase/server";
 
 const PAGE_SIZE = 10;
@@ -33,28 +35,30 @@ function firstParam(v: string | string[] | undefined): string {
 }
 
 export default async function DocumentsPage({ searchParams }: { searchParams: Promise<SearchParams> }) {
+  const session = await getSession();
+  if (session === null) redirect("/login");
+
   const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-  if (user === null) {
-    redirect("/login");
-  }
 
   const sp = await searchParams;
   const q = firstParam(sp.q);
   const categoryId = firstParam(sp.category);
   const tagId = firstParam(sp.tag);
+  const dateFrom = firstParam(sp.dateFrom);
+  const dateTo = firstParam(sp.dateTo);
   const pageRaw = firstParam(sp.page);
   const parsedPage = Number.parseInt(pageRaw === "" ? "1" : pageRaw, 10);
   const pageNum = Number.isNaN(parsedPage) || parsedPage < 1 ? 1 : parsedPage;
   const pageIndex = pageNum - 1;
 
-  const [{ data: rows, count, error: listErr }, { data: categories }, { data: tags }] = await Promise.all([
-    listDocuments(supabase, { q, categoryId, tagId, page: pageIndex, pageSize: PAGE_SIZE }),
-    listCategories(supabase),
-    listTagsForFilter(supabase),
+  const [{ data: rows, count, error: listErr }, categories, tags] = await Promise.all([
+    listDocuments(supabase, { q, categoryId, tagId, dateFrom, dateTo, page: pageIndex, pageSize: PAGE_SIZE }),
+    getCachedCategories(),
+    getCachedTagsForFilter(),
   ]);
+
+  const uploaderIds = [...new Set((rows ?? []).map((r) => r.uploaded_by))];
+  const roleMap = await getRolesForUploaders(uploaderIds);
 
   if (listErr !== null) {
     return (
@@ -77,18 +81,12 @@ export default async function DocumentsPage({ searchParams }: { searchParams: Pr
 
   function buildQuery(nextPage: number): string {
     const p = new URLSearchParams();
-    if (q !== "") {
-      p.set("q", q);
-    }
-    if (categoryId !== "") {
-      p.set("category", categoryId);
-    }
-    if (tagId !== "") {
-      p.set("tag", tagId);
-    }
-    if (nextPage > 1) {
-      p.set("page", String(nextPage));
-    }
+    if (q !== "") p.set("q", q);
+    if (categoryId !== "") p.set("category", categoryId);
+    if (tagId !== "") p.set("tag", tagId);
+    if (dateFrom !== "") p.set("dateFrom", dateFrom);
+    if (dateTo !== "") p.set("dateTo", dateTo);
+    if (nextPage > 1) p.set("page", String(nextPage));
     const s = p.toString();
     return s === "" ? "/documents" : `/documents?${s}`;
   }
@@ -115,7 +113,7 @@ export default async function DocumentsPage({ searchParams }: { searchParams: Pr
               <Filter className="size-4 text-primary" />
               Filtros de búsqueda
             </CardTitle>
-            <CardDescription>Refina el listado por texto, categoría o etiqueta.</CardDescription>
+            <CardDescription>Refina el listado por texto, categoría, etiqueta o fecha.</CardDescription>
           </CardHeader>
           <CardContent>
             <form method="get" className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
@@ -132,7 +130,7 @@ export default async function DocumentsPage({ searchParams }: { searchParams: Pr
                   className="border-input bg-background focus-visible:border-ring focus-visible:ring-ring/50 h-9 w-full rounded-md border px-3 text-sm outline-none focus-visible:ring-[3px]"
                 >
                   <option value="">Todas</option>
-                  {(categories ?? []).map((c) => (
+                  {categories.map((c) => (
                     <option key={c.id} value={c.id}>
                       {c.name}
                     </option>
@@ -148,13 +146,35 @@ export default async function DocumentsPage({ searchParams }: { searchParams: Pr
                   className="border-input bg-background focus-visible:border-ring focus-visible:ring-ring/50 h-9 w-full rounded-md border px-3 text-sm outline-none focus-visible:ring-[3px]"
                 >
                   <option value="">Todas</option>
-                  {(tags ?? []).map((t) => (
+                  {tags.map((t) => (
                     <option key={t.id} value={t.id}>
                       {t.name}
                     </option>
                   ))}
                 </select>
               </div>
+              {/* Quick date filters — full width */}
+              <div className="space-y-2 sm:col-span-2 lg:col-span-4">
+                <Label>Período rápido</Label>
+                <QuickDateFilters
+                  currentDateFrom={dateFrom}
+                  currentDateTo={dateTo}
+                  currentQ={q}
+                  currentCategory={categoryId}
+                  currentTag={tagId}
+                />
+              </div>
+
+              {/* Custom date range */}
+              <div className="space-y-2">
+                <Label htmlFor="dateFrom">Desde</Label>
+                <Input id="dateFrom" name="dateFrom" type="date" defaultValue={dateFrom} />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="dateTo">Hasta</Label>
+                <Input id="dateTo" name="dateTo" type="date" defaultValue={dateTo} />
+              </div>
+
               <div className="flex flex-wrap items-end gap-2">
                 <Button type="submit" className="flex-1 sm:flex-initial">
                   <Search className="size-4" />
@@ -175,9 +195,26 @@ export default async function DocumentsPage({ searchParams }: { searchParams: Pr
                 <FileText className="size-4 text-primary" />
                 Listado de documentos
               </CardTitle>
-              <Badge variant="outline">
-                {String(total)} total
-              </Badge>
+              <div className="flex items-center gap-2">
+                <Badge variant="outline">
+                  {String(total)} total
+                </Badge>
+                {total > 0 ? (
+                  <a
+                    href={`/api/documents/export?${new URLSearchParams({
+                      ...(q !== "" ? { q } : {}),
+                      ...(categoryId !== "" ? { category: categoryId } : {}),
+                      ...(tagId !== "" ? { tag: tagId } : {}),
+                      ...(dateFrom !== "" ? { dateFrom } : {}),
+                      ...(dateTo !== "" ? { dateTo } : {}),
+                    }).toString()}`}
+                    className="inline-flex items-center gap-1.5 rounded-md border px-3 py-1.5 text-sm hover:bg-muted transition-colors"
+                  >
+                    <Download className="size-3.5" />
+                    Descargar archivos ({String(total)})
+                  </a>
+                ) : null}
+              </div>
             </div>
           </CardHeader>
           <CardContent className="px-0">
@@ -190,6 +227,9 @@ export default async function DocumentsPage({ searchParams }: { searchParams: Pr
                     </th>
                     <th className="text-muted-foreground px-6 py-2.5 text-left text-[11.5px] font-semibold tracking-wide uppercase">
                       Categoría
+                    </th>
+                    <th className="text-muted-foreground px-6 py-2.5 text-left text-[11.5px] font-semibold tracking-wide uppercase">
+                      Autor
                     </th>
                     <th className="text-muted-foreground px-6 py-2.5 text-left text-[11.5px] font-semibold tracking-wide uppercase">
                       Tamaño
@@ -205,7 +245,7 @@ export default async function DocumentsPage({ searchParams }: { searchParams: Pr
                 <tbody>
                   {(rows ?? []).length === 0 ? (
                     <tr>
-                      <td colSpan={5} className="p-10 text-center">
+                      <td colSpan={6} className="p-10 text-center">
                         <p className="text-sm font-medium text-foreground">No hay resultados</p>
                         <p className="mt-1 text-sm text-muted-foreground">
                           Ajusta los filtros o sube un documento nuevo.
@@ -228,6 +268,24 @@ export default async function DocumentsPage({ searchParams }: { searchParams: Pr
                           ) : (
                             "Sin categoría"
                           )}
+                        </td>
+                        <td className="px-6 py-4">
+                          {(() => {
+                            const role = roleMap.get(row.uploaded_by);
+                            return (
+                              <div className="flex flex-col gap-0.5">
+                                <span className="text-xs text-muted-foreground">{row.uploader?.email ?? "—"}</span>
+                                {role != null ? (
+                                  <Badge
+                                    variant={role === "admin" ? "default" : "secondary"}
+                                    className="w-fit text-[10px] px-1.5 py-0"
+                                  >
+                                    {role === "admin" ? "Admin" : "Usuario"}
+                                  </Badge>
+                                ) : null}
+                              </div>
+                            );
+                          })()}
                         </td>
                         <td className="px-6 py-4 text-muted-foreground">{formatFileSize(row.size_bytes)}</td>
                         <td className="px-6 py-4 text-muted-foreground">
