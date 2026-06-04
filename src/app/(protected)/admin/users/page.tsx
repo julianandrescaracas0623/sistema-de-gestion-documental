@@ -3,6 +3,7 @@ import type { Route } from "next";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 
+import { RoleFilterSelect } from "@/features/user-admin/components/RoleFilterSelect";
 import { UserTable } from "@/features/user-admin/components/UserTable";
 import { CreateUserForm } from "@/features/user-admin/components/create-user-form";
 import { listUsersWithRoles } from "@/features/user-admin/queries/users.queries";
@@ -81,18 +82,7 @@ export default async function AdminUsersPage({
                 Listado de usuarios
               </CardTitle>
               <div className="flex flex-wrap items-center gap-3">
-                <form method="get">
-                  <select
-                    name="role"
-                    defaultValue={roleFilter}
-                    className="border-input bg-background focus-visible:border-ring focus-visible:ring-ring/50 h-9 rounded-md border px-3 text-sm outline-none focus-visible:ring-[3px]"
-                  >
-                    <option value="">Todos los roles</option>
-                    <option value="admin">Administrador</option>
-                    <option value="user">Usuario Administrativo</option>
-                  </select>
-                  <button type="submit" className="sr-only">Filtrar</button>
-                </form>
+                <RoleFilterSelect value={roleFilter} />
                 <Badge variant="outline">{String(total)} total</Badge>
               </div>
             </div>
@@ -133,14 +123,7 @@ export default async function AdminUsersPage({
           ) : null}
         </Card>
 
-        <div className="mx-auto w-full max-w-lg">
-          <Link href="/" className="text-muted-foreground text-sm underline-offset-4 hover:underline">
-            ← Volver al inicio
-          </Link>
-          <div className="mt-6">
-            <CreateUserForm />
-          </div>
-        </div>
+        <CreateUserForm />
       </div>
     </div>
   );
