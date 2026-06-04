@@ -5,6 +5,7 @@ import type { ReactNode } from "react";
 import { toast } from "sonner";
 
 import { updateDocumentMetadataAction } from "@/features/documents/actions/update-document-metadata.action";
+import { TagInput } from "@/features/documents/components/tag-input";
 import type { CategoryRow } from "@/features/documents/queries/categories.queries";
 import type { DocumentDetailRow } from "@/features/documents/queries/documents.queries";
 import { Button } from "@/shared/components/ui/button";
@@ -22,27 +23,27 @@ function isActionResult(v: unknown): v is { status: "success" | "error"; message
 }
 
 function tagsToInput(doc: DocumentDetailRow): string {
-  const parts = doc.document_tags
+  return doc.document_tags
     .map((row) => (row.tag !== null ? row.tag.name : null))
-    .filter((n): n is string => n !== null && n !== "");
-  return parts.join(", ");
+    .filter((n): n is string => n !== null && n !== "")
+    .join(", ");
 }
 
 export function DocumentMetadataForm({
   document,
   categories,
+  availableTags,
   secondaryAction,
 }: {
   document: DocumentDetailRow;
   categories: CategoryRow[];
+  availableTags: { id: string; name: string }[];
   secondaryAction?: ReactNode;
 }) {
   const [state, formAction, isPending] = useActionState(updateDocumentMetadataAction, null);
 
   useEffect(() => {
-    if (state === null || !isActionResult(state)) {
-      return;
-    }
+    if (state === null || !isActionResult(state)) return;
     if (state.status === "success") {
       toast.success(state.message);
     } else {
@@ -86,21 +87,14 @@ export function DocumentMetadataForm({
         </select>
       </div>
       <div className="space-y-2">
-        <Label htmlFor="categoryName">Nueva categoría (opcional)</Label>
-        <Input
-          id="categoryName"
-          name="categoryName"
-          maxLength={120}
+        <Label>Etiquetas</Label>
+        <TagInput
+          name="tags"
+          availableTags={availableTags}
+          defaultValue={tagsToInput(document)}
           disabled={isPending}
-          placeholder="Escribe para crear una categoría nueva"
+          placeholder="Separadas por coma"
         />
-        <p className="text-xs text-muted-foreground">
-          Si escribes una categoría aquí, tendrá prioridad sobre la seleccionada.
-        </p>
-      </div>
-      <div className="space-y-2">
-        <Label htmlFor="tags">Etiquetas</Label>
-        <Input id="tags" name="tags" defaultValue={tagsToInput(document)} disabled={isPending} placeholder="Separadas por coma" />
       </div>
       <div className="flex flex-wrap items-center gap-2">
         <Button type="submit" variant="secondary" disabled={isPending}>
