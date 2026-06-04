@@ -1,10 +1,11 @@
 "use server";
 
-import { revalidatePath } from "next/cache";
+import { revalidatePath, revalidateTag } from "next/cache";
 import { z } from "zod";
 
 import type { ActionResult } from "@/shared/lib/action-result";
 import { getRoleForUser } from "@/shared/lib/auth/get-role-for-user";
+import { CACHE_TAGS } from "@/shared/lib/cache/cached-queries";
 import { createClient } from "@/shared/lib/supabase/server";
 
 const deleteCategorySchema = z.object({
@@ -57,5 +58,6 @@ export async function deleteCategoryAction(
   }
 
   revalidatePath("/admin/categories");
+  revalidateTag(CACHE_TAGS.categories, "default");
   return { status: "success", message: "Categoría eliminada correctamente." };
 }

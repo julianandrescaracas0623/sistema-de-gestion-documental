@@ -5,8 +5,7 @@ import { redirect } from "next/navigation";
 import { QuickDateFilters } from "@/features/documents/components/QuickDateFilters";
 import { DocumentDeleteListButton } from "@/features/documents/components/document-delete-list-button";
 import { formatFileSize } from "@/features/documents/lib/format-bytes";
-import { listCategories } from "@/features/documents/queries/categories.queries";
-import { getRolesForUploaders, listDocuments, listTagsForFilter } from "@/features/documents/queries/documents.queries";
+import { getRolesForUploaders, listDocuments } from "@/features/documents/queries/documents.queries";
 import { LocalDate } from "@/shared/components/local-date";
 import { Badge } from "@/shared/components/ui/badge";
 import { Button } from "@/shared/components/ui/button";
@@ -20,6 +19,8 @@ import {
 } from "@/shared/components/ui/card";
 import { Input } from "@/shared/components/ui/input";
 import { Label } from "@/shared/components/ui/label";
+import { getSession } from "@/shared/lib/auth/get-session";
+import { getCachedCategories, getCachedTagsForFilter } from "@/shared/lib/cache/cached-queries";
 import { createClient } from "@/shared/lib/supabase/server";
 
 const PAGE_SIZE = 10;
@@ -34,13 +35,10 @@ function firstParam(v: string | string[] | undefined): string {
 }
 
 export default async function DocumentsPage({ searchParams }: { searchParams: Promise<SearchParams> }) {
+  const session = await getSession();
+  if (session === null) redirect("/login");
+
   const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-  if (user === null) {
-    redirect("/login");
-  }
 
   const sp = await searchParams;
   const q = firstParam(sp.q);
@@ -53,10 +51,10 @@ export default async function DocumentsPage({ searchParams }: { searchParams: Pr
   const pageNum = Number.isNaN(parsedPage) || parsedPage < 1 ? 1 : parsedPage;
   const pageIndex = pageNum - 1;
 
-  const [{ data: rows, count, error: listErr }, { data: categories }, { data: tags }] = await Promise.all([
+  const [{ data: rows, count, error: listErr }, categories, tags] = await Promise.all([
     listDocuments(supabase, { q, categoryId, tagId, dateFrom, dateTo, page: pageIndex, pageSize: PAGE_SIZE }),
-    listCategories(supabase),
-    listTagsForFilter(supabase),
+    getCachedCategories(),
+    getCachedTagsForFilter(),
   ]);
 
   const uploaderIds = [...new Set((rows ?? []).map((r) => r.uploaded_by))];
@@ -132,7 +130,7 @@ export default async function DocumentsPage({ searchParams }: { searchParams: Pr
                   className="border-input bg-background focus-visible:border-ring focus-visible:ring-ring/50 h-9 w-full rounded-md border px-3 text-sm outline-none focus-visible:ring-[3px]"
                 >
                   <option value="">Todas</option>
-                  {(categories ?? []).map((c) => (
+                  {categories.map((c) => (
                     <option key={c.id} value={c.id}>
                       {c.name}
                     </option>
@@ -148,7 +146,7 @@ export default async function DocumentsPage({ searchParams }: { searchParams: Pr
                   className="border-input bg-background focus-visible:border-ring focus-visible:ring-ring/50 h-9 w-full rounded-md border px-3 text-sm outline-none focus-visible:ring-[3px]"
                 >
                   <option value="">Todas</option>
-                  {(tags ?? []).map((t) => (
+                  {tags.map((t) => (
                     <option key={t.id} value={t.id}>
                       {t.name}
                     </option>

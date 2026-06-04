@@ -6,20 +6,15 @@ import { CreateCategoryForm } from "@/features/categories/components/CreateCateg
 import { listCategoriesWithCount } from "@/features/categories/queries/categories.queries";
 import { Badge } from "@/shared/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/shared/components/ui/card";
-import { getRoleForUser } from "@/shared/lib/auth/get-role-for-user";
+import { getSession } from "@/shared/lib/auth/get-session";
 import { createClient } from "@/shared/lib/supabase/server";
 
 export default async function AdminCategoriesPage() {
+  const session = await getSession();
+  if (session === null) redirect("/login");
+  if (session.role !== "admin") redirect("/");
+
   const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-
-  if (user === null) redirect("/login");
-
-  const role = await getRoleForUser(supabase, user.id);
-  if (role !== "admin") redirect("/");
-
   const { data: categories, error } = await listCategoriesWithCount(supabase);
 
   return (

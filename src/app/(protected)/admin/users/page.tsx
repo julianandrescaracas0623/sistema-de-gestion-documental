@@ -9,8 +9,7 @@ import { CreateUserForm } from "@/features/user-admin/components/create-user-for
 import { listUsersWithRoles } from "@/features/user-admin/queries/users.queries";
 import { Badge } from "@/shared/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/shared/components/ui/card";
-import { getRoleForUser } from "@/shared/lib/auth/get-role-for-user";
-import { createClient } from "@/shared/lib/supabase/server";
+import { getSession } from "@/shared/lib/auth/get-session";
 
 const PAGE_SIZE = 20;
 
@@ -26,15 +25,9 @@ export default async function AdminUsersPage({
 }: {
   searchParams: Promise<SearchParams>;
 }) {
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-
-  if (user === null) redirect("/login");
-
-  const role = await getRoleForUser(supabase, user.id);
-  if (role !== "admin") redirect("/");
+  const session = await getSession();
+  if (session === null) redirect("/login");
+  if (session.role !== "admin") redirect("/");
 
   const sp = await searchParams;
   const roleFilter = firstParam(sp.role) as "admin" | "user" | "";

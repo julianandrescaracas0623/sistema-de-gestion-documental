@@ -1,10 +1,11 @@
 "use server";
 
-import { revalidatePath } from "next/cache";
+import { revalidatePath, revalidateTag } from "next/cache";
 import { z } from "zod";
 
 import type { ActionResult } from "@/shared/lib/action-result";
 import { getRoleForUser } from "@/shared/lib/auth/get-role-for-user";
+import { CACHE_TAGS } from "@/shared/lib/cache/cached-queries";
 import { createClient } from "@/shared/lib/supabase/server";
 
 const schema = z.object({
@@ -34,5 +35,6 @@ export async function createTagAction(_prev: unknown, formData: FormData): Promi
   if (error !== null) return { status: "error", message: "No se pudo crear la etiqueta." };
 
   revalidatePath("/admin/tags");
+  revalidateTag(CACHE_TAGS.tags, "default");
   return { status: "success", message: "Etiqueta creada correctamente." };
 }
