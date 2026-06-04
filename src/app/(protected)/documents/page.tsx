@@ -6,7 +6,7 @@ import { QuickDateFilters } from "@/features/documents/components/QuickDateFilte
 import { DocumentDeleteListButton } from "@/features/documents/components/document-delete-list-button";
 import { formatFileSize } from "@/features/documents/lib/format-bytes";
 import { listCategories } from "@/features/documents/queries/categories.queries";
-import { listDocuments, listTagsForFilter } from "@/features/documents/queries/documents.queries";
+import { getRolesForUploaders, listDocuments, listTagsForFilter } from "@/features/documents/queries/documents.queries";
 import { LocalDate } from "@/shared/components/local-date";
 import { Badge } from "@/shared/components/ui/badge";
 import { Button } from "@/shared/components/ui/button";
@@ -58,6 +58,9 @@ export default async function DocumentsPage({ searchParams }: { searchParams: Pr
     listCategories(supabase),
     listTagsForFilter(supabase),
   ]);
+
+  const uploaderIds = [...new Set((rows ?? []).map((r) => r.uploaded_by))];
+  const roleMap = await getRolesForUploaders(uploaderIds);
 
   if (listErr !== null) {
     return (
@@ -269,17 +272,22 @@ export default async function DocumentsPage({ searchParams }: { searchParams: Pr
                           )}
                         </td>
                         <td className="px-6 py-4">
-                          <div className="flex flex-col gap-0.5">
-                            <span className="text-xs text-muted-foreground">{row.uploader?.email ?? "—"}</span>
-                            {row.uploader_role != null ? (
-                              <Badge
-                                variant={row.uploader_role === "admin" ? "default" : "secondary"}
-                                className="w-fit text-[10px] px-1.5 py-0"
-                              >
-                                {row.uploader_role === "admin" ? "Admin" : "Usuario"}
-                              </Badge>
-                            ) : null}
-                          </div>
+                          {(() => {
+                            const role = roleMap.get(row.uploaded_by);
+                            return (
+                              <div className="flex flex-col gap-0.5">
+                                <span className="text-xs text-muted-foreground">{row.uploader?.email ?? "—"}</span>
+                                {role != null ? (
+                                  <Badge
+                                    variant={role === "admin" ? "default" : "secondary"}
+                                    className="w-fit text-[10px] px-1.5 py-0"
+                                  >
+                                    {role === "admin" ? "Admin" : "Usuario"}
+                                  </Badge>
+                                ) : null}
+                              </div>
+                            );
+                          })()}
                         </td>
                         <td className="px-6 py-4 text-muted-foreground">{formatFileSize(row.size_bytes)}</td>
                         <td className="px-6 py-4 text-muted-foreground">

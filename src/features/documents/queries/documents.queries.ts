@@ -1,5 +1,6 @@
 import { sanitizeDocumentSearchQuery } from "@/features/documents/lib/search-utils";
 import type { createClient } from "@/shared/lib/supabase/server";
+import { createServiceRoleClient } from "@/shared/lib/supabase/service-role";
 
 export type SupabaseServer = Awaited<ReturnType<typeof createClient>>;
 
@@ -13,7 +14,7 @@ export interface DocumentListRow {
   uploaded_by: string;
   category: { id: string; name: string } | null;
   uploader: { email: string } | null;
-  uploader_role: string | null;
+  uploader_role?: string | null;
 }
 
 export interface DocumentDetailRow extends DocumentListRow {
@@ -32,8 +33,7 @@ const listSelect = `
   created_at,
   uploaded_by,
   category:categories (id, name),
-  uploader:profiles!uploaded_by (email),
-  uploader_role
+  uploader:profiles!uploaded_by (email)
 `;
 
 export async function listDocuments(
@@ -171,4 +171,23 @@ export async function getDocumentById(
     return { data: null, error: null };
   }
   return { data: data as unknown as DocumentDetailRow, error: null };
+}
+
+export async function getRolesForUploaders(userIds: string[]): Promise<Map<string, string>> {
+  if (userIds.length === 0) return new Map();
+  let client;
+  try {
+    client = createServiceRoleClient();
+  } catch {
+    return new Map();
+  }
+  const { data } = await client
+    .from("user_roles")
+    .select("user_id, role")
+    .in("user_id", userIds);
+  const map = new Map<string, string>();
+  for (const row of (data ?? []) as { user_id: string; role: string }[]) {
+    map.set(row.user_id, row.role);
+  }
+  return map;
 }
