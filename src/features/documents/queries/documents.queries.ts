@@ -13,6 +13,7 @@ export interface DocumentListRow {
   uploaded_by: string;
   category: { id: string; name: string } | null;
   uploader: { email: string } | null;
+  uploader_role: string | null;
 }
 
 export interface DocumentDetailRow extends DocumentListRow {
@@ -31,7 +32,8 @@ const listSelect = `
   created_at,
   uploaded_by,
   category:categories (id, name),
-  uploader:profiles!uploaded_by (email)
+  uploader:profiles!uploaded_by (email),
+  uploader_role
 `;
 
 export async function listDocuments(

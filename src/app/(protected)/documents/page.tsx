@@ -268,8 +268,18 @@ export default async function DocumentsPage({ searchParams }: { searchParams: Pr
                             "Sin categoría"
                           )}
                         </td>
-                        <td className="px-6 py-4 text-muted-foreground text-xs">
-                          {row.uploader?.email ?? "—"}
+                        <td className="px-6 py-4">
+                          <div className="flex flex-col gap-0.5">
+                            <span className="text-xs text-muted-foreground">{row.uploader?.email ?? "—"}</span>
+                            {row.uploader_role != null ? (
+                              <Badge
+                                variant={row.uploader_role === "admin" ? "default" : "secondary"}
+                                className="w-fit text-[10px] px-1.5 py-0"
+                              >
+                                {row.uploader_role === "admin" ? "Admin" : "Usuario"}
+                              </Badge>
+                            ) : null}
+                          </div>
                         </td>
                         <td className="px-6 py-4 text-muted-foreground">{formatFileSize(row.size_bytes)}</td>
                         <td className="px-6 py-4 text-muted-foreground">
