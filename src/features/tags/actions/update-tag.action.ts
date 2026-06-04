@@ -1,11 +1,13 @@
 "use server";
 
-import { revalidatePath } from "next/cache";
+import { revalidatePath, revalidateTag } from "next/cache";
 import { z } from "zod";
 
 import type { ActionResult } from "@/shared/lib/action-result";
 import { getRoleForUser } from "@/shared/lib/auth/get-role-for-user";
+import { CACHE_TAGS } from "@/shared/lib/cache/cached-queries";
 import { createClient } from "@/shared/lib/supabase/server";
+import { createServiceRoleClient } from "@/shared/lib/supabase/service-role";
 
 const schema = z.object({
   id: z.string().uuid("ID inválido."),
@@ -32,9 +34,11 @@ export async function updateTagAction(_prev: unknown, formData: FormData): Promi
 
   if (existing !== null) return { status: "error", message: "Ya existe una etiqueta con ese nombre." };
 
-  const { error } = await supabase.from("tags").update({ name: parsed.data.name }).eq("id", parsed.data.id);
+  const adminClient = createServiceRoleClient();
+  const { error } = await adminClient.from("tags").update({ name: parsed.data.name }).eq("id", parsed.data.id);
   if (error !== null) return { status: "error", message: "No se pudo actualizar la etiqueta." };
 
   revalidatePath("/admin/tags");
+  revalidateTag(CACHE_TAGS.tags, "default");
   return { status: "success", message: "Etiqueta actualizada correctamente." };
 }

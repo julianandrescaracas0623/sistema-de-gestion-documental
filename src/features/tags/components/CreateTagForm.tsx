@@ -1,5 +1,6 @@
 "use client";
 
+import { useRouter } from "next/navigation";
 import { useActionState, useEffect, useRef } from "react";
 import { toast } from "sonner";
 
@@ -12,6 +13,7 @@ import { Label } from "@/shared/components/ui/label";
 export function CreateTagForm() {
   const [state, formAction, isPending] = useActionState(createTagAction, null);
   const formRef = useRef<HTMLFormElement>(null);
+  const router = useRouter();
 
   useEffect(() => {
     if (state === null) return;
@@ -20,8 +22,9 @@ export function CreateTagForm() {
     } else {
       toast.success(state.message);
       formRef.current?.reset();
+      router.refresh();
     }
-  }, [state]);
+  }, [state, router]);
 
   return (
     <Card>

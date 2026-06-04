@@ -1,5 +1,6 @@
 "use client";
 
+import { useRouter } from "next/navigation";
 import { useActionState, useEffect, useRef, useState, useTransition } from "react";
 import { toast } from "sonner";
 
@@ -24,6 +25,7 @@ function EditTagSheet({ tag, onClose }: { tag: TagAdminRow; onClose: () => void 
   const [state, formAction, isPending] = useActionState(updateTagAction, null);
   const formRef = useRef<HTMLFormElement>(null);
   const onCloseRef = useRef(onClose);
+  const router = useRouter();
 
   useEffect(() => { onCloseRef.current = onClose; }, [onClose]);
 
@@ -34,8 +36,9 @@ function EditTagSheet({ tag, onClose }: { tag: TagAdminRow; onClose: () => void 
     } else {
       toast.success(state.message);
       onCloseRef.current();
+      router.refresh();
     }
-  }, [state]);
+  }, [state, router]);
 
   return (
     <SheetContent>
@@ -69,6 +72,7 @@ function EditTagSheet({ tag, onClose }: { tag: TagAdminRow; onClose: () => void 
 function DeleteTagSheet({ tag }: { tag: TagAdminRow }) {
   const [open, setOpen] = useState(false);
   const [isPending, startTransition] = useTransition();
+  const router = useRouter();
 
   const handleDelete = () => {
     startTransition(async () => {
@@ -80,6 +84,7 @@ function DeleteTagSheet({ tag }: { tag: TagAdminRow }) {
       } else {
         toast.success(result.message);
         setOpen(false);
+        router.refresh();
       }
     });
   };
