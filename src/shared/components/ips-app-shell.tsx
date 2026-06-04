@@ -7,9 +7,11 @@ import {
   LogOut,
   Menu,
   Shield,
+  Tag,
   Upload,
   Users,
 } from "lucide-react";
+import type { Route } from "next";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useState } from "react";
@@ -36,7 +38,8 @@ function useNavActive(pathname: string) {
     pathname.startsWith("/documents") && !pathname.startsWith("/documents/new");
   const isUsers = pathname.startsWith("/admin/users");
   const isCategories = pathname.startsWith("/admin/categories");
-  return { isHome, isUpload, isDocuments, isUsers, isCategories };
+  const isTags = pathname.startsWith("/admin/tags");
+  return { isHome, isUpload, isDocuments, isUsers, isCategories, isTags };
 }
 
 function navClick(onNavigate: (() => void) | undefined): { onClick: () => void } | Record<string, never> {
@@ -61,7 +64,7 @@ function SidebarNavLinks({
   onNavigate?: () => void;
   className?: string;
 }) {
-  const { isHome, isUpload, isDocuments, isUsers, isCategories } = useNavActive(pathname);
+  const { isHome, isUpload, isDocuments, isUsers, isCategories, isTags } = useNavActive(pathname);
 
   const linkClass = (active: boolean) =>
     cn(
@@ -101,6 +104,10 @@ function SidebarNavLinks({
           <Link href="/admin/categories" className={linkClass(isCategories)} {...navClick(onNavigate)}>
             <FolderOpen className="size-4 shrink-0 opacity-90" aria-hidden />
             Categorías
+          </Link>
+          <Link href={"/admin/tags" as Route} className={linkClass(isTags)} {...navClick(onNavigate)}>
+            <Tag className="size-4 shrink-0 opacity-90" aria-hidden />
+            Etiquetas
           </Link>
         </>
       ) : null}

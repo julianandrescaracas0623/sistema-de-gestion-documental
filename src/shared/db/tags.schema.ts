@@ -24,6 +24,17 @@ export const tags = pgTable(
       to: "authenticated",
       withCheck: sql`true`,
     }).link(t as unknown as PgTable),
+    pgPolicy("tags_update_admin", {
+      for: "update",
+      to: "authenticated",
+      using: sql`exists (select 1 from user_roles where user_roles.user_id = auth.uid() and user_roles.role = 'admin')`,
+      withCheck: sql`true`,
+    }).link(t as unknown as PgTable),
+    pgPolicy("tags_delete_admin", {
+      for: "delete",
+      to: "authenticated",
+      using: sql`exists (select 1 from user_roles where user_roles.user_id = auth.uid() and user_roles.role = 'admin')`,
+    }).link(t as unknown as PgTable),
   ],
 ).enableRLS();
 
