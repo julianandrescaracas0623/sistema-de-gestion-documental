@@ -14,13 +14,13 @@ import { createInsertSchema, createSelectSchema } from "drizzle-zod";
 
 import { categories } from "./categories.schema";
 import { profiles } from "./profiles.schema";
+import {
+  canCreateDocuments,
+  canDeleteDocuments,
+  canReadDocuments,
+  canUpdateDocuments,
+} from "./rls-sql";
 import { tags } from "./tags.schema";
-
-const isAdmin = sql`exists (
-  select 1 from user_roles
-  where user_roles.user_id = auth.uid()
-  and user_roles.role = 'admin'
-)`;
 
 /**
  * Document metadata; binary lives in Supabase Storage (`storage_object_path`).
@@ -38,18 +38,17 @@ export const documents = pgTable(
     categoryId: uuid("category_id").references(() => categories.id, {
       onDelete: "set null",
     }),
-    uploadedBy: uuid("uploaded_by")
-      .notNull()
-      .references(() => profiles.id, { onDelete: "cascade" }),
+    uploadedBy: uuid("uploaded_by").references(() => profiles.id, { onDelete: "set null" }),
     createdAt: timestamp("created_at").notNull().defaultNow(),
     updatedAt: timestamp("updated_at").notNull().defaultNow(),
     deletedAt: timestamp("deleted_at"),
   },
   (t) => {
     const ownerActiveRow = sql`${t.uploadedBy} = auth.uid() and ${t.deletedAt} is null`;
-    const selectVisible = sql`(${isAdmin} or ${ownerActiveRow})`;
-    const updateUsing = sql`(${isAdmin} or ${t.uploadedBy} = auth.uid())`;
-    const updateWithCheck = sql`(${isAdmin} or ${t.uploadedBy} = auth.uid())`;
+    const selectVisible = sql`(${canReadDocuments} or ${ownerActiveRow})`;
+    const updateUsing = sql`(${canUpdateDocuments} or ${t.uploadedBy} = auth.uid())`;
+    const updateWithCheck = sql`(${canUpdateDocuments} or ${t.uploadedBy} = auth.uid())`;
+    const deleteUsing = sql`(${canDeleteDocuments} or ${t.uploadedBy} = auth.uid())`;
 
     return [
       index("documents_uploaded_by_idx").on(t.uploadedBy),
@@ -63,13 +62,18 @@ export const documents = pgTable(
       pgPolicy("documents_insert_authenticated", {
         for: "insert",
         to: "authenticated",
-        withCheck: sql`${t.uploadedBy} = auth.uid()`,
+        withCheck: sql`${canCreateDocuments} and ${t.uploadedBy} = auth.uid()`,
       }).link(t as unknown as PgTable),
       pgPolicy("documents_update_authenticated", {
         for: "update",
         to: "authenticated",
         using: updateUsing,
         withCheck: updateWithCheck,
+      }).link(t as unknown as PgTable),
+      pgPolicy("documents_delete_authenticated", {
+        for: "delete",
+        to: "authenticated",
+        using: deleteUsing,
       }).link(t as unknown as PgTable),
     ];
   },
@@ -90,7 +94,7 @@ export const documentTags = pgTable(
       select 1 from documents
       where documents.id = ${t.documentId}
       and (
-        ${isAdmin}
+        ${canUpdateDocuments}
         or (documents.uploaded_by = auth.uid() and documents.deleted_at is null)
       )
     )`;

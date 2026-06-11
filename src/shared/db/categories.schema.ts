@@ -4,12 +4,9 @@ import { integer, pgPolicy, pgTable, text, timestamp, uuid } from "drizzle-orm/p
 import { createInsertSchema, createSelectSchema } from "drizzle-zod";
 
 import { profiles } from "./profiles.schema";
+import { hasPermission } from "./rls-sql";
 
-const isAdmin = sql`exists (
-  select 1 from user_roles
-  where user_roles.user_id = auth.uid()
-  and user_roles.role = 'admin'
-)`;
+const canManageCategories = hasPermission("categories.manage");
 
 /**
  * Categories for organizing documents.
@@ -35,18 +32,18 @@ export const categories = pgTable(
     pgPolicy("categories_insert_admin", {
       for: "insert",
       to: "authenticated",
-      withCheck: isAdmin,
+      withCheck: canManageCategories,
     }).link(t as unknown as PgTable),
     pgPolicy("categories_update_admin", {
       for: "update",
       to: "authenticated",
-      using: isAdmin,
-      withCheck: isAdmin,
+      using: canManageCategories,
+      withCheck: canManageCategories,
     }).link(t as unknown as PgTable),
     pgPolicy("categories_delete_admin", {
       for: "delete",
       to: "authenticated",
-      using: isAdmin,
+      using: canManageCategories,
     }).link(t as unknown as PgTable),
   ],
 ).enableRLS();

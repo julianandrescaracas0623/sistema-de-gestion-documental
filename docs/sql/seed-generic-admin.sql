@@ -1,4 +1,5 @@
 -- Usuario administrador genérico para desarrollo / bootstrap.
+-- Requiere migración RBAC aplicada (tabla roles, user_roles.role_id, profiles.full_name).
 -- Ejecutar con Supabase CLI (usa DATABASE_URL de .env.local):
 --   supabase db query --db-url "<DATABASE_URL>" -f docs/sql/seed-generic-admin.sql
 --
@@ -10,14 +11,21 @@ DO $$
 DECLARE
   v_email text := 'admin@sistema-documental.local';
   v_password text := 'Admin12345';
+  v_full_name text := 'Administrador del sistema';
   v_user_id uuid := gen_random_uuid();
   v_identity_id uuid := gen_random_uuid();
   v_instance uuid := '00000000-0000-0000-0000-000000000000';
+  v_admin_role_id uuid;
   v_encrypted text;
 BEGIN
   IF EXISTS (SELECT 1 FROM auth.users WHERE lower(email) = lower(v_email)) THEN
     RAISE NOTICE 'Ya existe un usuario con correo %', v_email;
     RETURN;
+  END IF;
+
+  SELECT id INTO v_admin_role_id FROM public.roles WHERE slug = 'admin' LIMIT 1;
+  IF v_admin_role_id IS NULL THEN
+    RAISE EXCEPTION 'No existe el rol admin. Ejecuta primero: node scripts/apply-rbac-migration.mjs';
   END IF;
 
   v_encrypted := crypt(v_password, gen_salt('bf'));
@@ -49,7 +57,7 @@ BEGIN
     v_encrypted,
     now(),
     '{"provider":"email","providers":["email"]}'::jsonb,
-    '{}'::jsonb,
+    jsonb_build_object('full_name', v_full_name),
     now(),
     now(),
     false,
@@ -80,11 +88,11 @@ BEGIN
     now()
   );
 
-  INSERT INTO public.profiles (id, email, created_at, updated_at)
-  VALUES (v_user_id, v_email, now(), now());
+  INSERT INTO public.profiles (id, email, full_name, created_at, updated_at)
+  VALUES (v_user_id, v_email, v_full_name, now(), now());
 
-  INSERT INTO public.user_roles (user_id, role, created_at, updated_at)
-  VALUES (v_user_id, 'admin', now(), now());
+  INSERT INTO public.user_roles (user_id, role_id, created_at, updated_at)
+  VALUES (v_user_id, v_admin_role_id, now(), now());
 
   RAISE NOTICE 'Admin creado: % (id %)', v_email, v_user_id;
 END $$;
