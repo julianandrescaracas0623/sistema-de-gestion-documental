@@ -38,9 +38,9 @@ Se propone implementar un sistema web de gestión documental que permita:
 - Almacenarlos en la nube
 - Organizarlos por categorías
 - Consultarlos mediante búsqueda
-- Controlar el acceso mediante roles
+- Controlar el acceso mediante **roles y permisos** (RBAC: catálogo fijo + roles asignables)
 
-Los requisitos de producto derivados de esta propuesta están en [.requirements/requerimiento_funcional.md](../.requirements/requerimiento_funcional.md) y [.requirements/non-functional.md](../.requirements/non-functional.md).
+Los requisitos de producto derivados de esta propuesta están en [.requirements/requerimiento_funcional.md](../.requirements/requerimiento_funcional.md), [.requirements/rbac.md](../.requirements/rbac.md) y [.requirements/non-functional.md](../.requirements/non-functional.md).
 
 ## 5. Flujo con el sistema propuesto
 
@@ -55,15 +55,14 @@ El comportamiento de acceso (inicio y cierre de sesión, rutas protegidas) se de
 
 ## 6. Actores del sistema
 
-- **Administrador**
-  - Gestiona usuarios
-  - Controla acceso
+- **Administrador** (rol `admin` o rol personalizado con permisos equivalentes)
+  - Gestiona usuarios y roles
+  - Configura categorías y etiquetas
   - Supervisa el sistema
 
-- **Usuario administrativo**
-  - Sube documentos
-  - Consulta información
-  - Organiza archivos
+- **Usuario administrativo** (rol `user` u otro rol con permisos documentales)
+  - Sube y consulta documentos
+  - Organiza archivos según permisos asignados
 
 Estos actores se reflejan en los [casos de uso](../.requirements/use-cases.md) como participantes de los flujos funcionales.
 

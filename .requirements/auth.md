@@ -68,17 +68,23 @@ Como **administrador**, quiero **registrar a los usuarios y asignarles su rol** 
 **Cuando** accedo a las pantallas públicas de la aplicación (p. ej. login)  
 **Entonces** **no** puedo completar un flujo de “crear cuenta” o registro autónomo: el acceso depende de que un **administrador** me haya registrado previamente
 
-### CA8: Alta de usuario y roles solo por administrador
+### CA8: Alta de usuario con nombre y rol (solo quien tenga `users.manage`)
 
-**Dado** que estoy autenticado como **administrador**  
-**Cuando** utilizo el flujo de alta de usuario (datos requeridos, correo, **rol inicial**)  
-**Entonces** el nuevo usuario queda registrado en el sistema de autenticación y con el **rol definido por el administrador**; ningún otro rol puede realizar esta operación desde la UI (y las APIs deben negarla a no administradores)
+**Dado** que estoy autenticado con el permiso **`users.manage`**  
+**Cuando** utilizo el flujo de alta de usuario (**nombre completo**, correo, contraseña inicial y **rol** elegido del catálogo dinámico)  
+**Entonces** el nuevo usuario queda registrado en Supabase Auth, su perfil incluye `full_name`, y queda asignado al **rol** seleccionado; quien no tenga `users.manage` no puede realizar esta operación (UI y acciones de servidor)
 
-### CA9: Usuario no administrador no registra ni asigna roles
+### CA9: Usuario sin permisos de administración no gestiona cuentas ni roles
 
-**Dado** que estoy autenticado como **usuario administrativo** (no administrador)  
-**Cuando** intento abrir el módulo de gestión de usuarios o invocar operaciones equivalentes (API / acciones de servidor)  
-**Entonces** el sistema **deniega** el acceso (interfaz no disponible y/o respuesta **403** / error de autorización coherente)
+**Dado** que estoy autenticado **sin** `users.manage` ni `roles.manage`  
+**Cuando** intento abrir módulos de gestión de usuarios/roles o invocar operaciones equivalentes  
+**Entonces** el sistema **deniega** el acceso (menú no visible, redirección o error de autorización coherente)
+
+### CA10: Bienvenida personalizada
+
+**Dado** que inicié sesión correctamente  
+**Cuando** accedo al panel principal  
+**Entonces** veo **«Bienvenido, {nombre}»** usando `profiles.full_name` (o respaldo desde metadatos/correo); el rol no se muestra como badge prominente en el hero (sí de forma discreta en la barra lateral)
 
 ---
 
@@ -92,8 +98,10 @@ Como **administrador**, quiero **registrar a los usuarios y asignarles su rol** 
 - [ ] CP6: Cierre de sesión → sesión cerrada y redirección a login
 - [ ] CP7: Usuario no autenticado en ruta protegida → redirección a login
 - [ ] CP8: Sin sesión → **no** existe registro público usable (ni enlaces que lo permitan sin admin)
-- [ ] CP9: Administrador → alta de usuario con rol; el nuevo usuario puede iniciar sesión según ese rol
-- [ ] CP10: Usuario administrativo → **no** puede alta de usuarios ni cambiar roles
+- [ ] CP9: Usuario con `users.manage` → alta con nombre, correo y rol; el nuevo usuario inicia sesión con permisos del rol
+- [ ] CP10: Usuario sin `users.manage` ni `roles.manage` → no puede gestionar cuentas ni roles
+- [ ] CP11: Panel principal muestra «Bienvenido, {nombre}» sin badge de rol en el hero
+- [ ] CP12: Usuario con `roles.manage` → crea/edita rol en `/admin/roles/[id]`; sin permiso → redirección o menú oculto
 
 ---
 
@@ -117,4 +125,5 @@ La creación del **primer** usuario administrador (bootstrap) puede hacerse por 
 | Actores y flujo operativo | [contexto_operacional.md](../docs/contexto_operacional.md) |
 | Lista RF de usuarios y seguridad | [requerimiento_funcional.md](requerimiento_funcional.md) |
 | Calidad de seguridad y despliegue | [non-functional.md](non-functional.md) |
-| Flujos detallados (login, logout, gestión de usuarios) | [use-cases.md](use-cases.md) (CU1, CU4, CU6) |
+| Flujos detallados (login, logout, usuarios, roles) | [use-cases.md](use-cases.md) (CU1, CU4, CU6, CU12) |
+| RBAC y permisos | [rbac.md](rbac.md) |

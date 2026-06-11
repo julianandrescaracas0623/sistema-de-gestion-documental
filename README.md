@@ -44,22 +44,32 @@ Más detalles en [docs/problema.md](./docs/problema.md).
 
 ---
 
-## 📦 Funcionalidades principales (ignorar esto) 
+## 📦 Funcionalidades principales
 
 - [x] Autenticación de usuarios (login/logout)
-- [x] Alta de usuarios y roles solo para administrador (`/admin/users`, sin registro público en la app)
+- [x] Alta de usuarios con **nombre completo** y rol dinámico (`/admin/users`, permiso `users.manage`)
+- [x] Gestión de roles y permisos (`/admin/roles`, `/admin/roles/new`, `/admin/roles/[id]`, permiso `roles.manage`)
+- [x] RBAC: catálogo fijo de permisos + roles asignables; RLS vía `has_permission()`
 - [x] Subida de documentos (`/documents/new`, bucket `documents` en Supabase Storage)
 - [x] Clasificación por categorías y etiquetas (`document_tags`, edición en detalle)
-- [x] Búsqueda y listado paginado (`/documents` con filtros)
+- [x] Búsqueda y listado paginado (`/documents` con filtros y breadcrumb)
 - [x] Descarga y visualización (URLs firmadas en detalle `/documents/[id]`)
 - [x] Eliminación lógica y borrado de objeto en Storage
+- [x] Eliminación de usuarios conservando documentos (`uploaded_by` SET NULL)
+- [x] Confirmaciones destructivas (AlertDialog) y menús ⋯ en tablas
 
 ---
 
-## 👥 Roles
+## 👥 Roles y permisos
 
-- **Administrador**: Gestiona usuarios, controla acceso, supervisa el sistema
-- **Usuario administrativo**: Sube documentos, consulta información, organiza archivos
+Roles semilla (tabla `roles`):
+
+| Rol | Permisos típicos |
+| --- | --- |
+| **Administrador** (`admin`) | Todos (`users.manage`, `roles.manage`, `categories.manage`, `tags.manage`, `documents.*`) |
+| **Usuario administrativo** (`user`) | Gestión documental (`documents.read/create/update/delete`) |
+
+El administrador puede crear **roles personalizados** y asignar permisos del catálogo. Detalle: [.requirements/rbac.md](./.requirements/rbac.md).
 
 ---
 
@@ -92,8 +102,14 @@ src/
 │   │   └── login/
 │   │       └── page.tsx
 │   ├── (protected)/              # Protected routes
-│   │   ├── layout.tsx
-│   │   └── page.tsx
+│   │   ├── layout.tsx            # IpsAppShell + sesión
+│   │   ├── page.tsx              # Panel con bienvenida por nombre
+│   │   ├── admin/
+│   │   │   ├── users/            # Alta y listado de usuarios
+│   │   │   ├── roles/            # Listado, nuevo, editar rol
+│   │   │   ├── categories/
+│   │   │   └── tags/
+│   │   └── documents/            # Listado, subida, detalle
 │   ├── api/                      # API routes
 │   │   └── auth/callback/
 │   │       └── route.ts
@@ -101,19 +117,20 @@ src/
 │   ├── layout.tsx                # Root layout
 │   └── error.tsx                 # Error boundary
 ├── features/                     # Feature modules
-│   └── auth/                     # Auth feature
-│       ├── actions/              # Server Actions
-│       │   ├── login.action.ts
-│       │   └── logout.action.ts
-│       ├── components/           # React components
-│       │   └── login-form.tsx
-│       ├── hooks/                # Custom hooks
-│       │   └── use-auth.ts
-│       └── __tests__/            # Feature tests
+│   ├── auth/                     # Login, logout
+│   ├── user-admin/               # Usuarios (users.manage)
+│   ├── role-admin/               # Roles y permisos (roles.manage)
+│   ├── documents/
+│   ├── categories/
+│   └── tags/
 ├── shared/                       # Shared code
 │   ├── components/
-│   │   ├── providers.tsx         # Context providers
-│   │   └── ui/                   # shadcn/ui components
+│   │   ├── ips-app-shell.tsx
+│   │   ├── page-breadcrumb.tsx
+│   │   ├── confirm-destructive-dialog.tsx
+│   │   ├── providers.tsx
+│   │   └── ui/                   # shadcn/ui
+│   ├── lib/auth/                 # Sesión, permisos, RBAC runtime
 │   │       ├── button.tsx
 │   │       ├── card.tsx
 │   │       ├── input.tsx
@@ -163,6 +180,17 @@ src/
 | `pnpm db:push` | Push schema a DB (solo desarrollo) |
 | `pnpm db:studio` | Abrir Drizzle Studio |
 
+### Migraciones manuales (RBAC / documentos)
+
+Si `pnpm db:migrate` falla por journal desincronizado:
+
+```bash
+node scripts/apply-preserve-documents-migration.mjs
+node scripts/apply-rbac-migration.mjs
+```
+
+Ver [docs/MIGRATIONS.md](./docs/MIGRATIONS.md).
+
 ---
 
 ## 🔧 Configuración
@@ -182,7 +210,7 @@ Variables de entorno requeridas:
 | `NEXT_PUBLIC_SUPABASE_URL` | URL del proyecto Supabase |
 | `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Clave pública de Supabase |
 | `DATABASE_URL` | URL de conexión PostgreSQL |
-| `SUPABASE_SERVICE_ROLE_KEY` | Clave service role (solo servidor; alta de usuarios en `/admin/users`) |
+| `SUPABASE_SERVICE_ROLE_KEY` | Clave service role (solo servidor; alta/listado admin de usuarios) |
 | `DOCUMENT_UPLOAD_MAX_MB` | (Opcional) Tamaño máximo de subida en MB; por defecto 25 |
 
 
@@ -215,11 +243,14 @@ pnpm test:e2e
 | [docs/problema.md](./docs/problema.md) | Planteamiento del problema |
 | [docs/contexto_operacional.md](./docs/contexto_operacional.md) | Contexto operacional |
 | [.requirements/README.md](./.requirements/README.md) | Guía de requerimientos |
-| [.requirements/auth.md](./.requirements/auth.md) | Requerimientos de autenticación |
+| [.requirements/auth.md](./.requirements/auth.md) | Autenticación y sesión |
+| [.requirements/rbac.md](./.requirements/rbac.md) | Roles, permisos y RLS |
 | [.requirements/use-cases.md](./.requirements/use-cases.md) | Casos de uso |
+| [.requirements/ux-confirmaciones.md](./.requirements/ux-confirmaciones.md) | Confirmaciones y menús ⋯ |
 | [.requirements/requerimiento_funcional.md](./.requirements/requerimiento_funcional.md) | Requerimientos funcionales |
 | [.requirements/non-functional.md](./.requirements/non-functional.md) | Requerimientos no funcionales |
-| [.opencode/memory/architecture-snapshot.md](./.opencode/memory/architecture-snapshot.md) | Snapshot de arquitectura |
+| [docs/MIGRATIONS.md](./docs/MIGRATIONS.md) | Migraciones y scripts SQL |
+| [.cursor/memory/architecture-snapshot.md](./.cursor/memory/architecture-snapshot.md) | Snapshot de arquitectura |
 
 ---
 ## 📝 Licencia
