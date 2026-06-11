@@ -22,7 +22,10 @@ vi.mock("@/features/documents/queries/documents.queries", () => ({
 }));
 
 vi.mock("next/navigation", () => ({
-  redirect: (url: string): unknown => mockRedirect(url),
+  redirect: (url: string): never => {
+    mockRedirect(url);
+    throw new Error("NEXT_REDIRECT");
+  },
 }));
 
 describe("HomePage (protected)", () => {
@@ -44,7 +47,7 @@ describe("HomePage (protected)", () => {
     mockGetSession.mockResolvedValue(null);
     const { default: HomePage } = await import("../(protected)/page");
 
-    await HomePage();
+    await expect(HomePage()).rejects.toThrow("NEXT_REDIRECT");
 
     expect(mockRedirect).toHaveBeenCalledWith("/login");
   });

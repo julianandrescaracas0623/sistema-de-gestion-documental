@@ -66,9 +66,12 @@ describe("createRoleAction", () => {
       role: "admin",
     });
     mockSlugLookup.mockResolvedValue({ data: null, error: null });
-    mockInsertRole.mockResolvedValue({ data: { id: "new-role" }, error: null });
+    mockInsertRole.mockResolvedValue({
+      data: { id: "aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee" },
+      error: null,
+    });
     mockPermsSelect.mockResolvedValue({
-      data: [{ id: "p1", key: "documents.read" }],
+      data: [{ id: "11111111-2222-3333-4444-555555555555", key: "documents.read" }],
       error: null,
     });
     mockLinkInsert.mockResolvedValue({ error: null });
