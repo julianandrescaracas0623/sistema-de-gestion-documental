@@ -1,12 +1,13 @@
-import { CalendarDays, Download, FileText, Filter, Search, Tag } from "lucide-react";
+import { CalendarDays, Download, FileText, Filter, Search, Tag, Upload } from "lucide-react";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 
 import { QuickDateFilters } from "@/features/documents/components/QuickDateFilters";
-import { DocumentDeleteListButton } from "@/features/documents/components/document-delete-list-button";
+import { DocumentRowActions } from "@/features/documents/components/document-row-actions";
 import { formatFileSize } from "@/features/documents/lib/format-bytes";
 import { getRolesForUploaders, listDocuments } from "@/features/documents/queries/documents.queries";
 import { LocalDate } from "@/shared/components/local-date";
+import { PageBreadcrumb } from "@/shared/components/page-breadcrumb";
 import { Badge } from "@/shared/components/ui/badge";
 import { Button } from "@/shared/components/ui/button";
 import {
@@ -57,7 +58,9 @@ export default async function DocumentsPage({ searchParams }: { searchParams: Pr
     getCachedTagsForFilter(),
   ]);
 
-  const uploaderIds = [...new Set((rows ?? []).map((r) => r.uploaded_by))];
+  const uploaderIds = [
+    ...new Set((rows ?? []).map((r) => r.uploaded_by).filter((id): id is string => id !== null)),
+  ];
   const roleMap = await getRolesForUploaders(uploaderIds);
 
   if (listErr !== null) {
@@ -93,17 +96,15 @@ export default async function DocumentsPage({ searchParams }: { searchParams: Pr
 
   return (
     <div className="flex min-h-0 flex-1 flex-col">
-      <header className="bg-card flex shrink-0 flex-col gap-3 border-b px-4 py-4 sm:px-6 lg:px-7 md:flex-row md:items-center md:justify-between">
-        <div>
-          <p className="text-muted-foreground text-xs tracking-wide">
-            Inicio <span className="opacity-50">/</span> Documentos
-          </p>
-          <h1 className="text-lg font-semibold tracking-tight text-foreground">Documentos</h1>
-          <p className="text-muted-foreground mt-0.5 text-sm">Busca, filtra y abre tus archivos autorizados.</p>
-        </div>
-        <Button asChild className="w-full sm:w-auto">
-          <Link href="/documents/new">Subir documento</Link>
-        </Button>
+      <header className="bg-card shrink-0 border-b px-4 py-4 sm:px-6 lg:px-7">
+        <PageBreadcrumb
+          items={[
+            { label: "Inicio", href: "/" },
+            { label: "Documentos" },
+          ]}
+        />
+        <h1 className="text-lg font-semibold tracking-tight text-foreground">Documentos</h1>
+        <p className="text-muted-foreground mt-0.5 text-sm">Busca, filtra y abre tus archivos autorizados.</p>
       </header>
 
       <div className="mx-auto flex w-full max-w-6xl flex-1 flex-col gap-6 px-4 py-4 sm:px-6 sm:py-6 lg:px-7 lg:py-7">
@@ -195,7 +196,13 @@ export default async function DocumentsPage({ searchParams }: { searchParams: Pr
                 <FileText className="size-4 text-primary" />
                 Listado de documentos
               </CardTitle>
-              <div className="flex items-center gap-2">
+              <div className="flex flex-wrap items-center gap-2">
+                <Button asChild size="sm">
+                  <Link href="/documents/new">
+                    <Upload className="size-4" />
+                    Subir documento
+                  </Link>
+                </Button>
                 <Badge variant="outline">
                   {String(total)} total
                 </Badge>
@@ -237,8 +244,8 @@ export default async function DocumentsPage({ searchParams }: { searchParams: Pr
                     <th className="text-muted-foreground px-6 py-2.5 text-left text-[11.5px] font-semibold tracking-wide uppercase">
                       Fecha
                     </th>
-                    <th className="text-muted-foreground px-6 py-2.5 text-right text-[11.5px] font-semibold tracking-wide uppercase">
-                      Acción
+                    <th className="text-muted-foreground w-16 px-6 py-2.5 text-right text-[11.5px] font-semibold tracking-wide uppercase">
+                      Acciones
                     </th>
                   </tr>
                 </thead>
@@ -271,16 +278,14 @@ export default async function DocumentsPage({ searchParams }: { searchParams: Pr
                         </td>
                         <td className="px-6 py-4">
                           {(() => {
-                            const role = roleMap.get(row.uploaded_by);
+                            const role =
+                              row.uploaded_by !== null ? roleMap.get(row.uploaded_by) : undefined;
                             return (
                               <div className="flex flex-col gap-0.5">
                                 <span className="text-xs text-muted-foreground">{row.uploader?.email ?? "—"}</span>
                                 {role != null ? (
-                                  <Badge
-                                    variant={role === "admin" ? "default" : "secondary"}
-                                    className="w-fit text-[10px] px-1.5 py-0"
-                                  >
-                                    {role === "admin" ? "Admin" : "Usuario"}
+                                  <Badge variant="secondary" className="w-fit px-1.5 py-0 text-[10px]">
+                                    {role}
                                   </Badge>
                                 ) : null}
                               </div>
@@ -295,11 +300,8 @@ export default async function DocumentsPage({ searchParams }: { searchParams: Pr
                           </span>
                         </td>
                         <td className="px-6 py-4 text-right">
-                          <div className="flex justify-end gap-1">
-                            <Button size="sm" variant="ghost" asChild>
-                              <Link href={`/documents/${row.id}`}>Ver</Link>
-                            </Button>
-                            <DocumentDeleteListButton documentId={row.id} title={row.title} />
+                          <div className="flex justify-end">
+                            <DocumentRowActions documentId={row.id} title={row.title} />
                           </div>
                         </td>
                       </tr>

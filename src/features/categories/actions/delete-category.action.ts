@@ -4,7 +4,8 @@ import { revalidatePath, revalidateTag } from "next/cache";
 import { z } from "zod";
 
 import type { ActionResult } from "@/shared/lib/action-result";
-import { getRoleForUser } from "@/shared/lib/auth/get-role-for-user";
+import { getSession } from "@/shared/lib/auth/get-session";
+import { hasPermission } from "@/shared/lib/auth/permissions";
 import { CACHE_TAGS } from "@/shared/lib/cache/cached-queries";
 import { createClient } from "@/shared/lib/supabase/server";
 
@@ -29,9 +30,9 @@ export async function deleteCategoryAction(
     return { status: "error", message: parsed.error.issues[0]?.message ?? "ID inválido." };
   }
 
-  const role = await getRoleForUser(supabase, user.id);
-  if (role !== "admin") {
-    return { status: "error", message: "Solo los administradores pueden eliminar categorías." };
+  const session = await getSession();
+  if (session === null || !hasPermission(session.permissions, "categories.manage")) {
+    return { status: "error", message: "No tienes permiso para eliminar categorías." };
   }
 
   const { count: docCount, error: countError } = await supabase

@@ -2,6 +2,7 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 
 import { UploadDocumentForm } from "@/features/documents/components/upload-document-form";
+import { PageBreadcrumb } from "@/shared/components/page-breadcrumb";
 import { Button } from "@/shared/components/ui/button";
 import { getSession } from "@/shared/lib/auth/get-session";
 import { getCachedCategories, getCachedTagsForFilter } from "@/shared/lib/cache/cached-queries";
@@ -18,9 +19,13 @@ export default async function NewDocumentPage() {
   return (
     <div className="flex min-h-0 flex-1 flex-col">
       <header className="bg-card shrink-0 border-b px-4 py-4 sm:px-6 lg:px-7">
-        <p className="text-muted-foreground text-xs tracking-wide">
-          Inicio <span className="opacity-50">/</span> Documentos <span className="opacity-50">/</span> Subir
-        </p>
+        <PageBreadcrumb
+          items={[
+            { label: "Inicio", href: "/" },
+            { label: "Documentos", href: "/documents" },
+            { label: "Subir" },
+          ]}
+        />
         <div className="flex items-center justify-between gap-3">
           <div>
             <h1 className="text-lg font-semibold tracking-tight text-foreground">Subir documento</h1>

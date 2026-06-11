@@ -11,7 +11,7 @@ export interface DocumentListRow {
   mime_type: string;
   size_bytes: number;
   created_at: string;
-  uploaded_by: string;
+  uploaded_by: string | null;
   category: { id: string; name: string } | null;
   uploader: { email: string } | null;
   uploader_role?: string | null;
@@ -230,11 +230,17 @@ export async function getRolesForUploaders(userIds: string[]): Promise<Map<strin
   }
   const { data } = await client
     .from("user_roles")
-    .select("user_id, role")
+    .select("user_id, roles:role_id ( name, slug )")
     .in("user_id", userIds);
   const map = new Map<string, string>();
-  for (const row of (data ?? []) as { user_id: string; role: string }[]) {
-    map.set(row.user_id, row.role);
+  for (const row of (data ?? []) as {
+    user_id: string;
+    roles: { name: string; slug: string } | null;
+  }[]) {
+    const label = row.roles?.name ?? row.roles?.slug;
+    if (label !== undefined) {
+      map.set(row.user_id, label);
+    }
   }
   return map;
 }

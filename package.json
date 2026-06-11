@@ -23,7 +23,9 @@
   },
   "dependencies": {
     "@hookform/resolvers": "^3",
+    "@radix-ui/react-alert-dialog": "^1.1.16",
     "@radix-ui/react-dialog": "^1.1.15",
+    "@radix-ui/react-dropdown-menu": "^2.1.17",
     "@radix-ui/react-label": "^2",
     "@radix-ui/react-slot": "^1",
     "@supabase/ssr": "^0.6",

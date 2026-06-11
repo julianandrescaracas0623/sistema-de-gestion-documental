@@ -7,11 +7,11 @@ import {
   LogOut,
   Menu,
   Shield,
+  ShieldCheck,
   Tag,
   Upload,
   Users,
 } from "lucide-react";
-import type { Route } from "next";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useState } from "react";
@@ -19,14 +19,20 @@ import { useState } from "react";
 import { logoutAction } from "@/features/auth/actions/logout.action";
 import { Button } from "@/shared/components/ui/button";
 import { Sheet, SheetContent, SheetDescription, SheetTitle, SheetTrigger } from "@/shared/components/ui/sheet";
-import type { RoleName } from "@/shared/db/user_roles.schema";
+import {
+  ADMIN_NAV_PERMISSIONS,
+  hasAnyPermission,
+  hasPermission,
+  type PermissionKey,
+} from "@/shared/lib/auth/permissions";
 import { roleLabel } from "@/shared/lib/auth/user-display";
 import { cn } from "@/shared/lib/utils";
 
 export interface IpsAppShellProps {
   children: React.ReactNode;
   email: string;
-  role: RoleName | null;
+  roleName: string;
+  permissions: PermissionKey[];
   initials: string;
   displayName: string;
 }
@@ -37,9 +43,10 @@ function useNavActive(pathname: string) {
   const isDocuments =
     pathname.startsWith("/documents") && !pathname.startsWith("/documents/new");
   const isUsers = pathname.startsWith("/admin/users");
+  const isRoles = pathname.startsWith("/admin/roles");
   const isCategories = pathname.startsWith("/admin/categories");
   const isTags = pathname.startsWith("/admin/tags");
-  return { isHome, isUpload, isDocuments, isUsers, isCategories, isTags };
+  return { isHome, isUpload, isDocuments, isUsers, isRoles, isCategories, isTags };
 }
 
 function navClick(onNavigate: (() => void) | undefined): { onClick: () => void } | Record<string, never> {
@@ -55,16 +62,17 @@ function navClick(onNavigate: (() => void) | undefined): { onClick: () => void }
 
 function SidebarNavLinks({
   pathname,
-  isAdmin,
+  permissions,
   onNavigate,
   className,
 }: {
   pathname: string;
-  isAdmin: boolean;
+  permissions: PermissionKey[];
   onNavigate?: () => void;
   className?: string;
 }) {
-  const { isHome, isUpload, isDocuments, isUsers, isCategories, isTags } = useNavActive(pathname);
+  const { isHome, isUpload, isDocuments, isUsers, isRoles, isCategories, isTags } = useNavActive(pathname);
+  const showAdminSection = hasAnyPermission(permissions, ADMIN_NAV_PERMISSIONS);
 
   const linkClass = (active: boolean) =>
     cn(
@@ -87,28 +95,42 @@ function SidebarNavLinks({
         <FileText className="size-4 shrink-0 opacity-90" aria-hidden />
         Documentos
       </Link>
-      <Link href="/documents/new" className={linkClass(isUpload)} {...navClick(onNavigate)}>
-        <Upload className="size-4 shrink-0 opacity-90" aria-hidden />
-        Subir documento
-      </Link>
+      {hasPermission(permissions, "documents.create") ? (
+        <Link href="/documents/new" className={linkClass(isUpload)} {...navClick(onNavigate)}>
+          <Upload className="size-4 shrink-0 opacity-90" aria-hidden />
+          Subir documento
+        </Link>
+      ) : null}
 
-      {isAdmin ? (
+      {showAdminSection ? (
         <>
           <p className="mt-2 px-2.5 pt-2 pb-1 text-[10.5px] font-semibold tracking-widest text-sidebar-foreground/35 uppercase">
             Administración
           </p>
-          <Link href="/admin/users" className={linkClass(isUsers)} {...navClick(onNavigate)}>
-            <Users className="size-4 shrink-0 opacity-90" aria-hidden />
-            Usuarios
-          </Link>
-          <Link href="/admin/categories" className={linkClass(isCategories)} {...navClick(onNavigate)}>
-            <FolderOpen className="size-4 shrink-0 opacity-90" aria-hidden />
-            Categorías
-          </Link>
-          <Link href={"/admin/tags" as Route} className={linkClass(isTags)} {...navClick(onNavigate)}>
-            <Tag className="size-4 shrink-0 opacity-90" aria-hidden />
-            Etiquetas
-          </Link>
+          {hasPermission(permissions, "users.manage") ? (
+            <Link href="/admin/users" className={linkClass(isUsers)} {...navClick(onNavigate)}>
+              <Users className="size-4 shrink-0 opacity-90" aria-hidden />
+              Usuarios
+            </Link>
+          ) : null}
+          {hasPermission(permissions, "roles.manage") ? (
+            <Link href="/admin/roles" className={linkClass(isRoles)} {...navClick(onNavigate)}>
+              <ShieldCheck className="size-4 shrink-0 opacity-90" aria-hidden />
+              Roles
+            </Link>
+          ) : null}
+          {hasPermission(permissions, "categories.manage") ? (
+            <Link href="/admin/categories" className={linkClass(isCategories)} {...navClick(onNavigate)}>
+              <FolderOpen className="size-4 shrink-0 opacity-90" aria-hidden />
+              Categorías
+            </Link>
+          ) : null}
+          {hasPermission(permissions, "tags.manage") ? (
+            <Link href="/admin/tags" className={linkClass(isTags)} {...navClick(onNavigate)}>
+              <Tag className="size-4 shrink-0 opacity-90" aria-hidden />
+              Etiquetas
+            </Link>
+          ) : null}
         </>
       ) : null}
     </nav>
@@ -118,11 +140,11 @@ function SidebarNavLinks({
 function SidebarFooter({
   initials,
   displayName,
-  role,
+  roleName,
 }: {
   initials: string;
   displayName: string;
-  role: RoleName | null;
+  roleName: string;
 }) {
   return (
     <div className="border-sidebar-border border-t px-2.5 py-3">
@@ -135,7 +157,7 @@ function SidebarFooter({
         </div>
         <div className="min-w-0 flex-1">
           <p className="truncate text-[12.5px] font-medium text-sidebar-foreground/90">{displayName}</p>
-          <p className="text-[11px] text-sidebar-muted">{roleLabel(role)}</p>
+          <p className="text-[11px] text-sidebar-muted">{roleLabel(roleName)}</p>
         </div>
       </div>
       <form action={logoutAction} className="mt-1">
@@ -169,10 +191,16 @@ function SidebarBrand() {
   );
 }
 
-export function IpsAppShell({ children, email, role, initials, displayName }: IpsAppShellProps) {
+export function IpsAppShell({
+  children,
+  email,
+  roleName,
+  permissions,
+  initials,
+  displayName,
+}: IpsAppShellProps) {
   const pathname = usePathname();
   const [mobileOpen, setMobileOpen] = useState(false);
-  const isAdmin = role === "admin";
 
   const renderSidebar = (forMobile: boolean) => {
     const onNavigate = forMobile
@@ -185,24 +213,22 @@ export function IpsAppShell({ children, email, role, initials, displayName }: Ip
         <SidebarBrand />
         <SidebarNavLinks
           pathname={pathname}
-          isAdmin={isAdmin}
+          permissions={permissions}
           {...(onNavigate !== undefined ? { onNavigate } : {})}
           className="min-h-0 flex-1 overflow-y-auto"
         />
-        <SidebarFooter initials={initials} displayName={displayName} role={role} />
+        <SidebarFooter initials={initials} displayName={displayName} roleName={roleName} />
       </>
     );
   };
 
   return (
     <div className="bg-background flex h-dvh max-h-dvh min-h-0 w-full overflow-hidden">
-      {/* Desktop sidebar */}
       <aside className="bg-sidebar text-sidebar-foreground hidden w-56 shrink-0 flex-col border-sidebar-border border-r md:flex">
         {renderSidebar(false)}
       </aside>
 
       <div className="flex min-h-0 min-w-0 flex-1 flex-col">
-        {/* Mobile top bar */}
         <header className="bg-card text-card-foreground flex h-14 shrink-0 items-center justify-between border-b px-4 md:hidden">
           <Sheet open={mobileOpen} onOpenChange={setMobileOpen}>
             <SheetTrigger asChild>

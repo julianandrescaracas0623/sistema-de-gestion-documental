@@ -6,10 +6,11 @@ import { redirect } from "next/navigation";
 import { RoleFilterSelect } from "@/features/user-admin/components/RoleFilterSelect";
 import { UserTable } from "@/features/user-admin/components/UserTable";
 import { CreateUserForm } from "@/features/user-admin/components/create-user-form";
-import { listUsersWithRoles } from "@/features/user-admin/queries/users.queries";
+import { listRoles, listUsersWithRoles } from "@/features/user-admin/queries/users.queries";
 import { Badge } from "@/shared/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/shared/components/ui/card";
 import { getSession } from "@/shared/lib/auth/get-session";
+import { hasPermission } from "@/shared/lib/auth/permissions";
 
 const PAGE_SIZE = 20;
 
@@ -27,20 +28,24 @@ export default async function AdminUsersPage({
 }) {
   const session = await getSession();
   if (session === null) redirect("/login");
-  if (session.role !== "admin") redirect("/");
+  if (!hasPermission(session.permissions, "users.manage")) redirect("/");
 
   const sp = await searchParams;
-  const roleFilter = firstParam(sp.role) as "admin" | "user" | "";
+  const roleFilter = firstParam(sp.role);
   const pageRaw = firstParam(sp.page);
   const parsedPage = Number.parseInt(pageRaw === "" ? "1" : pageRaw, 10);
   const pageNum = Number.isNaN(parsedPage) || parsedPage < 1 ? 1 : parsedPage;
   const pageIndex = pageNum - 1;
 
-  const { data: users, count, error: usersError } = await listUsersWithRoles({
-    ...(roleFilter !== "" ? { roleFilter } : {}),
-    page: pageIndex,
-    pageSize: PAGE_SIZE,
-  });
+  const [{ data: users, count, error: usersError }, { data: roles, error: rolesError }] =
+    await Promise.all([
+      listUsersWithRoles({
+        ...(roleFilter !== "" ? { roleSlugFilter: roleFilter } : {}),
+        page: pageIndex,
+        pageSize: PAGE_SIZE,
+      }),
+      listRoles(),
+    ]);
 
   const total = count ?? 0;
   const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE));
@@ -62,7 +67,7 @@ export default async function AdminUsersPage({
         </p>
         <h1 className="text-lg font-semibold tracking-tight text-foreground">Usuarios</h1>
         <p className="text-muted-foreground mt-0.5 text-sm">
-          Alta de cuentas y asignación de roles. No hay registro público.
+          Alta, eliminación de cuentas y asignación de roles. Los documentos de usuarios eliminados se conservan.
         </p>
       </header>
 
@@ -75,7 +80,7 @@ export default async function AdminUsersPage({
                 Listado de usuarios
               </CardTitle>
               <div className="flex flex-wrap items-center gap-3">
-                <RoleFilterSelect value={roleFilter} />
+                {roles !== null ? <RoleFilterSelect value={roleFilter} roles={roles} /> : null}
                 <Badge variant="outline">{String(total)} total</Badge>
               </div>
             </div>
@@ -86,7 +91,7 @@ export default async function AdminUsersPage({
                 No se pudo cargar el listado: {usersError.message}
               </p>
             ) : (
-              <UserTable rows={users ?? []} />
+              <UserTable rows={users ?? []} currentAdminId={session.userId} />
             )}
           </CardContent>
           {totalPages > 1 ? (
@@ -116,7 +121,13 @@ export default async function AdminUsersPage({
           ) : null}
         </Card>
 
-        <CreateUserForm />
+        {rolesError !== null ? (
+          <p className="text-destructive" role="alert">
+            No se pudieron cargar los roles: {rolesError.message}
+          </p>
+        ) : roles !== null && roles.length > 0 ? (
+          <CreateUserForm roles={roles} />
+        ) : null}
       </div>
     </div>
   );

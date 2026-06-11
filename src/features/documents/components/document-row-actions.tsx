@@ -1,20 +1,23 @@
 "use client";
 
+import { Eye, Trash2 } from "lucide-react";
+import { useRouter } from "next/navigation";
 import { useState, useTransition } from "react";
 import { toast } from "sonner";
 
 import { softDeleteDocumentAction } from "@/features/documents/actions/soft-delete-document.action";
 import { ConfirmDestructiveDialog } from "@/shared/components/confirm-destructive-dialog";
-import { Button } from "@/shared/components/ui/button";
+import { TableRowActionsMenu } from "@/shared/components/table-row-actions-menu";
 
-export function DocumentDeleteButton({
+export function DocumentRowActions({
   documentId,
   title,
 }: {
   documentId: string;
   title: string;
 }) {
-  const [open, setOpen] = useState(false);
+  const router = useRouter();
+  const [deleteOpen, setDeleteOpen] = useState(false);
   const [isPending, startTransition] = useTransition();
 
   const handleDelete = () => {
@@ -25,27 +28,35 @@ export function DocumentDeleteButton({
 
       if (result.status === "error") {
         toast.error(result.message);
-        setOpen(false);
+        setDeleteOpen(false);
       }
     });
   };
 
   return (
     <>
-      <Button
-        type="button"
-        variant="destructive"
-        size="sm"
-        disabled={isPending}
-        onClick={() => {
-          setOpen(true);
-        }}
-      >
-        Eliminar
-      </Button>
+      <TableRowActionsMenu
+        items={[
+          {
+            label: "Ver",
+            icon: Eye,
+            onSelect: () => {
+              router.push(`/documents/${documentId}`);
+            },
+          },
+          {
+            label: "Eliminar",
+            icon: Trash2,
+            destructive: true,
+            onSelect: () => {
+              setDeleteOpen(true);
+            },
+          },
+        ]}
+      />
       <ConfirmDestructiveDialog
-        open={open}
-        onOpenChange={setOpen}
+        open={deleteOpen}
+        onOpenChange={setDeleteOpen}
         title="Eliminar documento"
         description={
           <>

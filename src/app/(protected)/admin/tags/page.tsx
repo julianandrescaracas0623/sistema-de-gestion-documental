@@ -6,12 +6,13 @@ import { TagTable } from "@/features/tags/components/TagTable";
 import { Badge } from "@/shared/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/shared/components/ui/card";
 import { getSession } from "@/shared/lib/auth/get-session";
+import { hasPermission } from "@/shared/lib/auth/permissions";
 import { getCachedTagsWithCount } from "@/shared/lib/cache/cached-queries";
 
 export default async function AdminTagsPage() {
   const session = await getSession();
   if (session === null) redirect("/login");
-  if (session.role !== "admin") redirect("/");
+  if (!hasPermission(session.permissions, "tags.manage")) redirect("/");
 
   const tags = await getCachedTagsWithCount();
 

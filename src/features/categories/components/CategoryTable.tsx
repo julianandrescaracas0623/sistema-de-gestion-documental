@@ -1,81 +1,9 @@
 "use client";
 
-import { useState, useTransition } from "react";
-import { toast } from "sonner";
-
-import { deleteCategoryAction } from "@/features/categories/actions/delete-category.action";
-import { CategoryForm } from "@/features/categories/components/CategoryForm";
+import { CategoryRowActions } from "@/features/categories/components/category-row-actions";
 import type { CategoryAdminRow } from "@/features/categories/queries/categories.queries";
 import { LocalDate } from "@/shared/components/local-date";
 import { Badge } from "@/shared/components/ui/badge";
-import { Button } from "@/shared/components/ui/button";
-import {
-  Sheet,
-  SheetClose,
-  SheetContent,
-  SheetDescription,
-  SheetHeader,
-  SheetTitle,
-} from "@/shared/components/ui/sheet";
-
-function DeleteCategoryButton({ category }: { category: CategoryAdminRow }) {
-  const [open, setOpen] = useState(false);
-  const [isPending, startTransition] = useTransition();
-
-  const handleDelete = () => {
-    startTransition(async () => {
-      const formData = new FormData();
-      formData.set("id", category.id);
-      const result = await deleteCategoryAction(null, formData);
-
-      if (result.status === "error") {
-        toast.error(result.message);
-      } else {
-        toast.success(result.message);
-        setOpen(false);
-      }
-    });
-  };
-
-  return (
-    <Sheet open={open} onOpenChange={setOpen}>
-      <Button
-        type="button"
-        size="sm"
-        variant="ghost"
-        disabled={isPending}
-        className="text-destructive hover:text-destructive hover:bg-destructive/10"
-        onClick={() => { setOpen(true); }}
-      >
-        Eliminar
-      </Button>
-      <SheetContent side="right">
-        <SheetHeader>
-          <SheetTitle>Eliminar categoría</SheetTitle>
-          <SheetDescription>
-            ¿Estás seguro que deseas eliminar la categoría "{category.name}"? Esta acción no se puede
-            deshacer.
-          </SheetDescription>
-        </SheetHeader>
-        <div className="grid grid-cols-2 gap-3 pt-6">
-          <Button
-            type="button"
-            variant="destructive"
-            disabled={isPending}
-            onClick={handleDelete}
-          >
-            {isPending ? "Eliminando…" : "Confirmar"}
-          </Button>
-          <SheetClose asChild>
-            <Button type="button" variant="outline" disabled={isPending}>
-              Cancelar
-            </Button>
-          </SheetClose>
-        </div>
-      </SheetContent>
-    </Sheet>
-  );
-}
 
 export function CategoryTable({ rows }: { rows: CategoryAdminRow[] }) {
   if (rows.length === 0) {
@@ -107,7 +35,7 @@ export function CategoryTable({ rows }: { rows: CategoryAdminRow[] }) {
             <th className="text-muted-foreground px-6 py-2.5 text-[11.5px] font-semibold tracking-wide uppercase">
               Creada
             </th>
-            <th className="text-muted-foreground px-6 py-2.5 text-right text-[11.5px] font-semibold tracking-wide uppercase">
+            <th className="text-muted-foreground w-16 px-6 py-2.5 text-right text-[11.5px] font-semibold tracking-wide uppercase">
               Acciones
             </th>
           </tr>
@@ -133,19 +61,8 @@ export function CategoryTable({ rows }: { rows: CategoryAdminRow[] }) {
               <td className="px-6 py-4 text-muted-foreground">
                 <LocalDate date={row.created_at} />
               </td>
-              <td className="px-6 py-4">
-                <div className="flex justify-end gap-1">
-                  <CategoryForm
-                    mode="edit"
-                    category={{ id: row.id, name: row.name, description: row.description }}
-                    trigger={
-                      <Button size="sm" variant="ghost">
-                        Editar
-                      </Button>
-                    }
-                  />
-                  <DeleteCategoryButton category={row} />
-                </div>
+              <td className="px-6 py-4 text-right">
+                <CategoryRowActions category={row} />
               </td>
             </tr>
           ))}
