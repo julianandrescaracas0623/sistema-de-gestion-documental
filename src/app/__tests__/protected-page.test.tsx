@@ -1,17 +1,19 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 
-const mockGetUser = vi.fn();
+const mockGetSession = vi.fn();
 const mockRedirect = vi.fn();
+
+vi.mock("@/shared/lib/auth/get-session", () => ({
+  getSession: (): unknown => mockGetSession(),
+}));
 
 vi.mock("@/shared/lib/supabase/server", () => ({
   createClient: vi.fn(() =>
-    Promise.resolve({ auth: { getUser: mockGetUser } })
+    Promise.resolve({
+      auth: { getUser: vi.fn() },
+      from: vi.fn(),
+    })
   ),
-}));
-
-const mockGetRoleForUser = vi.fn();
-vi.mock("@/shared/lib/auth/get-role-for-user", () => ({
-  getRoleForUser: (...args: unknown[]): unknown => mockGetRoleForUser(...args),
 }));
 
 vi.mock("@/features/documents/queries/documents.queries", () => ({
@@ -20,36 +22,41 @@ vi.mock("@/features/documents/queries/documents.queries", () => ({
 }));
 
 vi.mock("next/navigation", () => ({
-  redirect: (url: string): unknown => mockRedirect(url),
+  redirect: (url: string): never => {
+    mockRedirect(url);
+    throw new Error("NEXT_REDIRECT");
+  },
 }));
 
 describe("HomePage (protected)", () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    mockGetRoleForUser.mockResolvedValue("user");
+    mockGetSession.mockResolvedValue({
+      userId: "u1",
+      email: "user@example.com",
+      fullName: "Usuario Test",
+      roleId: "role-1",
+      roleSlug: "user",
+      roleName: "Usuario administrativo",
+      permissions: ["documents.read", "documents.create"],
+      role: "user",
+    });
   });
 
   it("redirects to /login when user is not authenticated", async () => {
-    // Arrange
-    mockGetUser.mockResolvedValue({ data: { user: null } });
+    mockGetSession.mockResolvedValue(null);
     const { default: HomePage } = await import("../(protected)/page");
 
-    // Act
-    await HomePage();
+    await expect(HomePage()).rejects.toThrow("NEXT_REDIRECT");
 
-    // Assert
     expect(mockRedirect).toHaveBeenCalledWith("/login");
-  }, 10000);
+  });
 
   it("renders dashboard when user is authenticated", async () => {
-    // Arrange
-    mockGetUser.mockResolvedValue({ data: { user: { id: "u1", email: "user@example.com" } } });
     const { default: HomePage } = await import("../(protected)/page");
 
-    // Act
     const result = await HomePage();
 
-    // Assert
     expect(result).toBeTruthy();
-  }, 10000);
+  });
 });

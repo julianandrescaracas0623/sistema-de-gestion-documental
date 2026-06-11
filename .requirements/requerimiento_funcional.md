@@ -10,10 +10,10 @@ Sistema de **gestión documental web** para la IPS Salud Integral. Estos requisi
 
 | ID | Requisito | Notas |
 | --- | --- | --- |
-| RF1.1 | **Registro y mantenimiento de usuarios** | Alta, edición y baja o desactivación **solo por administrador**; sin autoregistro público (ver [auth.md](auth.md)). |
+| RF1.1 | **Registro y mantenimiento de usuarios** | Alta con **nombre completo**, correo y rol dinámico; eliminación con permiso `users.manage`; sin autoregistro público (ver [auth.md](auth.md)). |
 | RF1.2 | **Inicio de sesión** | Credenciales válidas establecen sesión. Detalle en [auth.md](auth.md). |
 | RF1.3 | **Cierre de sesión** | La sesión queda invalidada de forma segura. |
-| RF1.4 | **Asignación de roles** | Solo el administrador asigna o modifica roles; al menos administrador y usuario administrativo, condicionando acciones permitidas. |
+| RF1.4 | **Asignación de roles y permisos** | Catálogo fijo de permisos; roles semilla `admin`/`user` y roles personalizados; asignación en alta de usuario; gestión en `/admin/roles` con `roles.manage` (ver [rbac.md](rbac.md)). |
 
 ---
 

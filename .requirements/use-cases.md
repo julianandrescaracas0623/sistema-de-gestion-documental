@@ -92,16 +92,24 @@ En los casos siguientes, “Usuario” equivale a **Usuario administrativo** sal
 
 | Campo | Contenido |
 | --- | --- |
-| **Actor principal** | Administrador |
-| **Objetivo** | Crear, editar, desactivar o eliminar usuarios y asignar roles. |
-| **Precondiciones** | Sesión iniciada con rol de administrador. |
+| **Actor principal** | Usuario con permiso `users.manage` |
+| **Objetivo** | Crear y eliminar usuarios; asignar un rol del catálogo dinámico. |
+| **Precondiciones** | Sesión iniciada con `users.manage`. |
 
-**Flujo principal (crear o editar)**
+**Flujo principal (alta)**
 
-1. El administrador accede al módulo de gestión de usuarios.
-2. El administrador completa o modifica datos del usuario (identificador, nombre, rol, estado).
-3. El sistema valida unicidad y reglas de negocio.
-4. El sistema persiste los cambios y aplica la política de acceso asociada al rol.
+1. El operador accede a `/admin/users`.
+2. Completa **nombre completo**, correo, contraseña inicial y **rol** (selector desde tabla `roles`).
+3. El sistema valida datos y crea cuenta en Supabase Auth + perfil (`full_name`) + `user_roles.role_id`.
+4. El nuevo usuario puede iniciar sesión con los permisos del rol asignado.
+
+**Flujo principal (alta de usuario)**
+
+Ver pasos 1–4 en la tabla superior (nombre completo, rol desde tabla `roles`).
+
+**Extensiones**
+
+- **Eliminar usuario:** confirmación AlertDialog; documentos del usuario se conservan (`uploaded_by` SET NULL).
 
 **Extensiones**
 
@@ -215,13 +223,79 @@ En los casos siguientes, “Usuario” equivale a **Usuario administrativo** sal
 
 ---
 
+## CU10 — Confirmar acción destructiva
+
+| Campo | Contenido |
+| --- | --- |
+| **Actores** | Usuario administrativo, Administrador |
+| **Objetivo** | Evitar eliminaciones accidentales mediante un diálogo modal centrado. |
+| **Disparadores** | Eliminar documento, usuario, categoría o etiqueta. |
+
+**Flujo principal**
+
+1. El actor solicita una acción destructiva desde el menú ⋯ o un botón dedicado.
+2. El sistema muestra un AlertDialog con título, descripción y opciones Cancelar / Confirmar.
+3. Tras confirmar, el sistema ejecuta la operación y retroalimenta con toast y actualización de la vista.
+
+**Detalle de criterios:** ver [ux-confirmaciones.md](ux-confirmaciones.md).
+
+---
+
+## CU11 — Menú de acciones en tablas
+
+| Campo | Contenido |
+| --- | --- |
+| **Actores** | Usuario, Administrador |
+| **Objetivo** | Acceder a acciones de fila (ver, editar, eliminar) desde un menú compacto. |
+
+**Flujo principal**
+
+1. El actor pulsa el icono ⋯ en la columna Acciones de una fila.
+2. El sistema despliega las acciones permitidas para ese recurso y rol.
+3. El actor selecciona una acción; el sistema la ejecuta o abre el flujo correspondiente (navegación, edición o confirmación destructiva).
+
+**Detalle de criterios:** ver [ux-confirmaciones.md](ux-confirmaciones.md).
+
+---
+
+## CU12 — Gestionar roles y permisos
+
+| Campo | Contenido |
+| --- | --- |
+| **Actor principal** | Usuario con permiso `roles.manage` |
+| **Objetivo** | Crear, editar o eliminar roles y asignar permisos del catálogo. |
+| **Precondiciones** | Sesión iniciada con `roles.manage`. |
+
+**Flujo principal (crear)**
+
+1. El operador accede a `/admin/roles` y pulsa **Nuevo rol** → `/admin/roles/new`.
+2. Completa nombre, descripción y selecciona permisos en la matriz por módulo.
+3. El sistema crea el rol (`slug` generado) y persiste `role_permissions`.
+
+**Flujo principal (editar)**
+
+1. Desde el listado, el operador abre un rol → `/admin/roles/[id]`.
+2. En la vista dedicada (datos del rol + matriz), modifica descripción y permisos.
+3. El sistema actualiza el rol y reemplaza las asignaciones de permisos.
+
+**Extensiones**
+
+- Roles `is_system: true` no se eliminan ni renombran; solo permisos y descripción.
+- No se elimina un rol con usuarios asignados.
+
+**Detalle técnico:** [rbac.md](rbac.md).
+
+---
+
 ## Trazabilidad breve con requerimientos funcionales
 
 | Caso de uso | Requerimientos funcionales cubiertos |
 | --- | --- |
 | CU1, CU6 | Inicio y cierre de sesión |
-| CU4 | Registro/gestión de usuarios, asignación de roles |
+| CU4 | Registro/gestión de usuarios, asignación de rol dinámico |
+| CU12 | Gestión de roles y permisos (RF1.4) |
 | CU2, CU5, CU7, CU8 | Subida, almacenamiento, visualización, descarga, eliminación |
 | CU9 | Categorizar, etiquetas |
 | CU3 | RF4: búsqueda por nombre o texto, filtro por categoría y por etiquetas |
+| CU10, CU11 | RNF3: usabilidad, confirmaciones y menús de acción |
 | Todos (con CU4) | Control de acceso por roles |

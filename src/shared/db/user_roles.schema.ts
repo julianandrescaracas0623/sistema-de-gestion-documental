@@ -1,18 +1,13 @@
 import { relations, sql } from "drizzle-orm";
 import type { PgTable } from "drizzle-orm/pg-core";
-import { pgPolicy, pgTable, text, timestamp, uuid } from "drizzle-orm/pg-core";
+import { pgPolicy, pgTable, timestamp, uuid } from "drizzle-orm/pg-core";
 import { createInsertSchema, createSelectSchema } from "drizzle-zod";
 
 import { profiles } from "./profiles.schema";
+import { roles } from "./roles.schema";
 
 /**
- * User roles enum values
- */
-export const ROLE_NAMES = ["admin", "user"] as const;
-export type RoleName = (typeof ROLE_NAMES)[number];
-
-/**
- * User roles table for RBAC
+ * User role assignment (one role per user).
  */
 export const userRoles = pgTable(
   "user_roles",
@@ -21,7 +16,9 @@ export const userRoles = pgTable(
     userId: uuid("user_id")
       .notNull()
       .references(() => profiles.id, { onDelete: "cascade" }),
-    role: text("role", { enum: ROLE_NAMES }).notNull().default("user"),
+    roleId: uuid("role_id")
+      .notNull()
+      .references(() => roles.id, { onDelete: "restrict" }),
     createdAt: timestamp("created_at").notNull().defaultNow(),
     updatedAt: timestamp("updated_at").notNull().defaultNow(),
   },
@@ -38,6 +35,10 @@ export const userRolesRelations = relations(userRoles, ({ one }) => ({
   user: one(profiles, {
     fields: [userRoles.userId],
     references: [profiles.id],
+  }),
+  role: one(roles, {
+    fields: [userRoles.roleId],
+    references: [roles.id],
   }),
 }));
 

@@ -17,6 +17,7 @@ import { canOfficePreview, canPreviewInline } from "@/features/documents/lib/mim
 import { createSignedDocumentUrl } from "@/features/documents/lib/signed-url";
 import { getDocumentById } from "@/features/documents/queries/documents.queries";
 import { LocalDate } from "@/shared/components/local-date";
+import { PageBreadcrumb } from "@/shared/components/page-breadcrumb";
 import { Badge } from "@/shared/components/ui/badge";
 import { Button } from "@/shared/components/ui/button";
 import {
@@ -85,9 +86,13 @@ export default async function DocumentDetailPage({ params }: { params: Promise<{
     <div className="flex min-h-0 flex-1 flex-col">
       <header className="bg-card flex shrink-0 flex-col gap-3 border-b px-4 py-4 sm:px-6 lg:px-7 md:flex-row md:items-center md:justify-between">
         <div>
-          <p className="text-muted-foreground text-xs tracking-wide">
-            Inicio <span className="opacity-50">/</span> Documentos <span className="opacity-50">/</span> Detalle
-          </p>
+          <PageBreadcrumb
+            items={[
+              { label: "Inicio", href: "/" },
+              { label: "Documentos", href: "/documents" },
+              { label: "Detalle" },
+            ]}
+          />
           <h1 className="text-lg font-semibold tracking-tight text-foreground">Documento</h1>
         </div>
         <div className="flex flex-wrap items-center gap-2">
@@ -219,7 +224,7 @@ export default async function DocumentDetailPage({ params }: { params: Promise<{
                   document={doc}
                   categories={categories}
                   availableTags={availableTags}
-                  secondaryAction={<DocumentDeleteButton documentId={doc.id} />}
+                  secondaryAction={<DocumentDeleteButton documentId={doc.id} title={doc.title} />}
                 />
               </CardContent>
             </Card>

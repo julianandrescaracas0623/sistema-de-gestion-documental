@@ -16,10 +16,16 @@ export default async function ProtectedLayout({
     return null;
   }
 
-  const { initials, displayName } = getUserDisplay(session.email, null);
+  const { initials, displayName } = getUserDisplay(session.email, session.fullName);
 
   return (
-    <IpsAppShell email={session.email} role={session.role} initials={initials} displayName={displayName}>
+    <IpsAppShell
+      email={session.email}
+      roleName={session.roleName}
+      permissions={session.permissions}
+      initials={initials}
+      displayName={displayName}
+    >
       {children}
     </IpsAppShell>
   );

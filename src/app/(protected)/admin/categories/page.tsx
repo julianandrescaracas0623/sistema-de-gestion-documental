@@ -7,12 +7,13 @@ import { listCategoriesWithCount } from "@/features/categories/queries/categorie
 import { Badge } from "@/shared/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/shared/components/ui/card";
 import { getSession } from "@/shared/lib/auth/get-session";
+import { hasPermission } from "@/shared/lib/auth/permissions";
 import { createClient } from "@/shared/lib/supabase/server";
 
 export default async function AdminCategoriesPage() {
   const session = await getSession();
   if (session === null) redirect("/login");
-  if (session.role !== "admin") redirect("/");
+  if (!hasPermission(session.permissions, "categories.manage")) redirect("/");
 
   const supabase = await createClient();
   const { data: categories, error } = await listCategoriesWithCount(supabase);

@@ -20,15 +20,33 @@ import {
 interface CategoryFormProps {
   mode: "create" | "edit";
   category?: { id: string; name: string; description: string | null };
-  trigger: React.ReactNode;
+  trigger?: React.ReactNode;
+  open?: boolean;
+  onOpenChange?: (open: boolean) => void;
   onSuccess?: () => void;
 }
 
-export function CategoryForm({ mode, category, trigger, onSuccess }: CategoryFormProps) {
+export function CategoryForm({
+  mode,
+  category,
+  trigger,
+  open: controlledOpen,
+  onOpenChange: controlledOnOpenChange,
+  onSuccess,
+}: CategoryFormProps) {
   const action = mode === "create" ? createCategoryAction : updateCategoryAction;
   const [state, formAction, isPending] = useActionState(action, null);
   const formRef = useRef<HTMLFormElement>(null);
-  const [open, setOpen] = useState(false);
+  const [internalOpen, setInternalOpen] = useState(false);
+  const isControlled = controlledOpen !== undefined;
+  const open = isControlled ? controlledOpen : internalOpen;
+  const setOpen = (value: boolean) => {
+    if (isControlled) {
+      controlledOnOpenChange?.(value);
+      return;
+    }
+    setInternalOpen(value);
+  };
   const onSuccessRef = useRef(onSuccess);
 
   useEffect(() => {
@@ -42,14 +60,18 @@ export function CategoryForm({ mode, category, trigger, onSuccess }: CategoryFor
     } else {
       toast.success(state.message);
       formRef.current?.reset();
-      setOpen(false);
+      if (isControlled) {
+        controlledOnOpenChange?.(false);
+      } else {
+        setInternalOpen(false);
+      }
       onSuccessRef.current?.();
     }
-  }, [state]);
+  }, [state, isControlled, controlledOnOpenChange]);
 
   return (
     <Sheet open={open} onOpenChange={setOpen}>
-      <SheetTrigger asChild>{trigger}</SheetTrigger>
+      {trigger !== undefined ? <SheetTrigger asChild>{trigger}</SheetTrigger> : null}
       <SheetContent>
         <SheetHeader>
           <SheetTitle>{mode === "create" ? "Nueva categoría" : "Editar categoría"}</SheetTitle>

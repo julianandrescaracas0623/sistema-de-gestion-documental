@@ -11,7 +11,7 @@ Atributos de **calidad** y restricciones del sistema de gestión documental. Com
 | ID | Requisito | Criterio orientador |
 | --- | --- | --- |
 | RNF1.1 | **Autenticación** mediante Supabase Auth (o equivalente acordado con el proyecto). | Sesiones gestionadas por el proveedor; no almacenar contraseñas en texto plano en lógica propia. |
-| RNF1.2 | **Autorización** basada en roles, alineada con RF5.1. | Operaciones denegadas sin permiso; sin filtrado de datos entre roles no autorizados. |
+| RNF1.2 | **Autorización** basada en permisos por rol (RBAC), alineada con RF1.4. | Operaciones denegadas sin permiso (`has_permission` en RLS y guards en server actions). |
 | RNF1.3 | **Datos en tránsito** sobre HTTPS en entornos desplegados. | Certificados válidos en producción. |
 | RNF1.4 | **Principio de mínimo privilegio** en base de datos y almacenamiento (p. ej. políticas RLS en Supabase cuando aplique). | Acceso a filas y objetos acotado al usuario o rol. |
 
@@ -36,6 +36,8 @@ Los valores numéricos exactos (SLA) pueden fijarse en una versión posterior se
 | --- | --- | --- |
 | RNF3.1 | **Interfaz intuitiva** para tareas frecuentes: iniciar sesión, subir documento, buscar, abrir o descargar. | Flujos principales alcanzables con pocas acciones desde el panel. |
 | RNF3.2 | **Navegación sencilla** entre módulos (documentos, búsqueda, administración según rol). | Estado actual del sistema reconocible (por ejemplo, usuario logueado, errores legibles). |
+| RNF3.3 | **Confirmaciones destructivas** consistentes (CU10). | AlertDialog centrado para eliminar documentos, usuarios, categorías y etiquetas; sin confirmación inline ni paneles laterales. |
+| RNF3.4 | **Menús de acción en tablas** (CU11). | Columna Acciones con menú ⋯ funcional en listados de documentos, usuarios, categorías y etiquetas. Detalle: [ux-confirmaciones.md](ux-confirmaciones.md). |
 
 ---
 

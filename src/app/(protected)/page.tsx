@@ -1,5 +1,7 @@
 import {
   FileText,
+  FolderOpen,
+  Tag,
   Upload,
   Users,
   Clock,
@@ -10,7 +12,6 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 
 import { countDocuments, listRecentDocuments } from "@/features/documents/queries/documents.queries";
-import { Badge } from "@/shared/components/ui/badge";
 import {
   Card,
   CardContent,
@@ -20,7 +21,7 @@ import {
 } from "@/shared/components/ui/card";
 import { Separator } from "@/shared/components/ui/separator";
 import { getSession } from "@/shared/lib/auth/get-session";
-import { getUserDisplay } from "@/shared/lib/auth/user-display";
+import { hasPermission } from "@/shared/lib/auth/permissions";
 import { createClient } from "@/shared/lib/supabase/server";
 
 export default async function HomePage() {
@@ -30,8 +31,7 @@ export default async function HomePage() {
     return null;
   }
 
-  const { role, email } = session;
-  const { displayName } = getUserDisplay(email, null);
+  const { fullName, roleName, permissions } = session;
 
   const supabase = await createClient();
   const [{ count: totalDocuments }, { data: recentDocuments }] = await Promise.all([
@@ -50,16 +50,11 @@ export default async function HomePage() {
       <div className="mx-auto w-full max-w-6xl flex-1 space-y-4 overflow-y-auto px-4 py-4 sm:px-6 sm:py-4 lg:px-7 lg:py-5">
         <section className="flex flex-wrap items-end justify-between gap-3">
           <div className="space-y-1">
-            <h2 className="text-3xl font-bold tracking-tight text-foreground">Bienvenido, {displayName}</h2>
+            <h2 className="text-3xl font-bold tracking-tight text-foreground">Bienvenido, {fullName}</h2>
             <p className="text-muted-foreground text-sm">
               Gestión documental de la IPS: organiza, busca y controla el acceso según tu rol.
             </p>
           </div>
-          {role !== null ? (
-            <Badge variant={role === "admin" ? "default" : "secondary"} className="capitalize">
-              {role}
-            </Badge>
-          ) : null}
         </section>
 
         <section className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
@@ -94,8 +89,13 @@ export default async function HomePage() {
               {recentDocuments !== null && recentDocuments.length > 0 ? (
                 <ul className="mt-2 space-y-1">
                   {recentDocuments.slice(0, 3).map((doc) => (
-                    <li key={doc.id} className="text-muted-foreground truncate">
-                      {doc.title}
+                    <li key={doc.id} className="truncate">
+                      <Link
+                        href={`/documents/${doc.id}`}
+                        className="text-muted-foreground hover:text-primary transition-colors"
+                      >
+                        {doc.title}
+                      </Link>
                     </li>
                   ))}
                 </ul>
@@ -107,8 +107,8 @@ export default async function HomePage() {
           <Card className="shadow-sm sm:col-span-2 lg:col-span-2">
             <CardHeader className="pb-2">
               <CardDescription className="text-xs font-medium tracking-wide uppercase">Tu rol</CardDescription>
-              <CardTitle className="text-[28px] font-bold capitalize leading-none">
-                {role ?? "—"}
+              <CardTitle className="text-[28px] font-bold leading-none">
+                {roleName !== "" ? roleName : "—"}
               </CardTitle>
             </CardHeader>
             <CardContent className="text-muted-foreground flex items-center gap-2 text-xs">
@@ -140,19 +140,21 @@ export default async function HomePage() {
               </Card>
             </Link>
 
-            <Link href="/documents/new" className="group block rounded-[var(--radius)]">
-              <Card className="border-border h-full transition-all group-hover:-translate-y-0.5 group-hover:shadow-md">
-                <CardHeader className="gap-3">
-                  <div className="bg-accent w-fit rounded-lg p-2">
-                    <Upload className="text-accent-foreground size-5" />
-                  </div>
-                  <CardTitle className="text-base">Subir documento</CardTitle>
-                  <CardDescription>Carga nuevos archivos al sistema</CardDescription>
-                </CardHeader>
-              </Card>
-            </Link>
+            {hasPermission(permissions, "documents.create") ? (
+              <Link href="/documents/new" className="group block rounded-[var(--radius)]">
+                <Card className="border-border h-full transition-all group-hover:-translate-y-0.5 group-hover:shadow-md">
+                  <CardHeader className="gap-3">
+                    <div className="bg-accent w-fit rounded-lg p-2">
+                      <Upload className="text-accent-foreground size-5" />
+                    </div>
+                    <CardTitle className="text-base">Subir documento</CardTitle>
+                    <CardDescription>Carga nuevos archivos al sistema</CardDescription>
+                  </CardHeader>
+                </Card>
+              </Link>
+            ) : null}
 
-            {role === "admin" && (
+            {hasPermission(permissions, "users.manage") ? (
               <Link href="/admin/users" className="group block rounded-[var(--radius)]">
                 <Card className="border-border h-full transition-all group-hover:-translate-y-0.5 group-hover:shadow-md">
                   <CardHeader className="gap-3">
@@ -164,7 +166,35 @@ export default async function HomePage() {
                   </CardHeader>
                 </Card>
               </Link>
-            )}
+            ) : null}
+
+            {hasPermission(permissions, "categories.manage") ? (
+              <Link href="/admin/categories" className="group block rounded-[var(--radius)]">
+                <Card className="border-border h-full transition-all group-hover:-translate-y-0.5 group-hover:shadow-md">
+                  <CardHeader className="gap-3">
+                    <div className="bg-primary/10 w-fit rounded-lg p-2">
+                      <FolderOpen className="text-primary size-5" />
+                    </div>
+                    <CardTitle className="text-base">Categorías</CardTitle>
+                    <CardDescription>Organiza la taxonomía documental</CardDescription>
+                  </CardHeader>
+                </Card>
+              </Link>
+            ) : null}
+
+            {hasPermission(permissions, "tags.manage") ? (
+              <Link href="/admin/tags" className="group block rounded-[var(--radius)]">
+                <Card className="border-border h-full transition-all group-hover:-translate-y-0.5 group-hover:shadow-md">
+                  <CardHeader className="gap-3">
+                    <div className="bg-primary/10 w-fit rounded-lg p-2">
+                      <Tag className="text-primary size-5" />
+                    </div>
+                    <CardTitle className="text-base">Etiquetas</CardTitle>
+                    <CardDescription>Gestiona etiquetas de clasificación</CardDescription>
+                  </CardHeader>
+                </Card>
+              </Link>
+            ) : null}
           </div>
         </section>
       </div>

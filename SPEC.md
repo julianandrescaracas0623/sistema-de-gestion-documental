@@ -108,9 +108,14 @@ src/
 │   ├── (protected)/              # Grupo de rutas protegidas
 │   │   ├── layout.tsx            # Layout con header y navegación
 │   │   ├── page.tsx              # Dashboard principal
-│   │   ├── admin/                # Rutas de administración
-│   │   │   └── users/            # Gestión de usuarios
-│   │   │       └── page.tsx
+│   │   ├── admin/                # Rutas de administración (por permiso)
+│   │   │   ├── users/            # Gestión de usuarios (users.manage)
+│   │   │   ├── roles/            # Roles y permisos (roles.manage)
+│   │   │   │   ├── page.tsx      # Listado
+│   │   │   │   ├── new/          # Crear rol
+│   │   │   │   └── [id]/         # Editor de rol
+│   │   │   ├── categories/
+│   │   │   └── tags/
 │   │   └── documents/            # Gestión de documentos
 │   │       ├── page.tsx          # Listado con filtros
 │   │       ├── new/              # Subida de documentos
@@ -152,11 +157,15 @@ src/
 │   │       ├── tag-utils.ts
 │   │       └── format-bytes.ts
 │   │
-│   └── user-admin/              # Dominio de administración de usuarios
-│       ├── actions/
-│       │   └── create-user.action.ts
-│       └── components/
-│           └── create-user-form.tsx
+│   ├── user-admin/              # Administración de usuarios
+│   │   ├── actions/             # create-user, delete-user
+│   │   ├── components/
+│   │   └── queries/
+│   │
+│   └── role-admin/              # Roles y permisos
+│       ├── actions/             # create/update/delete role
+│       ├── components/          # RoleEditor, PermissionMatrix
+│       └── queries/
 │
 ├── shared/                       # Código compartido
 │   ├── components/              # Componentes reutilizables
@@ -479,19 +488,25 @@ pnpm db:push
 
 #### RLS Policies
 
+El control de acceso usa **permisos por catálogo** y la función `public.has_permission(text)`:
+
 ```sql
--- Ejemplo: Documents - usuarios ven solo los propios
-CREATE POLICY "users_see_own_documents" ON documents
-FOR SELECT
+-- Ejemplo: lectura de documentos
+CREATE POLICY documents_select_authenticated ON documents
+FOR SELECT TO authenticated
 USING (
-  auth.uid() = uploaded_by
-  OR EXISTS (
-    SELECT 1 FROM user_roles
-    WHERE user_id = auth.uid()
-    AND role = 'admin'
-  )
+  (SELECT public.has_permission('documents.read'))
+  OR (uploaded_by = auth.uid() AND deleted_at IS NULL)
 );
+
+-- Ejemplo: categorías (solo quien tenga categories.manage)
+CREATE POLICY categories_insert_admin ON categories
+FOR INSERT TO authenticated
+WITH CHECK ((SELECT public.has_permission('categories.manage')));
 ```
+
+Catálogo de permisos, roles semilla y reglas: `.requirements/rbac.md`.  
+Scripts de migración: `docs/MIGRATIONS.md`.
 
 ### 4.4 API Routes
 

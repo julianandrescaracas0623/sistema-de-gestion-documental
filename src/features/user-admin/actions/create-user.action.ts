@@ -3,15 +3,19 @@
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
 
-import { ROLE_NAMES } from "@/shared/db/user_roles.schema";
-import { getRoleForUser } from "@/shared/lib/auth/get-role-for-user";
-import { createClient } from "@/shared/lib/supabase/server";
+import { getSession } from "@/shared/lib/auth/get-session";
+import { hasPermission } from "@/shared/lib/auth/permissions";
 import { createServiceRoleClient } from "@/shared/lib/supabase/service-role";
 
 const createUserSchema = z.object({
+  fullName: z
+    .string()
+    .trim()
+    .min(2, "El nombre debe tener al menos 2 caracteres")
+    .max(120, "El nombre es demasiado largo"),
   email: z.string().email("Correo electrónico inválido"),
   password: z.string().min(8, "La contraseña debe tener al menos 8 caracteres"),
-  role: z.enum(ROLE_NAMES),
+  roleId: z.string().uuid("Rol inválido"),
 });
 
 export type CreateUserActionState =
@@ -35,9 +39,10 @@ export async function createUserByAdminAction(
   formData: FormData
 ): Promise<CreateUserActionState> {
   const parsed = createUserSchema.safeParse({
+    fullName: formData.get("fullName"),
     email: formData.get("email"),
     password: formData.get("password"),
-    role: formData.get("role"),
+    roleId: formData.get("roleId"),
   });
 
   if (!parsed.success) {
@@ -45,17 +50,12 @@ export async function createUserByAdminAction(
     return { status: "error", message: msg };
   }
 
-  const supabase = await createClient();
-  const {
-    data: { user: adminUser },
-  } = await supabase.auth.getUser();
-
-  if (adminUser === null) {
+  const session = await getSession();
+  if (session === null) {
     return { status: "error", message: "Debes iniciar sesión como administrador." };
   }
 
-  const adminRole = await getRoleForUser(supabase, adminUser.id);
-  if (adminRole !== "admin") {
+  if (!hasPermission(session.permissions, "users.manage")) {
     return { status: "error", message: "No tienes permiso para crear usuarios." };
   }
 
@@ -70,12 +70,23 @@ export async function createUserByAdminAction(
     };
   }
 
-  const { email, password, role: newRole } = parsed.data;
+  const { fullName, email, password, roleId } = parsed.data;
+
+  const { data: roleRow, error: roleLookupError } = await adminClient
+    .from("roles")
+    .select("id")
+    .eq("id", roleId)
+    .maybeSingle();
+
+  if (roleLookupError !== null || roleRow === null) {
+    return { status: "error", message: "El rol seleccionado no existe." };
+  }
 
   const { data: created, error: createError } = await adminClient.auth.admin.createUser({
     email,
     password,
     email_confirm: true,
+    user_metadata: { full_name: fullName },
   });
 
   if (createError !== null) {
@@ -87,7 +98,7 @@ export async function createUserByAdminAction(
 
   const { error: profileError } = await adminClient
     .from("profiles")
-    .upsert({ id: newId, email }, { onConflict: "id" });
+    .upsert({ id: newId, email, full_name: fullName }, { onConflict: "id" });
 
   if (profileError !== null) {
     await adminClient.auth.admin.deleteUser(newId);
@@ -96,7 +107,7 @@ export async function createUserByAdminAction(
 
   const { error: roleError } = await adminClient.from("user_roles").insert({
     user_id: newId,
-    role: newRole,
+    role_id: roleId,
   });
 
   if (roleError !== null) {
