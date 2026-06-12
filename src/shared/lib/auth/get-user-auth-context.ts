@@ -40,25 +40,38 @@ export async function getUserAuthContext(
     return null;
   }
 
-  const role = data.roles as {
-    slug: string;
-    name: string;
-    role_permissions: { permissions: { key: string } | null }[];
-  } | null;
+  const rawRoles = data.roles as unknown as
+    | {
+        slug: string;
+        name: string;
+        role_permissions: { permissions: { key: string } | { key: string }[] | null }[];
+      }
+    | {
+        slug: string;
+        name: string;
+        role_permissions: { permissions: { key: string } | { key: string }[] | null }[];
+      }[]
+    | null;
+  const roleEntry = Array.isArray(rawRoles) ? rawRoles[0] : rawRoles;
 
-  if (role === null) {
+  if (roleEntry === null || roleEntry === undefined) {
     return null;
   }
 
-  const permissions = role.role_permissions
-    .map((rp) => rp.permissions?.key)
+  const permissions = roleEntry.role_permissions
+    .flatMap((rp) => {
+      const perms = rp.permissions;
+      if (perms === null) return [];
+      return Array.isArray(perms) ? perms : [perms];
+    })
+    .map((p) => p.key)
     .filter((key): key is string => typeof key === "string" && key.length > 0)
     .filter(isPermissionKey);
 
   return {
     roleId: data.role_id as string,
-    roleSlug: role.slug,
-    roleName: role.name,
+    roleSlug: roleEntry.slug,
+    roleName: roleEntry.name,
     permissions,
   };
 }

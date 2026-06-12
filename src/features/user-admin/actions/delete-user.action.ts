@@ -52,7 +52,8 @@ async function getTargetRoleSlug(
     return null;
   }
 
-  const role = data.roles as { slug: string } | null;
+  const rawRoles = data.roles as { slug: string } | { slug: string }[] | null;
+  const role = Array.isArray(rawRoles) ? rawRoles[0] : rawRoles;
   return role?.slug ?? null;
 }
 

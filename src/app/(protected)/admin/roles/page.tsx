@@ -1,4 +1,5 @@
 import { Plus, ShieldCheck } from "lucide-react";
+import type { Route } from "next";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 
@@ -37,7 +38,7 @@ export default async function AdminRolesPage() {
             </p>
           </div>
           <Button asChild className="shrink-0">
-            <Link href="/admin/roles/new">
+            <Link href={"/admin/roles/new" as Route}>
               <Plus className="size-4" aria-hidden />
               Nuevo rol
             </Link>

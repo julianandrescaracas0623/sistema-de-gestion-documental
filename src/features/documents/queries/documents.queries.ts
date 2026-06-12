@@ -233,13 +233,15 @@ export async function getRolesForUploaders(userIds: string[]): Promise<Map<strin
     .select("user_id, roles:role_id ( name, slug )")
     .in("user_id", userIds);
   const map = new Map<string, string>();
-  for (const row of (data ?? []) as {
-    user_id: string;
-    roles: { name: string; slug: string } | null;
-  }[]) {
-    const label = row.roles?.name ?? row.roles?.slug;
+  for (const row of data ?? []) {
+    const rawRoles = row.roles as
+      | { name: string; slug: string }
+      | { name: string; slug: string }[]
+      | null;
+    const role = Array.isArray(rawRoles) ? rawRoles[0] : rawRoles;
+    const label = role?.name ?? role?.slug;
     if (label !== undefined) {
-      map.set(row.user_id, label);
+      map.set(row.user_id as string, label);
     }
   }
   return map;
