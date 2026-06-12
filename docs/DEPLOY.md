@@ -76,11 +76,21 @@ Scripts SQL adicionales en `docs/sql/` (RLS, bucket `documents`, seeds) deben ej
 
 ## 3. GitHub Pages — landing del proyecto
 
-### 3.1 Activar Pages
+### 3.1 Activar Pages (elige una opción)
+
+**Opción A — GitHub Actions (recomendada)**
+
+El workflow [`.github/workflows/deploy-github-pages.yml`](../.github/workflows/deploy-github-pages.yml) publica `docs/` en cada push a `main`.
+
+1. Repo en GitHub → **Settings → Pages**.
+2. **Source:** GitHub Actions.
+3. Tras el siguiente push a `main`, el workflow `Deploy GitHub Pages landing` publicará la landing.
+
+**Opción B — Rama /docs (sin Actions)**
 
 1. Repo en GitHub → **Settings → Pages**.
 2. **Source:** Deploy from a branch.
-3. **Branch:** `main` (o tu rama principal).
+3. **Branch:** `main`
 4. **Folder:** `/docs`
 5. Guardar.
 
