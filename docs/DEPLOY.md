@@ -58,9 +58,11 @@ En **Authentication → URL Configuration**:
 
 | Campo | Valor |
 |-------|-------|
-| **Site URL** | `https://<tu-app>.vercel.app` |
-| **Redirect URLs** | `https://<tu-app>.vercel.app/api/auth/callback` |
-| | `https://<tu-app>.vercel.app/**` |
+| **Site URL** | `https://sistema-de-gestion-documental.vercel.app` |
+| **Redirect URLs** | `https://sistema-de-gestion-documental.vercel.app/api/auth/callback` |
+| | `https://sistema-de-gestion-documental.vercel.app/**` |
+
+> Configura estos valores en [Supabase → Authentication → URL Configuration](https://supabase.com/dashboard/project/nrhilfbcnmtckkzkqeja/auth/url-configuration).
 
 ### Base de datos y storage (antes del primer uso)
 
