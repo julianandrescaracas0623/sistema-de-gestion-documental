@@ -12,6 +12,7 @@ import {
   Upload,
   Users,
 } from "lucide-react";
+import type { Route } from "next";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useState } from "react";
@@ -114,7 +115,7 @@ function SidebarNavLinks({
             </Link>
           ) : null}
           {hasPermission(permissions, "roles.manage") ? (
-            <Link href="/admin/roles" className={linkClass(isRoles)} {...navClick(onNavigate)}>
+            <Link href={"/admin/roles" as Route} className={linkClass(isRoles)} {...navClick(onNavigate)}>
               <ShieldCheck className="size-4 shrink-0 opacity-90" aria-hidden />
               Roles
             </Link>

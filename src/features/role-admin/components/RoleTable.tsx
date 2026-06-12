@@ -1,6 +1,7 @@
 "use client";
 
 import { ChevronRight, Pencil, ShieldCheck, Trash2 } from "lucide-react";
+import type { Route } from "next";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState, useTransition } from "react";
@@ -95,7 +96,7 @@ export function RoleTable({
           </p>
         </div>
         <Button asChild>
-          <Link href="/admin/roles/new">Crear rol</Link>
+          <Link href={"/admin/roles/new" as Route}>Crear rol</Link>
         </Button>
       </div>
     );
@@ -109,7 +110,7 @@ export function RoleTable({
           className="hover:bg-muted/40 flex flex-wrap items-center gap-4 px-4 py-4 transition-colors sm:px-6"
         >
           <Link
-            href={`/admin/roles/${row.id}`}
+            href={`/admin/roles/${row.id}` as Route}
             className="flex min-w-0 flex-1 items-center gap-4 rounded-lg outline-none focus-visible:ring-2 focus-visible:ring-ring"
           >
             <div
@@ -150,7 +151,7 @@ export function RoleTable({
 
           <div className="flex shrink-0 items-center gap-2">
             <Button variant="outline" size="sm" asChild>
-              <Link href={`/admin/roles/${row.id}`}>
+              <Link href={`/admin/roles/${row.id}` as Route}>
                 <Pencil className="size-3.5" aria-hidden />
                 Configurar
               </Link>

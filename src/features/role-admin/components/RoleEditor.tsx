@@ -1,6 +1,7 @@
 "use client";
 
 import { ArrowLeft, ShieldCheck, Users } from "lucide-react";
+import type { Route } from "next";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useActionState, useEffect, useState, useTransition } from "react";
@@ -26,7 +27,7 @@ import { Label } from "@/shared/components/ui/label";
 import { Separator } from "@/shared/components/ui/separator";
 import type { ActionResult } from "@/shared/lib/action-result";
 
-const idleState: ActionResult = { status: "idle" };
+const idleState = { status: "idle" } as unknown as ActionResult;
 
 export function RoleEditor({
   permissions,
@@ -53,7 +54,7 @@ export function RoleEditor({
       if (isEdit) {
         router.refresh();
       } else {
-        router.push("/admin/roles");
+        router.push("/admin/roles" as Route);
       }
     }
   }, [state, isEdit, router]);
@@ -80,7 +81,7 @@ export function RoleEditor({
         <PageBreadcrumb
           items={[
             { label: "Inicio", href: "/" },
-            { label: "Roles", href: "/admin/roles" },
+            { label: "Roles", href: "/admin/roles" as Route },
             { label: isEdit ? "Editar rol" : "Nuevo rol" },
           ]}
         />
@@ -122,7 +123,7 @@ export function RoleEditor({
             </div>
           </div>
           <Button variant="outline" size="sm" asChild className="shrink-0">
-            <Link href="/admin/roles">
+            <Link href={"/admin/roles" as Route}>
               <ArrowLeft className="size-4" aria-hidden />
               Volver al listado
             </Link>
@@ -192,7 +193,7 @@ export function RoleEditor({
                   {isEdit ? "Guardar cambios" : "Crear rol"}
                 </Button>
                 <Button type="button" variant="outline" className="w-full" asChild>
-                  <Link href="/admin/roles">Cancelar</Link>
+                  <Link href={"/admin/roles" as Route}>Cancelar</Link>
                 </Button>
               </div>
             </CardContent>

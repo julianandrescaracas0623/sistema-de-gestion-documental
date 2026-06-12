@@ -1,3 +1,4 @@
+import type { Route } from "next";
 import { redirect } from "next/navigation";
 
 import { RoleEditor } from "@/features/role-admin/components/RoleEditor";
@@ -29,7 +30,7 @@ export default async function EditRolePage({ params }: { params: Promise<{ id: s
   }
 
   if (role === null) {
-    redirect("/admin/roles");
+    redirect("/admin/roles" as Route);
   }
 
   return <RoleEditor mode="edit" role={role} permissions={permissions ?? []} />;
