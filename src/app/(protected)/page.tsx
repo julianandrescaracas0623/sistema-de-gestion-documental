@@ -21,7 +21,7 @@ import {
 } from "@/shared/components/ui/card";
 import { Separator } from "@/shared/components/ui/separator";
 import { getSession } from "@/shared/lib/auth/get-session";
-import { hasPermission } from "@/shared/lib/auth/permissions";
+import { canAccessModule, hasPermission } from "@/shared/lib/auth/permissions";
 import { createClient } from "@/shared/lib/supabase/server";
 
 export default async function HomePage() {
@@ -154,7 +154,7 @@ export default async function HomePage() {
               </Link>
             ) : null}
 
-            {hasPermission(permissions, "users.manage") ? (
+            {canAccessModule(permissions, "users") ? (
               <Link href="/admin/users" className="group block rounded-[var(--radius)]">
                 <Card className="border-border h-full transition-all group-hover:-translate-y-0.5 group-hover:shadow-md">
                   <CardHeader className="gap-3">
@@ -168,7 +168,7 @@ export default async function HomePage() {
               </Link>
             ) : null}
 
-            {hasPermission(permissions, "categories.manage") ? (
+            {canAccessModule(permissions, "categories") ? (
               <Link href="/admin/categories" className="group block rounded-[var(--radius)]">
                 <Card className="border-border h-full transition-all group-hover:-translate-y-0.5 group-hover:shadow-md">
                   <CardHeader className="gap-3">
@@ -182,7 +182,7 @@ export default async function HomePage() {
               </Link>
             ) : null}
 
-            {hasPermission(permissions, "tags.manage") ? (
+            {canAccessModule(permissions, "tags") ? (
               <Link href="/admin/tags" className="group block rounded-[var(--radius)]">
                 <Card className="border-border h-full transition-all group-hover:-translate-y-0.5 group-hover:shadow-md">
                   <CardHeader className="gap-3">

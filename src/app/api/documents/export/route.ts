@@ -21,6 +21,15 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
   const tagId = sp.get("tag") ?? "";
   const dateFrom = sp.get("dateFrom") ?? "";
   const dateTo = sp.get("dateTo") ?? "";
+  const idsRaw = sp.get("ids") ?? "";
+
+  const documentIds =
+    idsRaw !== ""
+      ? idsRaw
+          .split(",")
+          .map((id) => id.trim())
+          .filter(Boolean)
+      : undefined;
 
   const { data: rows, error } = await listDocumentsForExport(supabase, {
     q,
@@ -28,6 +37,7 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
     tagId,
     dateFrom,
     dateTo,
+    ...(documentIds !== undefined && documentIds.length > 0 ? { documentIds } : {}),
   });
 
   if (error !== null) {

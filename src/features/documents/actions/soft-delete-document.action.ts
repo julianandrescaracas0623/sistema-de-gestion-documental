@@ -1,11 +1,12 @@
 "use server";
 
-import { revalidatePath } from "next/cache";
+import { revalidatePath, revalidateTag } from "next/cache";
 import { redirect } from "next/navigation";
 import { z } from "zod";
 
 import { DOCUMENTS_STORAGE_BUCKET } from "@/features/documents/lib/documents-config";
 import type { ActionResult } from "@/shared/lib/action-result";
+import { CACHE_TAGS } from "@/shared/lib/cache/cached-queries";
 import { formFieldText } from "@/shared/lib/form-utils";
 import { createClient } from "@/shared/lib/supabase/server";
 
@@ -67,5 +68,8 @@ export async function softDeleteDocumentAction(_prev: unknown, formData: FormDat
   await supabase.storage.from(DOCUMENTS_STORAGE_BUCKET).remove(paths);
   revalidatePath("/documents");
   revalidatePath(`/documents/${documentId}`);
+  revalidatePath("/admin/tags");
+  revalidatePath("/admin/categories");
+  revalidateTag(CACHE_TAGS.tags, "default");
   redirect("/documents");
 }

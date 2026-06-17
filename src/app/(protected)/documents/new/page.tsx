@@ -2,6 +2,7 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 
 import { UploadDocumentForm } from "@/features/documents/components/upload-document-form";
+import { getMaxDocumentUploadMb } from "@/features/documents/lib/documents-config";
 import { PageBreadcrumb } from "@/shared/components/page-breadcrumb";
 import { Button } from "@/shared/components/ui/button";
 import { getSession } from "@/shared/lib/auth/get-session";
@@ -37,7 +38,11 @@ export default async function NewDocumentPage() {
         </div>
       </header>
       <div className="mx-auto w-full max-w-2xl flex-1 space-y-6 px-4 py-4 sm:px-6 sm:py-6 lg:px-7 lg:py-7">
-        <UploadDocumentForm categories={categories} availableTags={availableTags} />
+        <UploadDocumentForm
+          categories={categories}
+          availableTags={availableTags}
+          maxUploadMb={getMaxDocumentUploadMb()}
+        />
       </div>
     </div>
   );

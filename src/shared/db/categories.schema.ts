@@ -4,9 +4,11 @@ import { integer, pgPolicy, pgTable, text, timestamp, uuid } from "drizzle-orm/p
 import { createInsertSchema, createSelectSchema } from "drizzle-zod";
 
 import { profiles } from "./profiles.schema";
-import { hasPermission } from "./rls-sql";
-
-const canManageCategories = hasPermission("categories.manage");
+import {
+  canCreateCategories,
+  canDeleteCategories,
+  canUpdateCategories,
+} from "./rls-sql";
 
 /**
  * Categories for organizing documents.
@@ -32,18 +34,18 @@ export const categories = pgTable(
     pgPolicy("categories_insert_admin", {
       for: "insert",
       to: "authenticated",
-      withCheck: canManageCategories,
+      withCheck: canCreateCategories,
     }).link(t as unknown as PgTable),
     pgPolicy("categories_update_admin", {
       for: "update",
       to: "authenticated",
-      using: canManageCategories,
-      withCheck: canManageCategories,
+      using: canUpdateCategories,
+      withCheck: canUpdateCategories,
     }).link(t as unknown as PgTable),
     pgPolicy("categories_delete_admin", {
       for: "delete",
       to: "authenticated",
-      using: canManageCategories,
+      using: canDeleteCategories,
     }).link(t as unknown as PgTable),
   ],
 ).enableRLS();

@@ -3,9 +3,7 @@ import type { PgTable } from "drizzle-orm/pg-core";
 import { pgPolicy, pgTable, text, timestamp, uuid } from "drizzle-orm/pg-core";
 import { createInsertSchema, createSelectSchema } from "drizzle-zod";
 
-import { hasPermission } from "./rls-sql";
-
-const canManageTags = hasPermission("tags.manage");
+import { canDeleteTags, canInsertTags, canUpdateTags } from "./rls-sql";
 
 /**
  * Normalized tags for documents (many-to-many via document_tags).
@@ -26,18 +24,18 @@ export const tags = pgTable(
     pgPolicy("tags_insert_authenticated", {
       for: "insert",
       to: "authenticated",
-      withCheck: sql`true`,
+      withCheck: canInsertTags,
     }).link(t as unknown as PgTable),
     pgPolicy("tags_update_admin", {
       for: "update",
       to: "authenticated",
-      using: canManageTags,
+      using: canUpdateTags,
       withCheck: sql`true`,
     }).link(t as unknown as PgTable),
     pgPolicy("tags_delete_admin", {
       for: "delete",
       to: "authenticated",
-      using: canManageTags,
+      using: canDeleteTags,
     }).link(t as unknown as PgTable),
   ],
 ).enableRLS();

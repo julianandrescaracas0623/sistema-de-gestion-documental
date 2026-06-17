@@ -10,7 +10,7 @@ import { listRoles, listUsersWithRoles } from "@/features/user-admin/queries/use
 import { Badge } from "@/shared/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/shared/components/ui/card";
 import { getSession } from "@/shared/lib/auth/get-session";
-import { hasPermission } from "@/shared/lib/auth/permissions";
+import { canAccessModule } from "@/shared/lib/auth/permissions";
 
 const PAGE_SIZE = 20;
 
@@ -28,7 +28,7 @@ export default async function AdminUsersPage({
 }) {
   const session = await getSession();
   if (session === null) redirect("/login");
-  if (!hasPermission(session.permissions, "users.manage")) redirect("/");
+  if (!canAccessModule(session.permissions, "users")) redirect("/");
 
   const sp = await searchParams;
   const roleFilter = firstParam(sp.role);
@@ -81,7 +81,7 @@ export default async function AdminUsersPage({
               </CardTitle>
               <div className="flex flex-wrap items-center gap-3">
                 {roles !== null ? <RoleFilterSelect value={roleFilter} roles={roles} /> : null}
-                <Badge variant="outline">{String(total)} total</Badge>
+                <Badge variant="outline">{String(total)} en total</Badge>
               </div>
             </div>
           </CardHeader>

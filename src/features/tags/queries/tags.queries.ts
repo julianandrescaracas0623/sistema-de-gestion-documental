@@ -1,3 +1,5 @@
+import { aggregateActiveDocCountsByTagId } from "@/features/tags/lib/tag-doc-count";
+import { mapTagsWithCounts } from "@/features/tags/lib/tag-list-mapper";
 import type { createClient } from "@/shared/lib/supabase/server";
 
 export type SupabaseServer = Awaited<ReturnType<typeof createClient>>;
@@ -13,28 +15,14 @@ export async function listTagsWithCount(supabase: SupabaseServer): Promise<{
   data: TagAdminRow[] | null;
   error: Error | null;
 }> {
-  const { data, error } = await supabase
-    .from("tags")
-    .select("id, name, created_at, doc_count:document_tags(count)")
-    .order("name", { ascending: true });
+  const [{ data: tags, error }, countMap] = await Promise.all([
+    supabase.from("tags").select("id, name, created_at").order("name", { ascending: true }),
+    aggregateActiveDocCountsByTagId(supabase),
+  ]);
 
   if (error !== null) {
     return { data: null, error: new Error(error.message) };
   }
 
-  interface RawRow {
-    id: string;
-    name: string;
-    created_at: string;
-    doc_count: { count: number | string }[] | null;
-  }
-
-  const rows = (data as unknown as RawRow[]).map((row) => ({
-    id: row.id,
-    name: row.name,
-    doc_count: Number(row.doc_count?.[0]?.count ?? 0),
-    created_at: row.created_at,
-  }));
-
-  return { data: rows, error: null };
+  return { data: mapTagsWithCounts(tags, countMap), error: null };
 }

@@ -7,13 +7,13 @@ import { listCategoriesWithCount } from "@/features/categories/queries/categorie
 import { Badge } from "@/shared/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/shared/components/ui/card";
 import { getSession } from "@/shared/lib/auth/get-session";
-import { hasPermission } from "@/shared/lib/auth/permissions";
+import { canAccessModule } from "@/shared/lib/auth/permissions";
 import { createClient } from "@/shared/lib/supabase/server";
 
 export default async function AdminCategoriesPage() {
   const session = await getSession();
   if (session === null) redirect("/login");
-  if (!hasPermission(session.permissions, "categories.manage")) redirect("/");
+  if (!canAccessModule(session.permissions, "categories")) redirect("/");
 
   const supabase = await createClient();
   const { data: categories, error } = await listCategoriesWithCount(supabase);
@@ -45,7 +45,7 @@ export default async function AdminCategoriesPage() {
                     <FolderOpen className="size-4 text-primary" />
                     Listado de categorías
                   </CardTitle>
-                  <Badge variant="outline">{String(categories?.length ?? 0)} total</Badge>
+                  <Badge variant="outline">{String(categories?.length ?? 0)} en total</Badge>
                 </div>
               </CardHeader>
               <CardContent className="px-0">

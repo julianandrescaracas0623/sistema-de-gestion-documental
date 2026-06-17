@@ -43,7 +43,9 @@ export function CategoryRowActions({ category }: { category: CategoryAdminRow })
               label: "Editar",
               icon: Pencil,
               onSelect: () => {
-                setEditOpen(true);
+                setTimeout(() => {
+                  setEditOpen(true);
+                }, 0);
               },
             },
             {
@@ -51,7 +53,9 @@ export function CategoryRowActions({ category }: { category: CategoryAdminRow })
               icon: Trash2,
               destructive: true,
               onSelect: () => {
-                setDeleteOpen(true);
+                setTimeout(() => {
+                  setDeleteOpen(true);
+                }, 0);
               },
             },
           ]}

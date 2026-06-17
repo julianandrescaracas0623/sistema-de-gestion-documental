@@ -83,7 +83,7 @@ describe("deleteUserByAdminAction", () => {
       roleId: ADMIN_ROLE_ID,
       roleSlug: "admin",
       roleName: "Administrador",
-      permissions: ["users.manage"],
+      permissions: ["users.delete"],
       role: "admin",
     });
     mockAdminRoleLookup.mockResolvedValue({ data: { id: ADMIN_ROLE_ID }, error: null });
@@ -95,7 +95,7 @@ describe("deleteUserByAdminAction", () => {
     });
   });
 
-  it("returns error when caller lacks users.manage", async () => {
+  it("returns error when caller lacks users.delete", async () => {
     const { getSession } = await import("@/shared/lib/auth/get-session");
     vi.mocked(getSession).mockResolvedValue({
       userId: ADMIN_ID,

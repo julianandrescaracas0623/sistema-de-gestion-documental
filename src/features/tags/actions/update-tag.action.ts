@@ -5,7 +5,7 @@ import { z } from "zod";
 
 import type { ActionResult } from "@/shared/lib/action-result";
 import { getSession } from "@/shared/lib/auth/get-session";
-import { hasPermission } from "@/shared/lib/auth/permissions";
+import { hasModulePermission } from "@/shared/lib/auth/permissions";
 import { CACHE_TAGS } from "@/shared/lib/cache/cached-queries";
 import { createClient } from "@/shared/lib/supabase/server";
 import { createServiceRoleClient } from "@/shared/lib/supabase/service-role";
@@ -24,7 +24,7 @@ export async function updateTagAction(_prev: unknown, formData: FormData): Promi
   if (!parsed.success) return { status: "error", message: parsed.error.issues[0]?.message ?? "Datos inválidos." };
 
   const session = await getSession();
-  if (session === null || !hasPermission(session.permissions, "tags.manage")) {
+  if (session === null || !hasModulePermission(session.permissions, "tags", "update")) {
     return { status: "error", message: "No tienes permiso para editar etiquetas." };
   }
 

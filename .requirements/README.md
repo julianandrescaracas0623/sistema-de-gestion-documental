@@ -12,6 +12,7 @@ Mezcla de documentación **en español** (IPS / trabajo académico) y plantillas
 | [auth.md](auth.md) | Autenticación, sesión y rutas protegidas (criterios CA + checklist) |
 | [rbac.md](rbac.md) | Roles dinámicos, catálogo de permisos y RLS |
 | [ux-confirmaciones.md](ux-confirmaciones.md) | AlertDialog destructivo y menús ⋯ en tablas |
+| [mejoras-qa-jun2026.md](mejoras-qa-jun2026.md) | Mejoras QA: documentos, etiquetas, RBAC granular, auth |
 
 ## Docs del proyecto
 
