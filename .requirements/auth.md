@@ -86,6 +86,18 @@ Como **administrador**, quiero **registrar a los usuarios y asignarles su rol** 
 **Cuando** accedo al panel principal  
 **Entonces** veo **«Bienvenido, {nombre}»** usando `profiles.full_name` (o respaldo desde metadatos/correo); el rol no se muestra como badge prominente en el hero (sí de forma discreta en la barra lateral)
 
+### CA11: Recuperación de contraseña
+
+**Dado** que tengo una cuenta activa dada de alta por un administrador  
+**Cuando** olvido mi contraseña, solicito un enlace en `/forgot-password`, abro el correo y completo el formulario en `/reset-password`  
+**Entonces** puedo definir una nueva contraseña y, tras el éxito, soy redirigido a `/login?reset=success` con un mensaje que confirma la actualización; el correo de recuperación incluye un saludo personalizado con mi nombre cuando `full_name` está disponible en el perfil
+
+### CA12: Enlace de recuperación inválido o expirado
+
+**Dado** que accedo a `/reset-password` sin sesión válida (enlace expirado, ya usado o callback fallido)  
+**Cuando** la página carga  
+**Entonces** veo un mensaje claro de que el enlace no es válido y un botón para solicitar uno nuevo en `/forgot-password` (sin redirección silenciosa)
+
 ---
 
 ## Casos de prueba (checklist)
@@ -102,6 +114,8 @@ Como **administrador**, quiero **registrar a los usuarios y asignarles su rol** 
 - [ ] CP10: Usuario sin `users.manage` ni `roles.manage` → no puede gestionar cuentas ni roles
 - [ ] CP11: Panel principal muestra «Bienvenido, {nombre}» sin badge de rol en el hero
 - [ ] CP12: Usuario con `roles.manage` → crea/edita rol en `/admin/roles/[id]`; sin permiso → redirección o menú oculto
+- [ ] CP13: Recuperación de contraseña → `/forgot-password` envía correo con saludo personalizado (si hay `full_name`); enlace lleva a callback y `/reset-password`; nueva clave → login con mensaje de éxito
+- [ ] CP14: `/reset-password` sin sesión → mensaje de enlace inválido y enlace a `/forgot-password`
 
 ---
 
@@ -109,8 +123,11 @@ Como **administrador**, quiero **registrar a los usuarios y asignarles su rol** 
 
 - **Autoregistro** o registro abierto en Internet por cualquier visitante
 - Inicio de sesión con proveedores sociales (Google, GitHub, etc.)
-- Flujo completo de recuperación de contraseña (puede planificarse como mejora)
 - Autenticación multifactor (MFA)
+
+### Recuperación de contraseña (implementado)
+
+Rutas: `/forgot-password`, `/reset-password`. Requiere configurar `NEXT_PUBLIC_APP_URL` y Redirect URLs en Supabase (ver [docs/DEPLOY.md](../docs/DEPLOY.md)).
 
 ### Nota de despliegue / primer administrador
 

@@ -6,13 +6,13 @@ import { TagTable } from "@/features/tags/components/TagTable";
 import { Badge } from "@/shared/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/shared/components/ui/card";
 import { getSession } from "@/shared/lib/auth/get-session";
-import { hasPermission } from "@/shared/lib/auth/permissions";
+import { canAccessModule } from "@/shared/lib/auth/permissions";
 import { getCachedTagsWithCount } from "@/shared/lib/cache/cached-queries";
 
 export default async function AdminTagsPage() {
   const session = await getSession();
   if (session === null) redirect("/login");
-  if (!hasPermission(session.permissions, "tags.manage")) redirect("/");
+  if (!canAccessModule(session.permissions, "tags")) redirect("/");
 
   const tags = await getCachedTagsWithCount();
 
@@ -35,7 +35,7 @@ export default async function AdminTagsPage() {
                   <Tag className="size-4 text-primary" />
                   Listado de etiquetas
                 </CardTitle>
-                <Badge variant="outline">{String(tags.length)} total</Badge>
+                <Badge variant="outline">{String(tags.length)} en total</Badge>
               </div>
             </CardHeader>
             <CardContent className="px-0">

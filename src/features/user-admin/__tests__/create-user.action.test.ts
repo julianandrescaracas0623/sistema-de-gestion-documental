@@ -61,7 +61,7 @@ describe("createUserByAdminAction", () => {
       roleId: ROLE_ID,
       roleSlug: "admin",
       roleName: "Administrador",
-      permissions: ["users.manage"],
+      permissions: ["users.create"],
       role: "admin",
     });
     mockRoleLookup.mockResolvedValue({ data: { id: ROLE_ID }, error: null });
@@ -73,7 +73,7 @@ describe("createUserByAdminAction", () => {
     mockInsert.mockResolvedValue({ error: null });
   });
 
-  it("returns error when caller lacks users.manage", async () => {
+  it("returns error when caller lacks users.create", async () => {
     const { getSession } = await import("@/shared/lib/auth/get-session");
     vi.mocked(getSession).mockResolvedValue({
       userId: "user-1",

@@ -5,7 +5,7 @@ import { z } from "zod";
 
 import type { ActionResult } from "@/shared/lib/action-result";
 import { getSession } from "@/shared/lib/auth/get-session";
-import { hasPermission } from "@/shared/lib/auth/permissions";
+import { hasModulePermission } from "@/shared/lib/auth/permissions";
 import { createClient } from "@/shared/lib/supabase/server";
 
 const deleteRoleSchema = z.object({
@@ -17,7 +17,7 @@ export async function deleteRoleAction(_prev: unknown, formData: FormData): Prom
   if (session === null) {
     return { status: "error", message: "Debes iniciar sesión." };
   }
-  if (!hasPermission(session.permissions, "roles.manage")) {
+  if (!hasModulePermission(session.permissions, "roles", "delete")) {
     return { status: "error", message: "No tienes permiso para eliminar roles." };
   }
 

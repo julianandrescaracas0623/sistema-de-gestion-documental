@@ -3,7 +3,7 @@ import type { PgTable } from "drizzle-orm/pg-core";
 import { pgPolicy, pgTable, primaryKey, timestamp, uuid } from "drizzle-orm/pg-core";
 
 import { permissions } from "./permissions.schema";
-import { canManageRoles } from "./rls-sql";
+import { canUpdateRoles } from "./rls-sql";
 import { roles } from "./roles.schema";
 
 export const rolePermissions = pgTable(
@@ -27,12 +27,12 @@ export const rolePermissions = pgTable(
     pgPolicy("role_permissions_insert_manage", {
       for: "insert",
       to: "authenticated",
-      withCheck: canManageRoles,
+      withCheck: canUpdateRoles,
     }).link(t as unknown as PgTable),
     pgPolicy("role_permissions_delete_manage", {
       for: "delete",
       to: "authenticated",
-      using: canManageRoles,
+      using: canUpdateRoles,
     }).link(t as unknown as PgTable),
   ],
 ).enableRLS();

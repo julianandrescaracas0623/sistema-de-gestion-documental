@@ -1,17 +1,16 @@
-import type { Route } from "next";
 import { redirect } from "next/navigation";
 
 import { RoleEditor } from "@/features/role-admin/components/RoleEditor";
 import { listPermissionsCatalog } from "@/features/role-admin/queries/permissions.queries";
 import { getRoleById } from "@/features/role-admin/queries/roles.queries";
 import { getSession } from "@/shared/lib/auth/get-session";
-import { hasPermission } from "@/shared/lib/auth/permissions";
+import { canAccessModule } from "@/shared/lib/auth/permissions";
 import { createClient } from "@/shared/lib/supabase/server";
 
 export default async function EditRolePage({ params }: { params: Promise<{ id: string }> }) {
   const session = await getSession();
   if (session === null) redirect("/login");
-  if (!hasPermission(session.permissions, "roles.manage")) redirect("/");
+  if (!canAccessModule(session.permissions, "roles")) redirect("/");
 
   const { id } = await params;
   const supabase = await createClient();
@@ -30,7 +29,7 @@ export default async function EditRolePage({ params }: { params: Promise<{ id: s
   }
 
   if (role === null) {
-    redirect("/admin/roles" as Route);
+    redirect("/admin/roles");
   }
 
   return <RoleEditor mode="edit" role={role} permissions={permissions ?? []} />;

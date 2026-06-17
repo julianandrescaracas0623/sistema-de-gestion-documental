@@ -12,7 +12,6 @@ import {
   Upload,
   Users,
 } from "lucide-react";
-import type { Route } from "next";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useState } from "react";
@@ -21,8 +20,8 @@ import { logoutAction } from "@/features/auth/actions/logout.action";
 import { Button } from "@/shared/components/ui/button";
 import { Sheet, SheetContent, SheetDescription, SheetTitle, SheetTrigger } from "@/shared/components/ui/sheet";
 import {
-  ADMIN_NAV_PERMISSIONS,
-  hasAnyPermission,
+  canAccessModule,
+  hasAnyAdminNavPermission,
   hasPermission,
   type PermissionKey,
 } from "@/shared/lib/auth/permissions";
@@ -73,7 +72,7 @@ function SidebarNavLinks({
   className?: string;
 }) {
   const { isHome, isUpload, isDocuments, isUsers, isRoles, isCategories, isTags } = useNavActive(pathname);
-  const showAdminSection = hasAnyPermission(permissions, ADMIN_NAV_PERMISSIONS);
+  const showAdminSection = hasAnyAdminNavPermission(permissions);
 
   const linkClass = (active: boolean) =>
     cn(
@@ -108,25 +107,25 @@ function SidebarNavLinks({
           <p className="mt-2 px-2.5 pt-2 pb-1 text-[10.5px] font-semibold tracking-widest text-sidebar-foreground/35 uppercase">
             Administración
           </p>
-          {hasPermission(permissions, "users.manage") ? (
+          {canAccessModule(permissions, "users") ? (
             <Link href="/admin/users" className={linkClass(isUsers)} {...navClick(onNavigate)}>
               <Users className="size-4 shrink-0 opacity-90" aria-hidden />
               Usuarios
             </Link>
           ) : null}
-          {hasPermission(permissions, "roles.manage") ? (
-            <Link href={"/admin/roles" as Route} className={linkClass(isRoles)} {...navClick(onNavigate)}>
+          {canAccessModule(permissions, "roles") ? (
+            <Link href="/admin/roles" className={linkClass(isRoles)} {...navClick(onNavigate)}>
               <ShieldCheck className="size-4 shrink-0 opacity-90" aria-hidden />
               Roles
             </Link>
           ) : null}
-          {hasPermission(permissions, "categories.manage") ? (
+          {canAccessModule(permissions, "categories") ? (
             <Link href="/admin/categories" className={linkClass(isCategories)} {...navClick(onNavigate)}>
               <FolderOpen className="size-4 shrink-0 opacity-90" aria-hidden />
               Categorías
             </Link>
           ) : null}
-          {hasPermission(permissions, "tags.manage") ? (
+          {canAccessModule(permissions, "tags") ? (
             <Link href="/admin/tags" className={linkClass(isTags)} {...navClick(onNavigate)}>
               <Tag className="size-4 shrink-0 opacity-90" aria-hidden />
               Etiquetas

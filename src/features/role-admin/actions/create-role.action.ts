@@ -6,7 +6,7 @@ import { z } from "zod";
 import { slugifyRoleName } from "@/features/role-admin/lib/slugify-role";
 import type { ActionResult } from "@/shared/lib/action-result";
 import { getSession } from "@/shared/lib/auth/get-session";
-import { hasPermission, PERMISSION_KEYS, type PermissionKey } from "@/shared/lib/auth/permissions";
+import { hasModulePermission, PERMISSION_KEYS, type PermissionKey } from "@/shared/lib/auth/permissions";
 import { createClient } from "@/shared/lib/supabase/server";
 
 const rowWithIdSchema = z.object({ id: z.string().uuid() });
@@ -35,7 +35,7 @@ export async function createRoleAction(_prev: unknown, formData: FormData): Prom
   if (session === null) {
     return { status: "error", message: "Debes iniciar sesión." };
   }
-  if (!hasPermission(session.permissions, "roles.manage")) {
+  if (!hasModulePermission(session.permissions, "roles", "create")) {
     return { status: "error", message: "No tienes permiso para crear roles." };
   }
 

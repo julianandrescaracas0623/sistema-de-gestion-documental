@@ -1,6 +1,7 @@
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
+import Link from "next/link";
 import { useActionState, useEffect, useTransition } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
@@ -83,6 +84,16 @@ export function LoginForm() {
       <Button type="submit" className="mt-1 h-10 w-full text-sm font-semibold" loading={isPending}>
         Iniciar sesión
       </Button>
+
+      <p className="text-center text-sm">
+        <Link href={"/forgot-password"} className="text-primary hover:underline">
+          ¿Olvidaste tu contraseña?
+        </Link>
+      </p>
+      <p className="text-muted-foreground text-center text-xs leading-relaxed">
+        Si no tienes acceso a tu correo, contacta al administrador del sistema para restablecer tu
+        contraseña.
+      </p>
     </form>
   );
 }

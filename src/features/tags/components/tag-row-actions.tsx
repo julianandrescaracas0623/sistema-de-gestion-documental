@@ -39,7 +39,7 @@ function EditTagSheet({ tag, open, onOpenChange }: { tag: TagAdminRow; open: boo
 
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
-      <SheetContent>
+      <SheetContent side="right" className="bg-card text-foreground border-border w-[min(400px,92vw)]">
         <SheetHeader>
           <SheetTitle>Editar etiqueta</SheetTitle>
           <SheetDescription>Modifica el nombre y guarda los cambios.</SheetDescription>
@@ -47,7 +47,7 @@ function EditTagSheet({ tag, open, onOpenChange }: { tag: TagAdminRow; open: boo
         <form ref={formRef} action={formAction} className="mt-6 space-y-4 px-1">
           <input type="hidden" name="id" value={tag.id} />
           <div className="space-y-2">
-            <Label htmlFor={`edit-tag-name-${tag.id}`}>
+            <Label htmlFor={`edit-tag-name-${tag.id}`} className="text-sidebar-foreground">
               Nombre <span className="text-destructive">*</span>
             </Label>
             <Input
@@ -57,6 +57,7 @@ function EditTagSheet({ tag, open, onOpenChange }: { tag: TagAdminRow; open: boo
               maxLength={120}
               disabled={isPending}
               defaultValue={tag.name}
+              className="bg-background text-foreground"
             />
           </div>
           <Button type="submit" disabled={isPending} className="w-full">
@@ -98,7 +99,9 @@ export function TagRowActions({ tag }: { tag: TagAdminRow }) {
               label: "Editar",
               icon: Pencil,
               onSelect: () => {
-                setEditOpen(true);
+                setTimeout(() => {
+                  setEditOpen(true);
+                }, 0);
               },
             },
             {
@@ -106,7 +109,9 @@ export function TagRowActions({ tag }: { tag: TagAdminRow }) {
               icon: Trash2,
               destructive: true,
               onSelect: () => {
-                setDeleteOpen(true);
+                setTimeout(() => {
+                  setDeleteOpen(true);
+                }, 0);
               },
             },
           ]}

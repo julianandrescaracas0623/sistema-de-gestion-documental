@@ -1,6 +1,10 @@
 import { unstable_cache } from "next/cache";
 
 import type { CategoryRow } from "@/features/documents/queries/categories.queries";
+import {
+  aggregateActiveDocCountsByTagId,
+} from "@/features/tags/lib/tag-doc-count";
+import { mapTagsWithCounts } from "@/features/tags/lib/tag-list-mapper";
 import type { TagAdminRow } from "@/features/tags/queries/tags.queries";
 import { createServiceRoleClient } from "@/shared/lib/supabase/service-role";
 
@@ -43,24 +47,16 @@ export const getCachedTagsForFilter = unstable_cache(
 export const getCachedTagsWithCount = unstable_cache(
   async (): Promise<TagAdminRow[]> => {
     const supabase = getServiceClient();
-    const { data } = await supabase
-      .from("tags")
-      .select("id, name, created_at, doc_count:document_tags(count)")
-      .order("name", { ascending: true });
+    const [{ data: tags }, countMap] = await Promise.all([
+      supabase.from("tags").select("id, name, created_at").order("name", { ascending: true }),
+      aggregateActiveDocCountsByTagId(supabase),
+    ]);
 
-    interface RawRow {
-      id: string;
-      name: string;
-      created_at: string;
-      doc_count: { count: number | string }[] | null;
+    if (tags === null) {
+      return [];
     }
 
-    return ((data ?? []) as unknown as RawRow[]).map((row) => ({
-      id: row.id,
-      name: row.name,
-      doc_count: Number(row.doc_count?.[0]?.count ?? 0),
-      created_at: row.created_at,
-    }));
+    return mapTagsWithCounts(tags, countMap);
   },
   ["tags-with-count"],
   { revalidate: 300, tags: [CACHE_TAGS.tags] }

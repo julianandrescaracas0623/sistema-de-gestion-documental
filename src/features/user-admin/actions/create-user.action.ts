@@ -4,7 +4,7 @@ import { revalidatePath } from "next/cache";
 import { z } from "zod";
 
 import { getSession } from "@/shared/lib/auth/get-session";
-import { hasPermission } from "@/shared/lib/auth/permissions";
+import { hasModulePermission } from "@/shared/lib/auth/permissions";
 import { createServiceRoleClient } from "@/shared/lib/supabase/service-role";
 
 const createUserSchema = z.object({
@@ -55,7 +55,7 @@ export async function createUserByAdminAction(
     return { status: "error", message: "Debes iniciar sesión como administrador." };
   }
 
-  if (!hasPermission(session.permissions, "users.manage")) {
+  if (!hasModulePermission(session.permissions, "users", "create")) {
     return { status: "error", message: "No tienes permiso para crear usuarios." };
   }
 

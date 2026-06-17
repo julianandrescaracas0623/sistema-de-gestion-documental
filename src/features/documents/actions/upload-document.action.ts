@@ -12,12 +12,18 @@ import { parseTagInput } from "@/features/documents/lib/tag-utils";
 import type { ActionResult } from "@/shared/lib/action-result";
 import { formFieldText } from "@/shared/lib/form-utils";
 import { createClient } from "@/shared/lib/supabase/server";
-import { isFileSizeValid, isFileTypeAllowed, readUploadFileBuffer } from "@/shared/lib/upload-utils";
+import { isFileSizeValid, isFileTypeAllowed, readUploadFileBuffer, getFileTypeErrorMessage } from "@/shared/lib/upload-utils";
 
 const rowWithIdSchema = z.object({ id: z.string().uuid() });
 
 const uploadDocumentSchema = z.object({
   title: z.string().trim().min(1, "El título es obligatorio.").max(500, "El título es demasiado largo."),
+  description: z
+    .string()
+    .trim()
+    .max(5000, "La descripción es demasiado larga.")
+    .optional()
+    .transform((v) => (v === "" ? undefined : v)),
   categoryId: z.preprocess(
     (v) => (v === "" || v === null || v === undefined ? undefined : v),
     z.string().uuid("Categoría inválida.").optional()
@@ -54,12 +60,13 @@ export async function uploadDocumentAction(_prev: unknown, formData: FormData): 
   if (!isFileTypeAllowed(file)) {
     return {
       status: "error",
-      message: "Tipo de archivo no permitido. Usa PDF, imágenes, Office o texto plano.",
+      message: getFileTypeErrorMessage(),
     };
   }
 
   const parsed = uploadDocumentSchema.safeParse({
     title: formFieldText(formData, "title"),
+    description: formFieldText(formData, "description"),
     categoryId: formFieldText(formData, "categoryId"),
     tagsRaw: formFieldText(formData, "tags"),
   });
@@ -97,7 +104,7 @@ export async function uploadDocumentAction(_prev: unknown, formData: FormData): 
     .insert({
       id: documentId,
       title: parsed.data.title,
-      description: null,
+      description: parsed.data.description ?? null,
       file_name: file.name,
       storage_object_path: storagePath,
       size_bytes: file.size,

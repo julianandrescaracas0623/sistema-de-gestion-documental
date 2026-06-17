@@ -62,7 +62,7 @@ describe("createRoleAction", () => {
       roleId: "role-1",
       roleSlug: "admin",
       roleName: "Administrador",
-      permissions: ["roles.manage"],
+      permissions: ["roles.create"],
       role: "admin",
     });
     mockSlugLookup.mockResolvedValue({ data: null, error: null });
@@ -77,7 +77,7 @@ describe("createRoleAction", () => {
     mockLinkInsert.mockResolvedValue({ error: null });
   });
 
-  it("denies users without roles.manage", async () => {
+  it("denies users without roles.create", async () => {
     const { getSession } = await import("@/shared/lib/auth/get-session");
     vi.mocked(getSession).mockResolvedValue({
       userId: "u1",

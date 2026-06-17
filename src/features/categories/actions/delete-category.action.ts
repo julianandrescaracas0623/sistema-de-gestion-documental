@@ -5,7 +5,7 @@ import { z } from "zod";
 
 import type { ActionResult } from "@/shared/lib/action-result";
 import { getSession } from "@/shared/lib/auth/get-session";
-import { hasPermission } from "@/shared/lib/auth/permissions";
+import { hasModulePermission } from "@/shared/lib/auth/permissions";
 import { CACHE_TAGS } from "@/shared/lib/cache/cached-queries";
 import { createClient } from "@/shared/lib/supabase/server";
 
@@ -31,7 +31,7 @@ export async function deleteCategoryAction(
   }
 
   const session = await getSession();
-  if (session === null || !hasPermission(session.permissions, "categories.manage")) {
+  if (session === null || !hasModulePermission(session.permissions, "categories", "delete")) {
     return { status: "error", message: "No tienes permiso para eliminar categorías." };
   }
 

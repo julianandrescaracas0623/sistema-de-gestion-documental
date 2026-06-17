@@ -1,76 +1,14 @@
 "use client";
 
+import type { Route } from "next";
 import { useRouter } from "next/navigation";
 
+import {
+  QUICK_FILTER_PRESETS,
+  type QuickFilterPreset,
+} from "@/features/documents/lib/date-utils";
+import { buildDocumentsQueryPath } from "@/features/documents/lib/documents-search-params";
 import { Button } from "@/shared/components/ui/button";
-
-interface QuickFilter {
-  label: string;
-  key: string;
-  getDates: () => { dateFrom: string; dateTo: string };
-}
-
-function toDateString(date: Date): string {
-  const parts = date.toISOString().split("T");
-  return parts[0] ?? "";
-}
-
-const QUICK_FILTERS: QuickFilter[] = [
-  {
-    label: "7 días",
-    key: "7d",
-    getDates: () => {
-      const d = new Date();
-      d.setDate(d.getDate() - 7);
-      return { dateFrom: toDateString(d), dateTo: toDateString(new Date()) };
-    },
-  },
-  {
-    label: "1 mes",
-    key: "1m",
-    getDates: () => {
-      const d = new Date();
-      d.setMonth(d.getMonth() - 1);
-      return { dateFrom: toDateString(d), dateTo: toDateString(new Date()) };
-    },
-  },
-  {
-    label: "2 meses",
-    key: "2m",
-    getDates: () => {
-      const d = new Date();
-      d.setMonth(d.getMonth() - 2);
-      return { dateFrom: toDateString(d), dateTo: toDateString(new Date()) };
-    },
-  },
-  {
-    label: "3 meses",
-    key: "3m",
-    getDates: () => {
-      const d = new Date();
-      d.setMonth(d.getMonth() - 3);
-      return { dateFrom: toDateString(d), dateTo: toDateString(new Date()) };
-    },
-  },
-  {
-    label: "6 meses",
-    key: "6m",
-    getDates: () => {
-      const d = new Date();
-      d.setMonth(d.getMonth() - 6);
-      return { dateFrom: toDateString(d), dateTo: toDateString(new Date()) };
-    },
-  },
-  {
-    label: "1 año",
-    key: "1y",
-    getDates: () => {
-      const d = new Date();
-      d.setFullYear(d.getFullYear() - 1);
-      return { dateFrom: toDateString(d), dateTo: toDateString(new Date()) };
-    },
-  },
-];
 
 interface QuickDateFiltersProps {
   currentDateFrom: string;
@@ -89,31 +27,38 @@ export function QuickDateFilters({
 }: QuickDateFiltersProps) {
   const router = useRouter();
 
-  function applyQuickFilter(filter: QuickFilter) {
+  function applyQuickFilter(filter: QuickFilterPreset) {
     const { dateFrom, dateTo } = filter.getDates();
-    const p = new URLSearchParams();
-    if (currentQ !== "") p.set("q", currentQ);
-    if (currentCategory !== "") p.set("category", currentCategory);
-    if (currentTag !== "") p.set("tag", currentTag);
-    p.set("dateFrom", dateFrom);
-    p.set("dateTo", dateTo);
-    router.push(`/documents?${p.toString()}`);
+    const path = buildDocumentsQueryPath({
+      q: currentQ,
+      categoryId: currentCategory,
+      tagId: currentTag,
+      dateFrom,
+      dateTo,
+      page: 1,
+    });
+    router.push(path as Route);
   }
 
-  function isActive(filter: QuickFilter): boolean {
+  function isActive(filter: QuickFilterPreset): boolean {
     const { dateFrom, dateTo } = filter.getDates();
     return currentDateFrom === dateFrom && currentDateTo === dateTo;
   }
 
   return (
     <div className="flex flex-wrap gap-2">
-      {QUICK_FILTERS.map((f) => (
+      {QUICK_FILTER_PRESETS.map((f) => (
         <Button
           key={f.key}
           type="button"
           size="sm"
           variant={isActive(f) ? "default" : "outline"}
           className="h-7 text-xs"
+          title={
+            f.key === "6m"
+              ? "Documentos subidos desde hace 6 meses calendario hasta hoy"
+              : undefined
+          }
           onClick={() => {
             applyQuickFilter(f);
           }}

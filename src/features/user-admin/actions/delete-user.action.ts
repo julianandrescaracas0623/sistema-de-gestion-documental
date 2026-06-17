@@ -5,7 +5,7 @@ import { z } from "zod";
 
 import type { ActionResult } from "@/shared/lib/action-result";
 import { getSession } from "@/shared/lib/auth/get-session";
-import { hasPermission } from "@/shared/lib/auth/permissions";
+import { hasModulePermission } from "@/shared/lib/auth/permissions";
 import { formFieldText } from "@/shared/lib/form-utils";
 import { createServiceRoleClient } from "@/shared/lib/supabase/service-role";
 
@@ -72,7 +72,7 @@ export async function deleteUserByAdminAction(_prev: unknown, formData: FormData
     return { status: "error", message: "Debes iniciar sesión como administrador." };
   }
 
-  if (!hasPermission(session.permissions, "users.manage")) {
+  if (!hasModulePermission(session.permissions, "users", "delete")) {
     return { status: "error", message: "No tienes permiso para eliminar usuarios." };
   }
 

@@ -1,3 +1,4 @@
+import { normalizeDateRange } from "@/features/documents/lib/date-utils";
 import { sanitizeDocumentSearchQuery } from "@/features/documents/lib/search-utils";
 import type { createClient } from "@/shared/lib/supabase/server";
 import { createServiceRoleClient } from "@/shared/lib/supabase/service-role";
@@ -48,7 +49,8 @@ export async function listDocuments(
     pageSize: number;
   }
 ): Promise<{ data: DocumentListRow[] | null; count: number | null; error: Error | null }> {
-  const { q, categoryId, tagId, dateFrom, dateTo, page, pageSize } = params;
+  const { q, categoryId, tagId, dateFrom: rawFrom, dateTo: rawTo, page, pageSize } = params;
+  const { dateFrom, dateTo } = normalizeDateRange(rawFrom ?? "", rawTo ?? "");
   const from = page * pageSize;
   const to = from + pageSize - 1;
 
@@ -79,10 +81,10 @@ export async function listDocuments(
     query = query.or(`title.ilike.${pattern},file_name.ilike.${pattern}`);
   }
 
-  if (dateFrom !== undefined && dateFrom !== "") {
+  if (dateFrom !== "") {
     query = query.gte("created_at", `${dateFrom}T00:00:00.000Z`);
   }
-  if (dateTo !== undefined && dateTo !== "") {
+  if (dateTo !== "") {
     query = query.lte("created_at", `${dateTo}T23:59:59.999Z`);
   }
 
@@ -181,9 +183,17 @@ export interface DocumentExportRow {
 
 export async function listDocumentsForExport(
   supabase: SupabaseServer,
-  params: { q?: string; categoryId?: string; tagId?: string; dateFrom?: string; dateTo?: string }
+  params: {
+    q?: string;
+    categoryId?: string;
+    tagId?: string;
+    dateFrom?: string;
+    dateTo?: string;
+    documentIds?: string[];
+  }
 ): Promise<{ data: DocumentExportRow[] | null; error: Error | null }> {
-  const { q, categoryId, tagId, dateFrom, dateTo } = params;
+  const { q, categoryId, tagId, documentIds } = params;
+  const { dateFrom, dateTo } = normalizeDateRange(params.dateFrom ?? "", params.dateTo ?? "");
   const safeQ = q !== undefined && q !== "" ? sanitizeDocumentSearchQuery(q) : "";
 
   let selectBody = "id, file_name, storage_object_path";
@@ -198,6 +208,10 @@ export async function listDocumentsForExport(
     .order("created_at", { ascending: false })
     .limit(500);
 
+  if (documentIds !== undefined && documentIds.length > 0) {
+    query = query.in("id", documentIds);
+  }
+
   if (tagId !== undefined && tagId !== "") {
     query = query.eq("document_tags.tag_id", tagId);
   }
@@ -208,10 +222,10 @@ export async function listDocumentsForExport(
     const pattern = `%${safeQ}%`;
     query = query.or(`title.ilike.${pattern},file_name.ilike.${pattern}`);
   }
-  if (dateFrom !== undefined && dateFrom !== "") {
+  if (dateFrom !== "") {
     query = query.gte("created_at", `${dateFrom}T00:00:00.000Z`);
   }
-  if (dateTo !== undefined && dateTo !== "") {
+  if (dateTo !== "") {
     query = query.lte("created_at", `${dateTo}T23:59:59.999Z`);
   }
 

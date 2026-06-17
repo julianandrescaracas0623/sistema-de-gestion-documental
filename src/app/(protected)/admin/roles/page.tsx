@@ -1,5 +1,4 @@
 import { Plus, ShieldCheck } from "lucide-react";
-import type { Route } from "next";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 
@@ -10,13 +9,13 @@ import { Badge } from "@/shared/components/ui/badge";
 import { Button } from "@/shared/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/shared/components/ui/card";
 import { getSession } from "@/shared/lib/auth/get-session";
-import { hasPermission } from "@/shared/lib/auth/permissions";
+import { canAccessModule } from "@/shared/lib/auth/permissions";
 import { createClient } from "@/shared/lib/supabase/server";
 
 export default async function AdminRolesPage() {
   const session = await getSession();
   if (session === null) redirect("/login");
-  if (!hasPermission(session.permissions, "roles.manage")) redirect("/");
+  if (!canAccessModule(session.permissions, "roles")) redirect("/");
 
   const supabase = await createClient();
   const [{ data: roles, error: rolesError }, { data: permissions, error: permsError }] =
@@ -38,7 +37,7 @@ export default async function AdminRolesPage() {
             </p>
           </div>
           <Button asChild className="shrink-0">
-            <Link href={"/admin/roles/new" as Route}>
+            <Link href="/admin/roles/new">
               <Plus className="size-4" aria-hidden />
               Nuevo rol
             </Link>
@@ -54,7 +53,7 @@ export default async function AdminRolesPage() {
                 <ShieldCheck className="size-4 text-primary" />
                 Roles del sistema
               </CardTitle>
-              <Badge variant="outline">{String(roles?.length ?? 0)} total</Badge>
+              <Badge variant="outline">{String(roles?.length ?? 0)} en total</Badge>
             </div>
           </CardHeader>
           <CardContent className="px-0">

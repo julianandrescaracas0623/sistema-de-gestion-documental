@@ -1,4 +1,9 @@
+import { Suspense } from "react";
+
+import { LoginAuthErrorNotice } from "@/features/auth/components/login-auth-error-notice";
+import { LoginAuthHashHandler } from "@/features/auth/components/login-auth-hash-handler";
 import { LoginForm } from "@/features/auth/components/login-form";
+import { LoginResetSuccessNotice } from "@/features/auth/components/login-reset-success-notice";
 import {
   Card,
   CardContent,
@@ -49,6 +54,15 @@ export default function LoginPage() {
                 Si aún no tienes usuario, solicita el alta con un administrador.
               </p>
             </div>
+            <Suspense fallback={null}>
+              <LoginAuthHashHandler />
+            </Suspense>
+            <Suspense fallback={null}>
+              <LoginAuthErrorNotice />
+            </Suspense>
+            <Suspense fallback={null}>
+              <LoginResetSuccessNotice />
+            </Suspense>
             <LoginForm />
           </CardContent>
         </Card>
