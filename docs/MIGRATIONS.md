@@ -1,49 +1,75 @@
 # Migraciones de base de datos
 
-El esquema se define en `src/shared/db/*.schema.ts` (Drizzle). Las migraciones en `src/shared/db/migrations/` se generan con `pnpm db:generate`.
+El esquema se define en `src/shared/db/*.schema.ts` (Drizzle). Las migraciones en
+`src/shared/db/migrations/` se generan con `pnpm db:generate`.
 
-En este proyecto el journal de Drizzle puede desincronizarse con la BD real. Para cambios críticos existen **scripts SQL manuales** y runners en `scripts/`.
+Históricamente el journal de Drizzle se ha desincronizado con la BD real, así que
+los cambios críticos (RBAC, storage, FKs) viven como **SQL idempotente** en
+`docs/sql/` con runners en `scripts/`. Todo se aplica con un solo comando.
 
-## Orden recomendado (entorno nuevo)
-
-1. Aplicar migraciones Drizzle existentes o el estado base de Supabase.
-2. Si falla `pnpm db:migrate` por journal desincronizado, usar los scripts de respaldo (abajo).
-3. Ejecutar seed de administrador si no hay usuarios: `docs/sql/seed-generic-admin.sql`.
-
-## Scripts de respaldo
-
-| Script | Runner | Qué hace |
-| --- | --- | --- |
-| `docs/sql/preserve-documents-on-user-delete.sql` | `node scripts/apply-preserve-documents-migration.mjs` | `uploaded_by` nullable + `ON DELETE SET NULL`; políticas tags |
-| `docs/sql/rbac-and-full-name.sql` | `node scripts/apply-rbac-migration.mjs` | `profiles.full_name`, tablas RBAC, `user_roles.role_id`, `has_permission()`, RLS |
-
-Requisitos: `DATABASE_URL` en `.env.local` (modo sesión / Session pooler de Supabase).
+## Puesta a punto — un comando
 
 ```bash
-node scripts/apply-preserve-documents-migration.mjs
-node scripts/apply-rbac-migration.mjs
+# 1. Configura DATABASE_URL en .env.local (Supabase > Database > Session mode, URI)
+# 2.
+pnpm db:setup              # aplica todo lo pendiente (idempotente)
+pnpm db:setup -- --seed    # + usuario admin semilla + categorías
 ```
 
-Cada runner es idempotente: detecta si el cambio ya está aplicado y no lo repite.
+`pnpm db:setup` ejecuta, en orden:
+
+| # | Paso | Qué hace | Si falla |
+|---|------|----------|----------|
+| 1 | `drizzle-kit migrate` | Esquema base (`documents`, `categories`, `tags`, `profiles`, …) | Se avisa y continúa — los pasos 2–5 reconcilian el estado |
+| 2 | `scripts/apply-preserve-documents-migration.mjs` | `documents.uploaded_by` nullable + `ON DELETE SET NULL`; sincroniza el journal | Aborta |
+| 3 | `scripts/apply-rbac-migration.mjs` | Tablas `permissions` / `roles` / `role_permissions`, `user_roles.role_id`, `public.has_permission()`, RLS base; migra `user_roles.role` → `role_id` | Aborta |
+| 4 | `scripts/apply-rbac-granular.mjs` | Claves de permiso CRUD por módulo (`categories.create`, …), backfill de roles con `*.manage`, `has_permission()` con alias `*.manage`, políticas RLS de categorías/tags/roles; borra la función obsoleta `documents_uploader_role` | Aborta |
+| 5 | `scripts/apply-storage-policies.mjs` | Bucket privado `documents` + políticas RLS de `storage.objects` (usan `has_permission`) | Aborta |
+| 6 | seeds (solo `--seed`) | `docs/sql/seed-generic-admin.sql` + `docs/sql/seed-categories.sql` | Marca error, no aborta |
+
+Cada runner es **idempotente**: detecta si su cambio ya está aplicado y no lo
+repite. Se puede correr las veces que haga falta.
+
+## Aplicar manualmente (sin Node / desde el SQL Editor de Supabase)
+
+Pega el contenido de estos archivos, en este orden, en el SQL Editor:
+
+```
+docs/sql/preserve-documents-on-user-delete.sql
+docs/sql/rbac-and-full-name.sql
+docs/sql/rbac-granular-permissions.sql
+docs/sql/storage-documents-bucket.sql
+docs/sql/seed-generic-admin.sql      (opcional)
+docs/sql/seed-categories.sql         (opcional)
+```
 
 ## RBAC (resumen)
 
-Tras `apply-rbac-migration.mjs`:
+Tras los pasos 3–4:
 
-- Catálogo `permissions` (8 claves fijas)
-- Roles semilla `admin` y `user` con permisos asignados
-- Función `public.has_permission(text)` usada en RLS
-- Usuarios existentes migrados de `user_roles.role` → `user_roles.role_id`
+- Catálogo `permissions` con 20 claves granulares (`<módulo>.<acción>`) + alias
+  legacy `<módulo>.manage`.
+- Roles semilla `admin` (todos los permisos) y `user` (CRUD de documentos).
+- Función `public.has_permission(text)` usada en RLS, con fallback: un permiso
+  `categories.create` también se concede si el usuario tiene `categories.manage`.
+- Usuarios existentes migrados de `user_roles.role` (texto) → `user_roles.role_id` (FK).
 
 Detalle funcional: [.requirements/rbac.md](../.requirements/rbac.md).
 
 ## Seed de administrador
 
-```bash
-# Con Supabase CLI y DATABASE_URL configurado
-supabase db query --db-url "<DATABASE_URL>" -f docs/sql/seed-generic-admin.sql
+`pnpm db:setup -- --seed` lo crea. Credenciales por defecto:
+
+```
+admin@sistema-documental.local  /  Admin12345
 ```
 
-Credenciales por defecto: `admin@sistema-documental.local` / `Admin12345`
+> **Cambia esa contraseña en el primer inicio de sesión.** El seed es idempotente:
+> si el usuario ya existe, no hace nada.
 
-> Requiere que la migración RBAC esté aplicada (tabla `roles` y columna `role_id`).
+## Notas
+
+- `scripts/apply-role-function.mjs` está **obsoleto** — no lo ejecutes (ver el
+  comentario en el archivo).
+- Un despliegue nuevo que solo corre `pnpm db:migrate` **no** obtiene el RBAC ni
+  el bucket. Usa `pnpm db:setup`.

@@ -27,14 +27,18 @@ En **Project Settings → Environment Variables**, añade:
 
 | Variable | Entorno | Obligatoria |
 |----------|---------|-------------|
-| `NEXT_PUBLIC_SUPABASE_URL` | Production, Preview | Sí |
-| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Production, Preview | Sí |
-| `DATABASE_URL` | Production, Preview | Sí |
-| `SUPABASE_SERVICE_ROLE_KEY` | Production, Preview | Sí (admin usuarios) |
-| `NEXT_PUBLIC_APP_URL` | Production | Sí — URL final de Vercel |
+| `NEXT_PUBLIC_SUPABASE_URL` | Production, Preview | Sí — **el build falla sin ella** |
+| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Production, Preview | Sí — **el build falla sin ella** |
+| `NEXT_PUBLIC_APP_URL` | Production, Preview | Sí — URL final del despliegue (`https://…`), **no** `localhost`. **El build falla sin ella** |
+| `DATABASE_URL` | Production, Preview | Sí — para `pnpm db:setup` y migraciones |
+| `SUPABASE_SERVICE_ROLE_KEY` | Production, Preview | Sí — alta de usuarios (`/admin/users`) y saludo personalizado del correo de recuperación. Sin ella la app arranca, pero esas acciones fallan con un mensaje claro |
 | `DOCUMENT_UPLOAD_MAX_MB` | Production | Opcional (default 25) |
 
 Valores: Supabase Dashboard → **Project Settings → API** y **Database**.
+
+> Las tres `NEXT_PUBLIC_*` se validan al construir/arrancar (`src/shared/lib/env.ts`);
+> si falta o está malformada una, el build de Vercel falla con el nombre de la
+> variable — ya no hay pantalla en blanco silenciosa.
 
 ### 1.3 Primer deploy
 
@@ -81,7 +85,8 @@ Verifica **antes** de probar en producción o preview:
 | 2 | Supabase → URL Configuration | **Site URL** = misma URL de producción |
 | 3 | Supabase → Redirect URLs | Incluye `{APP_URL}/api/auth/callback` para production **y** preview si usas previews de Vercel |
 | 4 | Supabase → Email Templates → Reset password | Pegar plantilla de [`docs/email-templates/reset-password.html`](../email-templates/reset-password.html) (botón con `token_hash`, saludo `{{ .Data.full_name }}`) |
-| 5 | Tras cambiar variables | Redeploy en Vercel para que el build tome `NEXT_PUBLIC_APP_URL` |
+| 5 | Supabase → Authentication → Emails → **SMTP Settings** | **Configura un SMTP propio** (Resend, SendGrid, SES, Postmark…). El SMTP por defecto de Supabase solo permite unos pocos correos/hora y **no** es apto para producción — sin SMTP propio, `/forgot-password` fallará de forma intermitente |
+| 6 | Tras cambiar variables | Redeploy en Vercel para que el build tome `NEXT_PUBLIC_APP_URL` |
 
 > **Desarrollo local:** Site URL debe ser `http://localhost:3000` mientras pruebas en local. El botón del correo usa `{{ .SiteURL }}`; si apunta a Vercel, el enlace abrirá producción.
 
@@ -120,11 +125,17 @@ El usuario confirma con «Continuar» y entonces se llama a `/api/auth/callback`
 
 ### Base de datos y storage (antes del primer uso)
 
+Con `DATABASE_URL` en `.env.local`:
+
 ```bash
-pnpm db:migrate
+pnpm db:setup              # esquema + RBAC + bucket + políticas (idempotente)
+pnpm db:setup -- --seed    # + usuario admin (admin@sistema-documental.local / Admin12345) + categorías
 ```
 
-Scripts SQL adicionales en `docs/sql/` (RLS, bucket `documents`, seeds) deben ejecutarse en el SQL Editor de Supabase si aún no están aplicados.
+Un `pnpm db:migrate` a secas **no** aplica el RBAC granular ni el bucket. Detalle
+del orden y de la aplicación manual desde el SQL Editor: [MIGRATIONS.md](MIGRATIONS.md).
+
+> **Cambia la contraseña del admin semilla en el primer inicio de sesión.**
 
 ---
 
@@ -183,6 +194,9 @@ vercel --prod
 | Clic en correo de reset → `/login#error_code=otp_expired` | Enlace expirado/usado o plantilla antigua con `ConfirmationURL` | Site URL = dominio raíz (sin `/login`); pegar plantilla con `token_hash`; solicitar **nuevo** correo |
 | Correo de reset no abre formulario | `NEXT_PUBLIC_APP_URL` incorrecta o callback no permitido | Ver sección 2.1; enlace del email debe ir a `/api/auth/callback` |
 | `/reset-password` muestra «Enlace no válido» | Sesión no creada (código expirado, cookies bloqueadas) | Solicitar nuevo enlace; revisar Redirect URLs y plantilla de email |
-| `/admin/users` falla | Falta `SUPABASE_SERVICE_ROLE_KEY` | Añadir variable en Vercel |
-| Subida de archivos falla | Bucket o políticas RLS | Ejecutar `docs/sql/storage-documents-bucket.sql` |
+| Build de Vercel falla nombrando `NEXT_PUBLIC_*` | Variable ausente o URL malformada | Añadir/corregir en Environment Variables (ver 1.2) y redeploy |
+| `/admin/users` falla / `/forgot-password` sin saludo | Falta `SUPABASE_SERVICE_ROLE_KEY` | Añadir variable en Vercel |
+| `/admin/*` inaccesible para el admin | RBAC granular no aplicado | `pnpm db:setup` (o pegar `docs/sql/rbac-*.sql` en el SQL Editor) |
+| Subida de archivos falla | Bucket o políticas RLS | `pnpm db:setup` (aplica `docs/sql/storage-documents-bucket.sql`) |
+| `/forgot-password` no envía correos en producción | SMTP por defecto de Supabase agotado | Configurar SMTP propio (ver 2.1 paso 5) |
 | Landing sin estilos | Jekyll procesando `docs/` | Confirmar que existe `docs/.nojekyll` |

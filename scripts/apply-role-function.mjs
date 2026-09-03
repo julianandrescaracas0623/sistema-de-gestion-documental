@@ -1,10 +1,15 @@
 /**
- * One-shot script: drops overly-permissive user_roles SELECT policy and
- * creates a SECURITY DEFINER computed-column function so PostgREST can
- * expose uploader role per document row without leaking the full table.
+ * OBSOLETO — no lo ejecutes. Se conserva solo como referencia histórica.
  *
- * Run once: node scripts/apply-role-function.mjs
+ * Creaba la función computada `documents_uploader_role()` para exponer el rol
+ * del uploader vía PostgREST. Ese enfoque fue reemplazado por un join en
+ * `getRolesForUploaders()` (src/features/documents/queries/documents.queries.ts),
+ * y la función referencia `user_roles.role`, columna que `apply-rbac-migration`
+ * elimina — quedaría rota. `apply-rbac-granular.mjs` la borra si existe.
+ *
+ * El flujo de setup vigente es: pnpm db:setup  (ver scripts/db-setup.mjs).
  */
+/* eslint-disable */
 import pkg from "@next/env";
 import postgres from "postgres";
 

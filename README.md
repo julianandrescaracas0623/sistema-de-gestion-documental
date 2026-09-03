@@ -209,7 +209,8 @@ pnpm test:e2e
 | `pnpm typecheck`  | Verificar tipos TypeScript        |
 | `pnpm test`       | Ejecutar pruebas unitarias        |
 | `pnpm test:e2e`   | Ejecutar pruebas End-to-End       |
-| `pnpm db:migrate` | Aplicar migraciones               |
+| `pnpm db:setup`   | Poner la BD a punto (esquema + RBAC + storage, idempotente). `-- --seed` añade admin y categorías |
+| `pnpm db:migrate` | Solo migraciones Drizzle base (no incluye RBAC ni bucket — usa `db:setup`) |
 | `pnpm db:studio`  | Abrir Drizzle Studio              |
 
 ---
@@ -229,11 +230,30 @@ Instrucciones detalladas (variables de entorno, Supabase Auth y activación de P
 
 | Variable | Obligatoria |
 | -------- | ----------- |
-| `NEXT_PUBLIC_SUPABASE_URL` | Sí |
-| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Sí |
-| `DATABASE_URL` | Sí |
-| `SUPABASE_SERVICE_ROLE_KEY` | Sí (módulo `/admin/users`) |
-| `NEXT_PUBLIC_APP_URL` | Sí (URL de Vercel) |
+| `NEXT_PUBLIC_SUPABASE_URL` | Sí — el build falla sin ella |
+| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Sí — el build falla sin ella |
+| `NEXT_PUBLIC_APP_URL` | Sí — URL real del despliegue, el build falla sin ella |
+| `DATABASE_URL` | Sí (para `pnpm db:setup`) |
+| `SUPABASE_SERVICE_ROLE_KEY` | Sí para alta de usuarios y correo de recuperación |
+
+Las tres `NEXT_PUBLIC_*` se validan al arrancar (`src/shared/lib/env.ts`); una
+variable ausente o malformada rompe el build con su nombre, no con una pantalla en
+blanco.
+
+---
+
+## 🖥️ Navegadores soportados
+
+Navegadores de escritorio y móvil en sus dos últimas versiones estables:
+
+| Navegador | Versión mínima |
+| --------- | -------------- |
+| Chrome / Edge (Chromium) | últimas 2 |
+| Firefox | últimas 2 |
+| Safari (macOS / iOS) | 16+ |
+
+No se da soporte a Internet Explorer. Las pruebas E2E (`pnpm test:e2e`) corren en
+Chromium (Playwright).
 
 ---
 
