@@ -54,6 +54,7 @@ Valores: Supabase Dashboard → **Project Settings → API** y **Database**.
 - [ ] `/` — dashboard
 - [ ] `/documents/new` — subida de documento
 - [ ] `/admin/users` — gestión de usuarios (requiere service role)
+- [ ] `/admin/actividad` — bitácora de auditoría (requiere `audit.read`)
 - [ ] `/api/documents/export` — exportación ZIP
 
 ---

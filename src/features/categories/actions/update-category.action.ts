@@ -4,6 +4,7 @@ import { revalidatePath, revalidateTag } from "next/cache";
 import { z } from "zod";
 
 import type { ActionResult } from "@/shared/lib/action-result";
+import { recordAudit } from "@/shared/lib/audit/record-audit";
 import { getSession } from "@/shared/lib/auth/get-session";
 import { hasModulePermission } from "@/shared/lib/auth/permissions";
 import { CACHE_TAGS } from "@/shared/lib/cache/cached-queries";
@@ -58,18 +59,29 @@ export async function updateCategoryAction(
     return { status: "error", message: "Ya existe otra categoría con ese nombre." };
   }
 
-  const { error } = await supabase
+  const { data: updated, error } = await supabase
     .from("categories")
     .update({
       name: parsed.data.name,
       description: parsed.data.description ?? null,
       updated_at: new Date().toISOString(),
     })
-    .eq("id", parsed.data.id);
+    .eq("id", parsed.data.id)
+    .select("id");
 
   if (error !== null) {
     return { status: "error", message: "No se pudo actualizar la categoría." };
   }
+  if (updated.length === 0) {
+    return { status: "error", message: "No se pudo actualizar la categoría (sin permiso o no existe)." };
+  }
+
+  await recordAudit(supabase, {
+    action: "category.update",
+    entityType: "category",
+    entityId: parsed.data.id,
+    summary: parsed.data.name,
+  });
 
   revalidatePath("/admin/categories");
   revalidateTag(CACHE_TAGS.categories, "default");

@@ -4,6 +4,7 @@ import { revalidatePath, revalidateTag } from "next/cache";
 import { z } from "zod";
 
 import type { ActionResult } from "@/shared/lib/action-result";
+import { recordAudit } from "@/shared/lib/audit/record-audit";
 import { getSession } from "@/shared/lib/auth/get-session";
 import { hasModulePermission } from "@/shared/lib/auth/permissions";
 import { CACHE_TAGS } from "@/shared/lib/cache/cached-queries";
@@ -34,8 +35,19 @@ export async function createTagAction(_prev: unknown, formData: FormData): Promi
 
   if (existing !== null) return { status: "error", message: "Ya existe una etiqueta con ese nombre." };
 
-  const { error } = await supabase.from("tags").insert({ name: parsed.data.name });
+  const { data: created, error } = await supabase
+    .from("tags")
+    .insert({ name: parsed.data.name })
+    .select("id")
+    .single();
   if (error !== null) return { status: "error", message: "No se pudo crear la etiqueta." };
+
+  await recordAudit(supabase, {
+    action: "tag.create",
+    entityType: "tag",
+    entityId: typeof created.id === "string" ? created.id : null,
+    summary: parsed.data.name,
+  });
 
   revalidatePath("/admin/tags");
   revalidateTag(CACHE_TAGS.tags, "default");

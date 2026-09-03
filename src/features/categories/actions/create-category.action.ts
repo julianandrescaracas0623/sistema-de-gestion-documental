@@ -4,6 +4,7 @@ import { revalidatePath, revalidateTag } from "next/cache";
 import { z } from "zod";
 
 import type { ActionResult } from "@/shared/lib/action-result";
+import { recordAudit } from "@/shared/lib/audit/record-audit";
 import { getSession } from "@/shared/lib/auth/get-session";
 import { hasModulePermission } from "@/shared/lib/auth/permissions";
 import { CACHE_TAGS } from "@/shared/lib/cache/cached-queries";
@@ -55,15 +56,26 @@ export async function createCategoryAction(
     return { status: "error", message: "Ya existe una categoría con ese nombre." };
   }
 
-  const { error } = await supabase.from("categories").insert({
-    name: parsed.data.name,
-    description: parsed.data.description ?? null,
-    created_by: user.id,
-  });
+  const { data: created, error } = await supabase
+    .from("categories")
+    .insert({
+      name: parsed.data.name,
+      description: parsed.data.description ?? null,
+      created_by: user.id,
+    })
+    .select("id")
+    .single();
 
   if (error !== null) {
     return { status: "error", message: "No se pudo crear la categoría." };
   }
+
+  await recordAudit(supabase, {
+    action: "category.create",
+    entityType: "category",
+    entityId: typeof created.id === "string" ? created.id : null,
+    summary: parsed.data.name,
+  });
 
   revalidatePath("/admin/categories");
   revalidateTag(CACHE_TAGS.categories, "default");

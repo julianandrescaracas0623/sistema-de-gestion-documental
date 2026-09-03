@@ -25,7 +25,8 @@ pnpm db:setup -- --seed    # + usuario admin semilla + categorías
 | 3 | `scripts/apply-rbac-migration.mjs` | Tablas `permissions` / `roles` / `role_permissions`, `user_roles.role_id`, `public.has_permission()`, RLS base; migra `user_roles.role` → `role_id` | Aborta |
 | 4 | `scripts/apply-rbac-granular.mjs` | Claves de permiso CRUD por módulo (`categories.create`, …), backfill de roles con `*.manage`, `has_permission()` con alias `*.manage`, políticas RLS de categorías/tags/roles; borra la función obsoleta `documents_uploader_role` | Aborta |
 | 5 | `scripts/apply-storage-policies.mjs` | Bucket privado `documents` + políticas RLS de `storage.objects` (usan `has_permission`) | Aborta |
-| 6 | seeds (solo `--seed`) | `docs/sql/seed-generic-admin.sql` + `docs/sql/seed-categories.sql` | Marca error, no aborta |
+| 6 | `scripts/apply-audit-log.mjs` | Tabla `audit_log` (append-only), RPC `record_audit()` `SECURITY DEFINER`, permiso `audit.read`, `profiles.last_login_at` | Aborta |
+| 7 | seeds (solo `--seed`) | `docs/sql/seed-generic-admin.sql` + `docs/sql/seed-categories.sql` | Marca error, no aborta |
 
 Cada runner es **idempotente**: detecta si su cambio ya está aplicado y no lo
 repite. Se puede correr las veces que haga falta.
@@ -39,6 +40,7 @@ docs/sql/preserve-documents-on-user-delete.sql
 docs/sql/rbac-and-full-name.sql
 docs/sql/rbac-granular-permissions.sql
 docs/sql/storage-documents-bucket.sql
+docs/sql/audit-log.sql
 docs/sql/seed-generic-admin.sql      (opcional)
 docs/sql/seed-categories.sql         (opcional)
 ```

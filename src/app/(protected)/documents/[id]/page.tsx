@@ -70,11 +70,9 @@ export default async function DocumentDetailPage({ params }: { params: Promise<{
   const { url: viewUrl } = isDeleted
     ? { url: null }
     : await createSignedDocumentUrl(supabase, doc.storage_object_path);
-  const { url: downloadUrl } = isDeleted
-    ? { url: null }
-    : await createSignedDocumentUrl(supabase, doc.storage_object_path, {
-        downloadFileName: doc.file_name,
-      });
+  // Download goes through an audited route (records the event, then redirects
+  // to a signed URL) rather than exposing the signed URL directly.
+  const downloadUrl = isDeleted ? null : `/api/documents/${doc.id}/download`;
 
   const showInlinePreview = !isDeleted && canPreviewInline(doc.mime_type) && viewUrl !== null;
   const showOfficePreview = !isDeleted && isOffice && viewUrl !== null;

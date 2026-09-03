@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 import { z } from "zod";
 
 import type { ActionResult } from "@/shared/lib/action-result";
+import { recordAudit } from "@/shared/lib/audit/record-audit";
 import { getSession } from "@/shared/lib/auth/get-session";
 import {
   hasModulePermission,
@@ -136,6 +137,14 @@ export async function updateRoleAction(_prev: unknown, formData: FormData): Prom
   if (linkError !== null) {
     return { status: "error", message: "No se pudieron asignar los permisos al rol." };
   }
+
+  await recordAudit(supabase, {
+    action: "role.update",
+    entityType: "role",
+    entityId: parsed.data.id,
+    summary: parsed.data.name,
+    metadata: { permissionKeys },
+  });
 
   revalidatePath("/admin/roles");
   return { status: "success", message: "Rol actualizado correctamente." };

@@ -4,6 +4,7 @@ import { revalidatePath, revalidateTag } from "next/cache";
 import { z } from "zod";
 
 import type { ActionResult } from "@/shared/lib/action-result";
+import { recordAudit } from "@/shared/lib/audit/record-audit";
 import { getSession } from "@/shared/lib/auth/get-session";
 import { hasModulePermission } from "@/shared/lib/auth/permissions";
 import { CACHE_TAGS } from "@/shared/lib/cache/cached-queries";
@@ -45,6 +46,13 @@ export async function updateTagAction(_prev: unknown, formData: FormData): Promi
   if (updated.length === 0) {
     return { status: "error", message: "No se pudo actualizar la etiqueta (sin permiso o no existe)." };
   }
+
+  await recordAudit(supabase, {
+    action: "tag.update",
+    entityType: "tag",
+    entityId: parsed.data.id,
+    summary: parsed.data.name,
+  });
 
   revalidatePath("/admin/tags");
   revalidateTag(CACHE_TAGS.tags, "default");

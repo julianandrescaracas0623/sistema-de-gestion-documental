@@ -6,6 +6,7 @@ import { z } from "zod";
 
 import { DOCUMENTS_STORAGE_BUCKET } from "@/features/documents/lib/documents-config";
 import type { ActionResult } from "@/shared/lib/action-result";
+import { recordAudit } from "@/shared/lib/audit/record-audit";
 import { getSession } from "@/shared/lib/auth/get-session";
 import { hasModulePermission } from "@/shared/lib/auth/permissions";
 import { CACHE_TAGS } from "@/shared/lib/cache/cached-queries";
@@ -93,6 +94,13 @@ export async function softDeleteDocumentAction(_prev: unknown, formData: FormDat
 
   const paths: string[] = [rowParsed.data.storage_object_path];
   await supabase.storage.from(DOCUMENTS_STORAGE_BUCKET).remove(paths);
+
+  await recordAudit(supabase, {
+    action: "document.delete",
+    entityType: "document",
+    entityId: documentId,
+  });
+
   revalidatePath("/documents");
   revalidatePath(`/documents/${documentId}`);
   revalidatePath("/admin/tags");

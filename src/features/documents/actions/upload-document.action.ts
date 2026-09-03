@@ -10,6 +10,7 @@ import { DOCUMENTS_STORAGE_BUCKET, getMaxDocumentUploadMb } from "@/features/doc
 import { sanitizeStorageFilename } from "@/features/documents/lib/sanitize-storage-filename";
 import { parseTagInput } from "@/features/documents/lib/tag-utils";
 import type { ActionResult } from "@/shared/lib/action-result";
+import { recordAudit } from "@/shared/lib/audit/record-audit";
 import { getSession } from "@/shared/lib/auth/get-session";
 import { hasModulePermission } from "@/shared/lib/auth/permissions";
 import { formFieldText } from "@/shared/lib/form-utils";
@@ -176,6 +177,14 @@ export async function uploadDocumentAction(_prev: unknown, formData: FormData): 
       return { status: "error", message: "No se pudo vincular una etiqueta." };
     }
   }
+
+  await recordAudit(supabase, {
+    action: "document.upload",
+    entityType: "document",
+    entityId: documentId,
+    summary: parsed.data.title,
+    metadata: { fileName: file.name, sizeBytes: file.size, mimeType: file.type },
+  });
 
   revalidatePath("/documents");
   revalidatePath(`/documents/${documentId}`);

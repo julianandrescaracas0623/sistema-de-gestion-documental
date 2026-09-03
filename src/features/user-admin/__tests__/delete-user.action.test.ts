@@ -16,6 +16,12 @@ vi.mock("@/shared/lib/auth/get-session", () => ({
   getSession: vi.fn(),
 }));
 
+vi.mock("@/shared/lib/supabase/server", () => ({
+  createClient: vi.fn(() => Promise.resolve({})),
+}));
+
+vi.mock("@/shared/lib/audit/record-audit", () => ({ recordAudit: vi.fn() }));
+
 vi.mock("@/shared/lib/supabase/service-role", () => ({
   createServiceRoleClient: vi.fn(() => ({
     auth: {
@@ -26,6 +32,12 @@ vi.mock("@/shared/lib/supabase/service-role", () => ({
     from(table: string) {
       if (table === "profiles") {
         return {
+          select: () => ({
+            eq: () => ({
+              maybeSingle: (): Promise<{ data: { email: string } | null }> =>
+                Promise.resolve({ data: { email: "target@test.local" } }),
+            }),
+          }),
           delete: () => ({
             eq: (): Promise<{ error: null }> => {
               void mockDeleteProfile();

@@ -6,6 +6,7 @@ import { z } from "zod";
 import { resolveCategoryId } from "@/features/documents/lib/resolve-category-id";
 import { parseTagInput } from "@/features/documents/lib/tag-utils";
 import type { ActionResult } from "@/shared/lib/action-result";
+import { recordAudit } from "@/shared/lib/audit/record-audit";
 import { getSession } from "@/shared/lib/auth/get-session";
 import { hasModulePermission } from "@/shared/lib/auth/permissions";
 import { formFieldText } from "@/shared/lib/form-utils";
@@ -164,6 +165,13 @@ export async function updateDocumentMetadataAction(_prev: unknown, formData: For
       return { status: "error", message: "No se pudo vincular una etiqueta." };
     }
   }
+
+  await recordAudit(supabase, {
+    action: "document.update",
+    entityType: "document",
+    entityId: documentId,
+    summary: title,
+  });
 
   revalidatePath("/documents");
   revalidatePath(`/documents/${documentId}`);

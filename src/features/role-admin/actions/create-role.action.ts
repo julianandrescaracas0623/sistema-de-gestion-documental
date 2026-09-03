@@ -5,6 +5,7 @@ import { z } from "zod";
 
 import { slugifyRoleName } from "@/features/role-admin/lib/slugify-role";
 import type { ActionResult } from "@/shared/lib/action-result";
+import { recordAudit } from "@/shared/lib/audit/record-audit";
 import { getSession } from "@/shared/lib/auth/get-session";
 import {
   hasModulePermission,
@@ -128,6 +129,14 @@ export async function createRoleAction(_prev: unknown, formData: FormData): Prom
     await supabase.from("roles").delete().eq("id", parsedRole.data.id);
     return { status: "error", message: "No se pudieron asignar los permisos al rol." };
   }
+
+  await recordAudit(supabase, {
+    action: "role.create",
+    entityType: "role",
+    entityId: parsedRole.data.id,
+    summary: parsed.data.name,
+    metadata: { slug, permissionKeys },
+  });
 
   revalidatePath("/admin/roles");
   return { status: "success", message: "Rol creado correctamente." };

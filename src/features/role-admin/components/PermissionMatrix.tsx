@@ -3,6 +3,7 @@
 import {
   FileText,
   FolderOpen,
+  History,
   ShieldCheck,
   Tag,
   Users,
@@ -27,6 +28,7 @@ const moduleConfig: Record<string, { label: string; icon: LucideIcon }> = {
   documents: { label: "Documentos", icon: FileText },
   categories: { label: "Categorías", icon: FolderOpen },
   tags: { label: "Etiquetas", icon: Tag },
+  audit: { label: "Actividad", icon: History },
 };
 
 function groupByModule(permissions: PermissionCatalogRow[]): Map<string, PermissionCatalogRow[]> {

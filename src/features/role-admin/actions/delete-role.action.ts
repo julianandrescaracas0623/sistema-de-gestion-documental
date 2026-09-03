@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 import { z } from "zod";
 
 import type { ActionResult } from "@/shared/lib/action-result";
+import { recordAudit } from "@/shared/lib/audit/record-audit";
 import { getSession } from "@/shared/lib/auth/get-session";
 import { hasModulePermission } from "@/shared/lib/auth/permissions";
 import { createClient } from "@/shared/lib/supabase/server";
@@ -58,11 +59,25 @@ export async function deleteRoleAction(_prev: unknown, formData: FormData): Prom
     };
   }
 
-  const { error: deleteError } = await supabase.from("roles").delete().eq("id", parsed.data.id);
+  const { data: deleted, error: deleteError } = await supabase
+    .from("roles")
+    .delete()
+    .eq("id", parsed.data.id)
+    .select("id");
 
   if (deleteError !== null) {
     return { status: "error", message: "No se pudo eliminar el rol." };
   }
+  if (deleted.length === 0) {
+    return { status: "error", message: "No tienes permiso para eliminar este rol." };
+  }
+
+  await recordAudit(supabase, {
+    action: "role.delete",
+    entityType: "role",
+    entityId: parsed.data.id,
+    summary: typeof roleRow.name === "string" ? roleRow.name : null,
+  });
 
   revalidatePath("/admin/roles");
   return { status: "success", message: "Rol eliminado correctamente." };

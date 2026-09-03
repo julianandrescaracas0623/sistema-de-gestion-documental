@@ -3,6 +3,7 @@
 import { redirect } from "next/navigation";
 import { z } from "zod";
 
+import { recordAudit } from "@/shared/lib/audit/record-audit";
 import { createClient } from "@/shared/lib/supabase/server";
 
 const loginSchema = z.object({
@@ -29,7 +30,7 @@ export async function loginAction(
   }
 
   const supabase = await createClient();
-  const { error } = await supabase.auth.signInWithPassword(parsed.data);
+  const { data, error } = await supabase.auth.signInWithPassword(parsed.data);
 
   if (error !== null) {
     return {
@@ -38,6 +39,16 @@ export async function loginAction(
         "Credenciales inválidas. Si no tienes cuenta, solicita el alta al administrador de tu área.",
     };
   }
+
+  await supabase
+    .from("profiles")
+    .update({ last_login_at: new Date().toISOString() })
+    .eq("id", data.user.id);
+  await recordAudit(supabase, {
+    action: "login",
+    entityType: "session",
+    entityId: data.user.id,
+  });
 
   redirect("/");
 }

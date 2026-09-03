@@ -3,6 +3,7 @@
 import {
   FileText,
   FolderOpen,
+  History,
   Home,
   LogOut,
   Menu,
@@ -46,7 +47,8 @@ function useNavActive(pathname: string) {
   const isRoles = pathname.startsWith("/admin/roles");
   const isCategories = pathname.startsWith("/admin/categories");
   const isTags = pathname.startsWith("/admin/tags");
-  return { isHome, isUpload, isDocuments, isUsers, isRoles, isCategories, isTags };
+  const isActivity = pathname.startsWith("/admin/actividad");
+  return { isHome, isUpload, isDocuments, isUsers, isRoles, isCategories, isTags, isActivity };
 }
 
 function navClick(onNavigate: (() => void) | undefined): { onClick: () => void } | Record<string, never> {
@@ -71,7 +73,8 @@ function SidebarNavLinks({
   onNavigate?: () => void;
   className?: string;
 }) {
-  const { isHome, isUpload, isDocuments, isUsers, isRoles, isCategories, isTags } = useNavActive(pathname);
+  const { isHome, isUpload, isDocuments, isUsers, isRoles, isCategories, isTags, isActivity } =
+    useNavActive(pathname);
   const showAdminSection = hasAnyAdminNavPermission(permissions);
 
   const linkClass = (active: boolean) =>
@@ -129,6 +132,12 @@ function SidebarNavLinks({
             <Link href="/admin/tags" className={linkClass(isTags)} {...navClick(onNavigate)}>
               <Tag className="size-4 shrink-0 opacity-90" aria-hidden />
               Etiquetas
+            </Link>
+          ) : null}
+          {canAccessModule(permissions, "audit") ? (
+            <Link href="/admin/actividad" className={linkClass(isActivity)} {...navClick(onNavigate)}>
+              <History className="size-4 shrink-0 opacity-90" aria-hidden />
+              Actividad
             </Link>
           ) : null}
         </>

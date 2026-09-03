@@ -3,6 +3,9 @@ import { type NextRequest, NextResponse } from "next/server";
 
 import { DOCUMENTS_STORAGE_BUCKET } from "@/features/documents/lib/documents-config";
 import { listDocumentsForExport } from "@/features/documents/queries/documents.queries";
+import { recordAudit } from "@/shared/lib/audit/record-audit";
+import { getSession } from "@/shared/lib/auth/get-session";
+import { hasModulePermission } from "@/shared/lib/auth/permissions";
 import { createClient } from "@/shared/lib/supabase/server";
 
 export async function GET(req: NextRequest): Promise<NextResponse> {
@@ -13,6 +16,11 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
 
   if (user === null) {
     return NextResponse.json({ error: "No autorizado" }, { status: 401 });
+  }
+
+  const session = await getSession();
+  if (session === null || !hasModulePermission(session.permissions, "documents", "read")) {
+    return NextResponse.json({ error: "Sin permiso para exportar documentos" }, { status: 403 });
   }
 
   const sp = req.nextUrl.searchParams;
@@ -70,6 +78,17 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
 
   const buffer = await zip.generateAsync({ type: "arraybuffer", compression: "DEFLATE" });
   const blob = new Blob([buffer], { type: "application/zip" });
+
+  await recordAudit(supabase, {
+    action: "document.export",
+    entityType: "document",
+    summary: `${String(rows.length)} documento(s) exportados (ZIP)`,
+    metadata: {
+      count: rows.length,
+      filters: { q, categoryId, tagId, dateFrom, dateTo },
+      ...(documentIds !== undefined ? { selectedIds: documentIds.length } : {}),
+    },
+  });
 
   return new NextResponse(blob, {
     status: 200,

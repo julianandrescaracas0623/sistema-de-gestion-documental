@@ -4,6 +4,7 @@ import { revalidatePath, revalidateTag } from "next/cache";
 import { z } from "zod";
 
 import type { ActionResult } from "@/shared/lib/action-result";
+import { recordAudit } from "@/shared/lib/audit/record-audit";
 import { getSession } from "@/shared/lib/auth/get-session";
 import { hasModulePermission } from "@/shared/lib/auth/permissions";
 import { CACHE_TAGS } from "@/shared/lib/cache/cached-queries";
@@ -52,11 +53,25 @@ export async function deleteCategoryAction(
     };
   }
 
-  const { error } = await supabase.from("categories").delete().eq("id", parsed.data.id);
+  const { data: deleted, error } = await supabase
+    .from("categories")
+    .delete()
+    .eq("id", parsed.data.id)
+    .select("id, name");
 
   if (error !== null) {
     return { status: "error", message: "No se pudo eliminar la categoría." };
   }
+  if (deleted.length === 0) {
+    return { status: "error", message: "No se pudo eliminar la categoría (sin permiso o no existe)." };
+  }
+
+  await recordAudit(supabase, {
+    action: "category.delete",
+    entityType: "category",
+    entityId: parsed.data.id,
+    summary: typeof deleted[0]?.name === "string" ? deleted[0].name : null,
+  });
 
   revalidatePath("/admin/categories");
   revalidateTag(CACHE_TAGS.categories, "default");
