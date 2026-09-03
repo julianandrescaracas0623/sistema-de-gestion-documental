@@ -15,7 +15,8 @@
  *   4. apply-rbac-granular            (permisos CRUD por módulo + políticas)
  *   5. apply-storage-policies         (bucket privado + RLS de storage)
  *   6. apply-audit-log                (bitácora de auditoría + RPC + audit.read)
- *   7. seeds  (solo con --seed)       (admin@sistema-documental.local + categorías)
+ *   7. apply-document-lifecycle       (documents.retention_until + índice)
+ *   8. seeds  (solo con --seed)       (admin@sistema-documental.local + categorías)
  */
 import { spawnSync } from "node:child_process";
 import { existsSync, readFileSync } from "node:fs";
@@ -78,6 +79,7 @@ run("rbac base", ["scripts/apply-rbac-migration.mjs"]);
 run("rbac granular", ["scripts/apply-rbac-granular.mjs"]);
 run("storage policies", ["scripts/apply-storage-policies.mjs"]);
 run("audit log", ["scripts/apply-audit-log.mjs"]);
+run("document lifecycle", ["scripts/apply-document-lifecycle.mjs"]);
 
 // 6. Seeds (opcional)
 if (withSeed) {

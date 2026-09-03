@@ -7,11 +7,16 @@ import {
   Clock,
   Files,
   ShieldCheck,
+  CalendarClock,
 } from "lucide-react";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 
-import { countDocuments, listRecentDocuments } from "@/features/documents/queries/documents.queries";
+import {
+  countDocuments,
+  listExpiringDocuments,
+  listRecentDocuments,
+} from "@/features/documents/queries/documents.queries";
 import {
   Card,
   CardContent,
@@ -34,10 +39,12 @@ export default async function HomePage() {
   const { fullName, roleName, permissions } = session;
 
   const supabase = await createClient();
-  const [{ count: totalDocuments }, { data: recentDocuments }] = await Promise.all([
-    countDocuments(supabase),
-    listRecentDocuments(supabase, 5),
-  ]);
+  const [{ count: totalDocuments }, { data: recentDocuments }, { data: expiringDocuments }] =
+    await Promise.all([
+      countDocuments(supabase),
+      listRecentDocuments(supabase, 5),
+      listExpiringDocuments(supabase, 30),
+    ]);
 
   return (
     <div className="flex min-h-0 flex-1 flex-col">
@@ -104,7 +111,40 @@ export default async function HomePage() {
               )}
             </CardContent>
           </Card>
-          <Card className="sm:col-span-2 lg:col-span-2">
+          <Card>
+            <CardHeader className="pb-2">
+              <CardDescription className="text-xs font-medium tracking-wide uppercase">
+                Por vencer
+              </CardDescription>
+              <CardTitle className="text-metric font-bold tabular-nums">
+                {String(expiringDocuments.length)}
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="text-muted-foreground flex flex-col gap-1 text-xs">
+              <div className="flex items-center gap-2">
+                <CalendarClock className="text-primary size-4" />
+                Retención en los próximos 30 días
+              </div>
+              {expiringDocuments.length > 0 ? (
+                <ul className="mt-2 space-y-1">
+                  {expiringDocuments.slice(0, 3).map((doc) => (
+                    <li key={doc.id} className="truncate">
+                      <Link
+                        href={`/documents/${doc.id}`}
+                        className="hover:text-primary transition-colors"
+                      >
+                        {doc.title}
+                      </Link>{" "}
+                      <span className="opacity-60">· {doc.retention_until}</span>
+                    </li>
+                  ))}
+                </ul>
+              ) : (
+                <span className="text-muted-foreground/60">Ninguno próximo</span>
+              )}
+            </CardContent>
+          </Card>
+          <Card>
             <CardHeader className="pb-2">
               <CardDescription className="text-xs font-medium tracking-wide uppercase">Tu rol</CardDescription>
               <CardTitle className="text-metric font-bold">

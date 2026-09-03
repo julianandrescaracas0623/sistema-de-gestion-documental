@@ -3,7 +3,6 @@
 import { revalidatePath, revalidateTag } from "next/cache";
 import { z } from "zod";
 
-import { DOCUMENTS_STORAGE_BUCKET } from "@/features/documents/lib/documents-config";
 import type { ActionResult } from "@/shared/lib/action-result";
 import { recordAudit } from "@/shared/lib/audit/record-audit";
 import { getSession } from "@/shared/lib/auth/get-session";
@@ -27,7 +26,6 @@ const schema = z.object({
 
 const rowSchema = z.object({
   id: z.string().uuid(),
-  storage_object_path: z.string().min(1),
   deleted_at: z.string().nullable(),
   uploaded_by: z.string().uuid().nullable(),
 });
@@ -62,7 +60,7 @@ export async function bulkSoftDeleteDocumentsAction(
 
   const { data: rows, error: fetchErr } = await supabase
     .from("documents")
-    .select("id, storage_object_path, deleted_at, uploaded_by")
+    .select("id, deleted_at, uploaded_by")
     .in("id", parsed.data.documentIds);
 
   if (fetchErr !== null) {
@@ -100,11 +98,7 @@ export async function bulkSoftDeleteDocumentsAction(
     return { status: "error", message: "No se pudo eliminar ningún documento." };
   }
 
-  const paths = deletable.filter((r) => deletedIds.has(r.id)).map((r) => r.storage_object_path);
-  if (paths.length > 0) {
-    await supabase.storage.from(DOCUMENTS_STORAGE_BUCKET).remove(paths);
-  }
-
+  // El binario permanece en el storage (papelera).
   await recordAudit(supabase, {
     action: "document.delete",
     entityType: "document",

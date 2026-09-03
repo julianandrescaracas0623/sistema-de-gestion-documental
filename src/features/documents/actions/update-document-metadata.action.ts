@@ -29,6 +29,13 @@ const schema = z.object({
     z.string().uuid().optional()
   ),
   categoryName: z.string().trim().max(120, "La categoría es demasiado larga.").optional(),
+  retentionUntil: z.preprocess(
+    (v) => (v === "" || v === null || v === undefined ? undefined : v),
+    z
+      .string()
+      .regex(/^\d{4}-\d{2}-\d{2}$/, "Fecha de retención inválida.")
+      .optional()
+  ),
   tagsRaw: z.string().max(2000).optional(),
 });
 
@@ -53,6 +60,7 @@ export async function updateDocumentMetadataAction(_prev: unknown, formData: For
     description: formFieldText(formData, "description"),
     categoryId: formFieldText(formData, "categoryId"),
     categoryName: formFieldText(formData, "categoryName"),
+    retentionUntil: formFieldText(formData, "retentionUntil"),
     tagsRaw: formFieldText(formData, "tags"),
   });
 
@@ -61,7 +69,8 @@ export async function updateDocumentMetadataAction(_prev: unknown, formData: For
     return { status: "error", message: msg };
   }
 
-  const { documentId, title, description, categoryId, categoryName, tagsRaw } = parsed.data;
+  const { documentId, title, description, categoryId, categoryName, retentionUntil, tagsRaw } =
+    parsed.data;
 
   const { data: existing, error: fetchErr } = await supabase
     .from("documents")
@@ -110,6 +119,7 @@ export async function updateDocumentMetadataAction(_prev: unknown, formData: For
       title,
       description: descriptionValue,
       category_id: resolvedCategoryId,
+      retention_until: retentionUntil ?? null,
       updated_at: new Date().toISOString(),
     })
     .eq("id", documentId)

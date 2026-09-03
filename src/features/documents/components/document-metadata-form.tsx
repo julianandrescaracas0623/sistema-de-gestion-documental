@@ -98,6 +98,20 @@ export function DocumentMetadataForm({
           placeholder="Separadas por coma"
         />
       </div>
+      <div className="space-y-1.5">
+        <Label htmlFor="retentionUntil">Conservar hasta</Label>
+        <Input
+          id="retentionUntil"
+          name="retentionUntil"
+          type="date"
+          defaultValue={document.retention_until ?? ""}
+          disabled={isPending}
+        />
+        <p className="text-muted-foreground text-xs">
+          Pasada esta fecha, el documento puede eliminarse de forma permanente. Déjalo vacío si no
+          aplica.
+        </p>
+      </div>
       <div className="flex flex-wrap items-center gap-2">
         <Button type="submit" variant="secondary" disabled={isPending}>
           {isPending ? "Guardando…" : "Guardar cambios"}

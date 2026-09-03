@@ -1,3 +1,5 @@
+import { Trash2 } from "lucide-react";
+import Link from "next/link";
 import { redirect } from "next/navigation";
 import { Suspense } from "react";
 
@@ -9,6 +11,7 @@ import {
   serializeDocumentSearchKey,
 } from "@/features/documents/lib/documents-search-params";
 import { PageBreadcrumb } from "@/shared/components/page-breadcrumb";
+import { Button } from "@/shared/components/ui/button";
 import { getSession } from "@/shared/lib/auth/get-session";
 import { getCachedCategories, getCachedTagsForFilter } from "@/shared/lib/cache/cached-queries";
 
@@ -36,10 +39,20 @@ export default async function DocumentsPage({
             { label: "Documentos" },
           ]}
         />
-        <h1 className="text-lg font-semibold tracking-tight text-foreground">Documentos</h1>
-        <p className="text-muted-foreground mt-0.5 text-sm">
-          Busca, filtra y abre tus archivos autorizados.
-        </p>
+        <div className="flex flex-wrap items-start justify-between gap-2">
+          <div>
+            <h1 className="text-lg font-semibold tracking-tight text-foreground">Documentos</h1>
+            <p className="text-muted-foreground mt-0.5 text-sm">
+              Busca, filtra y abre tus archivos autorizados.
+            </p>
+          </div>
+          <Button variant="ghost" size="sm" asChild>
+            <Link href="/documents/papelera">
+              <Trash2 className="size-4" />
+              Papelera
+            </Link>
+          </Button>
+        </div>
       </header>
 
       <div className="mx-auto flex w-full max-w-6xl flex-1 flex-col gap-6 px-4 py-4 sm:px-6 sm:py-6 lg:px-7 lg:py-7">

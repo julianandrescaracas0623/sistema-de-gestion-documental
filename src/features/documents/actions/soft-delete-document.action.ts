@@ -4,7 +4,6 @@ import { revalidatePath, revalidateTag } from "next/cache";
 import { redirect } from "next/navigation";
 import { z } from "zod";
 
-import { DOCUMENTS_STORAGE_BUCKET } from "@/features/documents/lib/documents-config";
 import type { ActionResult } from "@/shared/lib/action-result";
 import { recordAudit } from "@/shared/lib/audit/record-audit";
 import { getSession } from "@/shared/lib/auth/get-session";
@@ -19,7 +18,6 @@ const schema = z.object({
 
 const documentRowSchema = z.object({
   id: z.string().uuid(),
-  storage_object_path: z.string().min(1),
   deleted_at: z.string().nullable(),
   uploaded_by: z.string().uuid().nullable(),
 });
@@ -51,7 +49,7 @@ export async function softDeleteDocumentAction(_prev: unknown, formData: FormDat
 
   const { data: row, error: fetchErr } = await supabase
     .from("documents")
-    .select("id, storage_object_path, deleted_at, uploaded_by")
+    .select("id, deleted_at, uploaded_by")
     .eq("id", documentId)
     .maybeSingle();
 
@@ -92,9 +90,8 @@ export async function softDeleteDocumentAction(_prev: unknown, formData: FormDat
     };
   }
 
-  const paths: string[] = [rowParsed.data.storage_object_path];
-  await supabase.storage.from(DOCUMENTS_STORAGE_BUCKET).remove(paths);
-
+  // El binario NO se borra: queda en la papelera y se recupera con restore, o lo
+  // elimina la purga por retención / un borrado permanente explícito.
   await recordAudit(supabase, {
     action: "document.delete",
     entityType: "document",

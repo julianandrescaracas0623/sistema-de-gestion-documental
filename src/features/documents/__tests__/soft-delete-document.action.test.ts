@@ -4,14 +4,14 @@ import type { PermissionKey } from "@/shared/lib/auth/permissions";
 
 const mockGetUser = vi.fn();
 const mockFrom = vi.fn();
-const mockStorageRemove = vi.fn();
+const mockRpc = vi.fn().mockResolvedValue({ error: null });
 
 vi.mock("@/shared/lib/supabase/server", () => ({
   createClient: vi.fn(() =>
     Promise.resolve({
       auth: { getUser: mockGetUser },
       from: mockFrom,
-      storage: { from: () => ({ remove: mockStorageRemove }) },
+      rpc: mockRpc,
     })
   ),
 }));
@@ -66,14 +66,13 @@ describe("softDeleteDocumentAction", () => {
   beforeEach(async () => {
     vi.clearAllMocks();
     mockGetUser.mockResolvedValue({ data: { user: { id: OWNER_ID } } });
-    mockStorageRemove.mockResolvedValue({ error: null });
+    mockRpc.mockResolvedValue({ error: null });
     const { getSession } = await import("@/shared/lib/auth/get-session");
     vi.mocked(getSession).mockResolvedValue(session(["documents.read"]));
   });
 
   const activeDoc = {
     id: DOC_ID,
-    storage_object_path: `${OWNER_ID}/x/a.pdf`,
     deleted_at: null,
     uploaded_by: OTHER_ID,
   };
@@ -90,7 +89,7 @@ describe("softDeleteDocumentAction", () => {
       status: "error",
       message: "No tienes permiso para eliminar este documento.",
     });
-    expect(mockStorageRemove).not.toHaveBeenCalled();
+    expect(mockRpc).not.toHaveBeenCalled();
   });
 
   it("reports an error (not success) when the UPDATE affects no rows", async () => {
@@ -104,10 +103,10 @@ describe("softDeleteDocumentAction", () => {
     const result = await softDeleteDocumentAction(null, fd);
 
     expect(result.status).toBe("error");
-    expect(mockStorageRemove).not.toHaveBeenCalled();
+    expect(mockRpc).not.toHaveBeenCalled();
   });
 
-  it("soft-deletes when the caller is the uploader", async () => {
+  it("soft-deletes (keeps the binary) when the caller is the uploader", async () => {
     wireDocuments(
       { ...activeDoc, uploaded_by: OWNER_ID },
       { data: [{ id: DOC_ID }], error: null }
@@ -117,6 +116,9 @@ describe("softDeleteDocumentAction", () => {
     fd.set("documentId", DOC_ID);
 
     await expect(softDeleteDocumentAction(null, fd)).rejects.toThrow("NEXT_REDIRECT");
-    expect(mockStorageRemove).toHaveBeenCalled();
+    expect(mockRpc).toHaveBeenCalledWith(
+      "record_audit",
+      expect.objectContaining({ p_action: "document.delete" })
+    );
   });
 });

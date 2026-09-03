@@ -33,6 +33,7 @@ En **Project Settings → Environment Variables**, añade:
 | `DATABASE_URL` | Production, Preview | Sí — para `pnpm db:setup` y migraciones |
 | `SUPABASE_SERVICE_ROLE_KEY` | Production, Preview | Sí — alta de usuarios (`/admin/users`) y saludo personalizado del correo de recuperación. Sin ella la app arranca, pero esas acciones fallan con un mensaje claro |
 | `DOCUMENT_UPLOAD_MAX_MB` | Production | Opcional (default 25) |
+| `CRON_SECRET` | Production | Opcional — habilita `POST /api/documents/purge` (purga por retención). Sin ella el endpoint responde 501 |
 
 Valores: Supabase Dashboard → **Project Settings → API** y **Database**.
 
@@ -55,6 +56,7 @@ Valores: Supabase Dashboard → **Project Settings → API** y **Database**.
 - [ ] `/documents/new` — subida de documento
 - [ ] `/admin/users` — gestión de usuarios (requiere service role)
 - [ ] `/admin/actividad` — bitácora de auditoría (requiere `audit.read`)
+- [ ] `/documents/papelera` — papelera + restaurar / eliminar permanente
 - [ ] `/api/documents/export` — exportación ZIP
 
 ---
