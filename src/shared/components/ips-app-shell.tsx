@@ -76,7 +76,7 @@ function SidebarNavLinks({
 
   const linkClass = (active: boolean) =>
     cn(
-      "flex w-full items-center gap-2.5 rounded-md px-2.5 py-2 text-[13.5px] font-medium transition-colors",
+      "flex w-full items-center gap-2.5 rounded-md px-2.5 py-2 text-sm font-medium transition-colors",
       active
         ? "bg-sidebar-accent text-sidebar-accent-foreground"
         : "text-sidebar-foreground/60 hover:bg-white/7 hover:text-sidebar-foreground/90"
@@ -84,7 +84,7 @@ function SidebarNavLinks({
 
   return (
     <nav className={cn("flex flex-col gap-0.5 px-2.5 py-3", className)}>
-      <p className="px-2.5 pt-2 pb-1 text-[10.5px] font-semibold tracking-widest text-sidebar-foreground/35 uppercase">
+      <p className="text-micro px-2.5 pt-2 pb-1 font-semibold tracking-widest text-sidebar-foreground/55 uppercase">
         Principal
       </p>
       <Link href="/" className={linkClass(isHome)} {...navClick(onNavigate)}>
@@ -104,7 +104,7 @@ function SidebarNavLinks({
 
       {showAdminSection ? (
         <>
-          <p className="mt-2 px-2.5 pt-2 pb-1 text-[10.5px] font-semibold tracking-widest text-sidebar-foreground/35 uppercase">
+          <p className="text-micro mt-2 px-2.5 pt-2 pb-1 font-semibold tracking-widest text-sidebar-foreground/55 uppercase">
             Administración
           </p>
           {canAccessModule(permissions, "users") ? (
@@ -156,7 +156,7 @@ function SidebarFooter({
           {initials}
         </div>
         <div className="min-w-0 flex-1">
-          <p className="truncate text-[12.5px] font-medium text-sidebar-foreground/90">{displayName}</p>
+          <p className="truncate text-xs font-medium text-sidebar-foreground/90">{displayName}</p>
           <p className="text-[11px] text-sidebar-muted">{roleLabel(roleName)}</p>
         </div>
       </div>
@@ -165,7 +165,7 @@ function SidebarFooter({
           type="submit"
           variant="ghost"
           size="sm"
-          className="h-8 w-full justify-start gap-2 px-2.5 text-sidebar-foreground/40 hover:bg-white/7 hover:text-sidebar-foreground/80"
+          className="h-8 w-full justify-start gap-2 px-2.5 text-sidebar-foreground/70 hover:bg-white/10 hover:text-sidebar-foreground"
         >
           <LogOut className="size-3.5" aria-hidden />
           Cerrar sesión
@@ -179,7 +179,7 @@ function SidebarBrand() {
   return (
     <div className="border-sidebar-border border-b px-5 py-6">
       <div className="flex items-center gap-2.5">
-        <div className="flex size-[34px] shrink-0 items-center justify-center rounded-lg bg-primary text-[13px] font-bold tracking-tight text-primary-foreground">
+        <div className="flex size-[34px] shrink-0 items-center justify-center rounded-lg bg-primary text-sm font-bold tracking-tight text-primary-foreground">
           IPS
         </div>
         <div className="min-w-0">
@@ -224,7 +224,7 @@ export function IpsAppShell({
 
   return (
     <div className="bg-background flex h-dvh max-h-dvh min-h-0 w-full overflow-hidden">
-      <aside className="bg-sidebar text-sidebar-foreground hidden w-56 shrink-0 flex-col border-sidebar-border border-r md:flex">
+      <aside className="bg-sidebar text-sidebar-foreground border-sidebar-border shadow-detached relative z-10 hidden w-56 shrink-0 flex-col border-r md:flex">
         {renderSidebar(false)}
       </aside>
 

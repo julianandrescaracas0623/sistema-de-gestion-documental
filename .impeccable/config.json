@@ -1,0 +1,14 @@
+{
+  "detector": {
+    "ignoreRules": [],
+    "ignoreFiles": [],
+    "ignoreValues": [
+      {
+        "rule": "design-system-color",
+        "value": "#ff5733",
+        "createdAt": "2026-09-03T03:22:30.383Z",
+        "reason": "test fixture: category color-field value in categories.schema.test.ts, not UI"
+      }
+    ]
+  }
+}

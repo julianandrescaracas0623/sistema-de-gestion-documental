@@ -36,7 +36,7 @@ export default async function ResetPasswordPage({ searchParams }: ResetPasswordP
   return (
     <main className="relative flex min-h-dvh items-center justify-center bg-sidebar px-4 py-10">
       <div className="relative z-[1] w-full max-w-[380px]">
-        <Card className="rounded-2xl border-0 py-2 shadow-[0_24px_64px_rgb(0_0_0/0.28)]">
+        <Card className="rounded-2xl border-0 py-2 shadow-modal">
           <CardHeader className="space-y-2 px-9 pt-10 pb-2">
             <CardTitle className="text-lg font-semibold">Nueva contraseña</CardTitle>
             <CardDescription>Ingresa y confirma tu nueva contraseña.</CardDescription>

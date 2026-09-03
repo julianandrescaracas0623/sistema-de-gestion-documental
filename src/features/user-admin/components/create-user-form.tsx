@@ -14,8 +14,9 @@ import type { RoleOption } from "../queries/users.queries";
 
 import { Button } from "@/shared/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/shared/components/ui/card";
+import { FormField } from "@/shared/components/ui/form-field";
 import { Input } from "@/shared/components/ui/input";
-import { Label } from "@/shared/components/ui/label";
+import { Select } from "@/shared/components/ui/select";
 
 const schema = z.object({
   fullName: z
@@ -80,47 +81,53 @@ export function CreateUserForm({ roles }: { roles: RoleOption[] }) {
             </p>
           )}
 
-          <div className="space-y-1.5">
-            <Label htmlFor="new-full-name">Nombre completo</Label>
-            <Input id="new-full-name" type="text" autoComplete="off" {...register("fullName")} />
-            {errors.fullName !== undefined && (
-              <p className="text-sm text-destructive">{errors.fullName.message}</p>
+          <FormField
+            id="new-full-name"
+            label="Nombre completo"
+            required
+            error={errors.fullName?.message}
+          >
+            {(field) => (
+              <Input type="text" autoComplete="off" {...field} {...register("fullName")} />
             )}
-          </div>
+          </FormField>
 
-          <div className="space-y-1.5">
-            <Label htmlFor="new-email">Correo electrónico</Label>
-            <Input id="new-email" type="email" autoComplete="off" {...register("email")} />
-            {errors.email !== undefined && (
-              <p className="text-sm text-destructive">{errors.email.message}</p>
-            )}
-          </div>
+          <FormField
+            id="new-email"
+            label="Correo electrónico"
+            required
+            error={errors.email?.message}
+          >
+            {(field) => <Input type="email" autoComplete="off" {...field} {...register("email")} />}
+          </FormField>
 
-          <div className="space-y-1.5">
-            <Label htmlFor="new-password">Contraseña inicial</Label>
-            <Input id="new-password" type="password" autoComplete="new-password" {...register("password")} />
-            {errors.password !== undefined && (
-              <p className="text-sm text-destructive">{errors.password.message}</p>
+          <FormField
+            id="new-password"
+            label="Contraseña inicial"
+            required
+            error={errors.password?.message}
+          >
+            {(field) => (
+              <Input
+                type="password"
+                autoComplete="new-password"
+                {...field}
+                {...register("password")}
+              />
             )}
-          </div>
+          </FormField>
 
-          <div className="space-y-1.5">
-            <Label htmlFor="new-role">Rol</Label>
-            <select
-              id="new-role"
-              className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-xs outline-none focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50"
-              {...register("roleId")}
-            >
-              {roles.map((r) => (
-                <option key={r.id} value={r.id}>
-                  {r.name}
-                </option>
-              ))}
-            </select>
-            {errors.roleId !== undefined && (
-              <p className="text-sm text-destructive">{errors.roleId.message}</p>
+          <FormField id="new-role" label="Rol" required error={errors.roleId?.message}>
+            {(field) => (
+              <Select {...field} {...register("roleId")}>
+                {roles.map((r) => (
+                  <option key={r.id} value={r.id}>
+                    {r.name}
+                  </option>
+                ))}
+              </Select>
             )}
-          </div>
+          </FormField>
 
           <Button type="submit" className="w-full" loading={isPending}>
             Crear usuario

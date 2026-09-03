@@ -20,6 +20,7 @@ export function Providers({ children }: { children: React.ReactNode }) {
     <QueryClientProvider client={queryClient}>
       {children}
       <Toaster
+        theme="light"
         toastOptions={{
           classNames: {
             success: "!bg-success !text-success-foreground !border-success",

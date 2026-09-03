@@ -11,8 +11,11 @@ import { TagInput } from "@/features/documents/components/tag-input";
 import type { CategoryRow } from "@/features/documents/queries/categories.queries";
 import { Button } from "@/shared/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/shared/components/ui/card";
+import { FormField } from "@/shared/components/ui/form-field";
 import { Input } from "@/shared/components/ui/input";
 import { Label } from "@/shared/components/ui/label";
+import { Select } from "@/shared/components/ui/select";
+import { Textarea } from "@/shared/components/ui/textarea";
 import {
   ACCEPT_ATTRIBUTE,
   getFileTypeErrorMessage,
@@ -125,58 +128,61 @@ export function UploadDocumentForm({
           }}
           className="space-y-4"
         >
-          <div className="space-y-2">
-            <Label htmlFor="file">Archivo</Label>
-            <Input
-              id="file"
-              ref={fileRef}
-              type="file"
-              required
-              accept={ACCEPT_ATTRIBUTE}
-              disabled={isPending}
-            />
-            <p className="text-muted-foreground text-xs">
-              Formatos: PDF, imágenes, Word, Excel (.xlsx), texto. CSV no soportado.
-            </p>
-          </div>
-          <div className="space-y-2">
-            <Label htmlFor="title">Título</Label>
-            <Input
-              id="title"
-              disabled={isPending}
-              placeholder="Nombre descriptivo"
-              {...register("title")}
-            />
-            {errors.title !== undefined ? (
-              <p className="text-destructive text-sm">{errors.title.message}</p>
-            ) : null}
-          </div>
-          <div className="space-y-2">
-            <Label htmlFor="description">Descripción (opcional)</Label>
-            <Input
-              id="description"
-              disabled={isPending}
-              placeholder="Opcional"
-              {...register("description")}
-            />
-          </div>
-          <div className="space-y-2">
-            <Label htmlFor="categoryId">Categoría (opcional)</Label>
-            <select
-              id="categoryId"
-              disabled={isPending}
-              className="border-input bg-background ring-offset-background focus-visible:ring-ring flex h-9 w-full rounded-md border px-3 py-1 text-sm shadow-xs focus-visible:ring-[3px] focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-50"
-              {...register("categoryId")}
-            >
-              <option value="">Sin categoría</option>
-              {categories.map((c) => (
-                <option key={c.id} value={c.id}>
-                  {c.name}
-                </option>
-              ))}
-            </select>
-          </div>
-          <div className="space-y-2">
+          <FormField
+            id="file"
+            label="Archivo"
+            required
+            hint="Formatos: PDF, imágenes, Word, Excel (.xlsx), texto. CSV no soportado."
+          >
+            {(field) => (
+              <Input
+                ref={fileRef}
+                type="file"
+                required
+                accept={ACCEPT_ATTRIBUTE}
+                disabled={isPending}
+                {...field}
+              />
+            )}
+          </FormField>
+          <FormField id="title" label="Título" required error={errors.title?.message}>
+            {(field) => (
+              <Input
+                disabled={isPending}
+                placeholder="Nombre descriptivo"
+                {...field}
+                {...register("title")}
+              />
+            )}
+          </FormField>
+          <FormField
+            id="description"
+            label="Descripción (opcional)"
+            error={errors.description?.message}
+          >
+            {(field) => (
+              <Textarea
+                rows={3}
+                disabled={isPending}
+                placeholder="Opcional"
+                {...field}
+                {...register("description")}
+              />
+            )}
+          </FormField>
+          <FormField id="categoryId" label="Categoría (opcional)">
+            {(field) => (
+              <Select disabled={isPending} {...field} {...register("categoryId")}>
+                <option value="">Sin categoría</option>
+                {categories.map((c) => (
+                  <option key={c.id} value={c.id}>
+                    {c.name}
+                  </option>
+                ))}
+              </Select>
+            )}
+          </FormField>
+          <div className="space-y-1.5">
             <Label>Etiquetas (opcional)</Label>
             <TagInput name="tags" availableTags={availableTags} disabled={isPending} />
           </div>

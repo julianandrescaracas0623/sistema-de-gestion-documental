@@ -45,7 +45,7 @@ export function DocumentTableRow({
             onChange={() => {
               onToggle?.(row.id);
             }}
-            className="size-4 rounded border-input"
+            className="border-input size-[18px] rounded"
           />
         </td>
       ) : null}
@@ -64,7 +64,7 @@ export function DocumentTableRow({
         <div className="flex flex-col gap-0.5">
           <span className="text-xs text-muted-foreground">{row.uploader?.email ?? "—"}</span>
           {role != null ? (
-            <Badge variant="secondary" className="w-fit px-1.5 py-0 text-[10px]">
+            <Badge variant="secondary" className="text-micro w-fit px-1.5 py-0">
               {role}
             </Badge>
           ) : null}

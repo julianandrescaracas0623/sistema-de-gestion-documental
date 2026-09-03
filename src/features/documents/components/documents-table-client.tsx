@@ -22,6 +22,7 @@ import type { DocumentListRow } from "@/features/documents/queries/documents.que
 import { ConfirmDestructiveDialog } from "@/shared/components/confirm-destructive-dialog";
 import { Button } from "@/shared/components/ui/button";
 import { CardContent, CardFooter } from "@/shared/components/ui/card";
+import { Select } from "@/shared/components/ui/select";
 
 interface DocumentsTableClientProps {
   rows: DocumentListRow[];
@@ -114,12 +115,9 @@ export function DocumentsTableClient({
         <div className="bg-muted/60 flex flex-wrap items-center gap-2 border-b px-6 py-2 text-sm">
           <span>{String(selectedCount)} seleccionado(s)</span>
           {selectedExportUrl !== "" ? (
-            <a
-              href={selectedExportUrl}
-              className="inline-flex items-center rounded-md border px-2 py-1 text-xs hover:bg-background"
-            >
-              Descargar seleccionados
-            </a>
+            <Button variant="outline" size="sm" asChild>
+              <a href={selectedExportUrl}>Descargar seleccionados</a>
+            </Button>
           ) : null}
           <Button
             type="button"
@@ -145,7 +143,7 @@ export function DocumentsTableClient({
                     checked={allPageSelected}
                     aria-label="Seleccionar todos en esta página"
                     onChange={toggleAllPage}
-                    className="size-4 rounded border-input"
+                    className="border-input size-[18px] rounded"
                   />
                 </th>
                 <th className="text-muted-foreground px-6 py-2.5 text-left text-[11.5px] font-semibold tracking-wide uppercase">
@@ -206,19 +204,19 @@ export function DocumentsTableClient({
           </span>
           <label className="flex items-center gap-2">
             <span>Por página</span>
-            <select
+            <Select
               value={params.pageSize}
               onChange={(e) => {
                 handlePageSizeChange(Number.parseInt(e.target.value, 10));
               }}
-              className="border-input bg-background h-8 rounded-md border px-2 text-sm"
+              className="h-8 w-auto"
             >
               {PAGE_SIZE_OPTIONS.map((n) => (
                 <option key={n} value={n}>
                   {String(n)}
                 </option>
               ))}
-            </select>
+            </Select>
           </label>
         </div>
         <div className="flex items-center gap-2">

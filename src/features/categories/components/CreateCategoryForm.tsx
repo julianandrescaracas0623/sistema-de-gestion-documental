@@ -8,6 +8,7 @@ import { Button } from "@/shared/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/shared/components/ui/card";
 import { Input } from "@/shared/components/ui/input";
 import { Label } from "@/shared/components/ui/label";
+import { Textarea } from "@/shared/components/ui/textarea";
 
 export function CreateCategoryForm() {
   const [state, formAction, isPending] = useActionState(createCategoryAction, null);
@@ -55,9 +56,10 @@ export function CreateCategoryForm() {
 
           <div className="space-y-1.5">
             <Label htmlFor="cat-description">Descripción</Label>
-            <Input
+            <Textarea
               id="cat-description"
               name="description"
+              rows={3}
               maxLength={500}
               disabled={isPending}
               placeholder="Descripción opcional"

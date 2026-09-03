@@ -16,6 +16,7 @@ import {
   SheetTitle,
   SheetTrigger,
 } from "@/shared/components/ui/sheet";
+import { Textarea } from "@/shared/components/ui/textarea";
 
 interface CategoryFormProps {
   mode: "create" | "edit";
@@ -104,9 +105,10 @@ export function CategoryForm({
 
           <div className="space-y-2">
             <Label htmlFor="cat-description">Descripción</Label>
-            <Input
+            <Textarea
               id="cat-description"
               name="description"
+              rows={3}
               maxLength={500}
               disabled={isPending}
               defaultValue={mode === "edit" ? (category?.description ?? "") : ""}

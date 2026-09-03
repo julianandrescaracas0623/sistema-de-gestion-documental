@@ -58,12 +58,12 @@ export default async function HomePage() {
         </section>
 
         <section className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-          <Card className="shadow-sm">
+          <Card>
             <CardHeader className="pb-2">
               <CardDescription className="text-xs font-medium tracking-wide uppercase">
                 Documentos
               </CardDescription>
-              <CardTitle className="text-[28px] font-bold leading-none tabular-nums">
+              <CardTitle className="text-metric font-bold tabular-nums">
                 {totalDocuments ?? "—"}
               </CardTitle>
             </CardHeader>
@@ -72,12 +72,12 @@ export default async function HomePage() {
               Registro total de archivos
             </CardContent>
           </Card>
-          <Card className="shadow-sm">
+          <Card>
             <CardHeader className="pb-2">
               <CardDescription className="text-xs font-medium tracking-wide uppercase">
                 Recientes
               </CardDescription>
-              <CardTitle className="text-[28px] font-bold leading-none tabular-nums">
+              <CardTitle className="text-metric font-bold tabular-nums">
                 {recentDocuments?.length ?? 0}
               </CardTitle>
             </CardHeader>
@@ -104,10 +104,10 @@ export default async function HomePage() {
               )}
             </CardContent>
           </Card>
-          <Card className="shadow-sm sm:col-span-2 lg:col-span-2">
+          <Card className="sm:col-span-2 lg:col-span-2">
             <CardHeader className="pb-2">
               <CardDescription className="text-xs font-medium tracking-wide uppercase">Tu rol</CardDescription>
-              <CardTitle className="text-[28px] font-bold leading-none">
+              <CardTitle className="text-metric font-bold">
                 {roleName !== "" ? roleName : "—"}
               </CardTitle>
             </CardHeader>
@@ -129,7 +129,7 @@ export default async function HomePage() {
           </div>
           <div className="grid gap-3 md:grid-cols-2 lg:grid-cols-3">
             <Link href="/documents" className="group block rounded-[var(--radius)]">
-              <Card className="border-border h-full transition-all group-hover:-translate-y-0.5 group-hover:shadow-md">
+              <Card className="border-border h-full transition-[transform,box-shadow] group-hover:-translate-y-0.5 group-hover:shadow-overlay">
                 <CardHeader className="gap-3">
                   <div className="bg-primary/10 w-fit rounded-lg p-2">
                     <FileText className="text-primary size-5" />
@@ -142,7 +142,7 @@ export default async function HomePage() {
 
             {hasPermission(permissions, "documents.create") ? (
               <Link href="/documents/new" className="group block rounded-[var(--radius)]">
-                <Card className="border-border h-full transition-all group-hover:-translate-y-0.5 group-hover:shadow-md">
+                <Card className="border-border h-full transition-[transform,box-shadow] group-hover:-translate-y-0.5 group-hover:shadow-overlay">
                   <CardHeader className="gap-3">
                     <div className="bg-accent w-fit rounded-lg p-2">
                       <Upload className="text-accent-foreground size-5" />
@@ -156,7 +156,7 @@ export default async function HomePage() {
 
             {canAccessModule(permissions, "users") ? (
               <Link href="/admin/users" className="group block rounded-[var(--radius)]">
-                <Card className="border-border h-full transition-all group-hover:-translate-y-0.5 group-hover:shadow-md">
+                <Card className="border-border h-full transition-[transform,box-shadow] group-hover:-translate-y-0.5 group-hover:shadow-overlay">
                   <CardHeader className="gap-3">
                     <div className="bg-primary/10 w-fit rounded-lg p-2">
                       <Users className="text-primary size-5" />
@@ -170,7 +170,7 @@ export default async function HomePage() {
 
             {canAccessModule(permissions, "categories") ? (
               <Link href="/admin/categories" className="group block rounded-[var(--radius)]">
-                <Card className="border-border h-full transition-all group-hover:-translate-y-0.5 group-hover:shadow-md">
+                <Card className="border-border h-full transition-[transform,box-shadow] group-hover:-translate-y-0.5 group-hover:shadow-overlay">
                   <CardHeader className="gap-3">
                     <div className="bg-primary/10 w-fit rounded-lg p-2">
                       <FolderOpen className="text-primary size-5" />
@@ -184,7 +184,7 @@ export default async function HomePage() {
 
             {canAccessModule(permissions, "tags") ? (
               <Link href="/admin/tags" className="group block rounded-[var(--radius)]">
-                <Card className="border-border h-full transition-all group-hover:-translate-y-0.5 group-hover:shadow-md">
+                <Card className="border-border h-full transition-[transform,box-shadow] group-hover:-translate-y-0.5 group-hover:shadow-overlay">
                   <CardHeader className="gap-3">
                     <div className="bg-primary/10 w-fit rounded-lg p-2">
                       <Tag className="text-primary size-5" />

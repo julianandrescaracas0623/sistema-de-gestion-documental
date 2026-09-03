@@ -77,7 +77,7 @@ export function PermissionMatrix({
         return (
           <section
             key={module}
-            className="overflow-hidden rounded-xl border bg-card shadow-sm"
+            className="bg-card shadow-raised overflow-hidden rounded-xl border"
           >
             <div className="flex flex-wrap items-center justify-between gap-3 border-b bg-muted/30 px-4 py-3">
               <div className="flex items-center gap-3">
@@ -123,7 +123,7 @@ export function PermissionMatrix({
                       toggle(perm.key);
                     }}
                     className={cn(
-                      "flex w-full items-start gap-3 rounded-lg border px-3 py-3 text-left text-sm transition-all",
+                      "flex w-full items-start gap-3 rounded-lg border px-3 py-3 text-left text-sm transition-colors",
                       checked
                         ? "border-primary/50 bg-primary/5 ring-1 ring-primary/20"
                         : "border-border hover:border-primary/30 hover:bg-muted/40",
@@ -152,7 +152,7 @@ export function PermissionMatrix({
                           {perm.description}
                         </span>
                       ) : null}
-                      <span className="text-muted-foreground/70 mt-1 block font-mono text-[10px]">
+                      <span className="text-muted-foreground/70 text-micro mt-1 block font-mono">
                         {perm.key}
                       </span>
                     </span>

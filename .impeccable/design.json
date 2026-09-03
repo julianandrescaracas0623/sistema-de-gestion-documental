@@ -1,0 +1,191 @@
+{
+  "schemaVersion": 2,
+  "generatedAt": "2026-09-02T00:00:00.000Z",
+  "title": "Design System: IPS Salud Integral · Gestión Documental",
+  "extensions": {
+    "colorMeta": {
+      "primary": {
+        "role": "primary",
+        "displayName": "Clinical Teal",
+        "canonical": "#0a77a6",
+        "note": "Tuned down from the incumbent #0b8fc9 so white text and text-primary links clear WCAG AA on both the white card and the grey canvas.",
+        "tonalRamp": ["#04384f", "#065b7d", "#086a95", "#0a77a6", "#1a92bf", "#4bb0d6", "#8bcee7", "#c8e8f4"]
+      },
+      "sidebar": {
+        "role": "neutral",
+        "displayName": "Institutional Navy",
+        "canonical": "#1a2744",
+        "tonalRamp": ["#0b1120", "#131c33", "#1a2744", "#243356", "#33456f", "#556792", "#8a9bc0", "#c9d2e4"]
+      },
+      "background": {
+        "role": "neutral",
+        "displayName": "Counter Grey / Paper",
+        "canonical": "#f7f8fa",
+        "tonalRamp": ["#111827", "#374151", "#6b7280", "#9ca3af", "#cbd2da", "#e2e6ec", "#f0f2f5", "#f7f8fa"]
+      },
+      "foreground": {
+        "role": "neutral",
+        "displayName": "Ink",
+        "canonical": "#111827",
+        "tonalRamp": ["#0a0f1a", "#111827", "#1f2937", "#374151", "#4b5563", "#6b7280", "#9ca3af", "#d1d5db"]
+      },
+      "accent": {
+        "role": "secondary",
+        "displayName": "Accent Wash",
+        "canonical": "#e8f6fd",
+        "tonalRamp": ["#0369a1", "#0987c4", "#3aa9d8", "#6fc3e6", "#9bd6ef", "#c3e6f6", "#e8f6fd", "#f4fbfe"]
+      },
+      "destructive": {
+        "role": "tertiary",
+        "displayName": "Danger",
+        "canonical": "#dc2626",
+        "tonalRamp": ["#7f1d1d", "#991b1b", "#b91c1c", "#dc2626", "#ef4444", "#f87171", "#fca5a5", "#fee2e2"]
+      }
+    },
+    "typographyMeta": {
+      "display": { "displayName": "Display", "purpose": "The single welcome/greeting headline per landing screen; tabular-nums when it is a metric." },
+      "headline": { "displayName": "Headline", "purpose": "Auth card titles and major empty states." },
+      "title": { "displayName": "Title", "purpose": "Page h1 in the header band and section headers; card titles step down to 16px/600." },
+      "body": { "displayName": "Body", "purpose": "All running text, table cells and form values; meta drops to 12-13px muted." },
+      "label": { "displayName": "Label", "purpose": "Uppercase letter-spaced micro-labels: table headers, eyebrows, stat captions." },
+      "micro": { "displayName": "Micro", "purpose": "The --text-micro token (10.5px): sidebar section headers and the smallest inline badges." },
+      "metric": { "displayName": "Metric", "purpose": "The --text-metric token (28px, tabular-nums): dashboard stat-card values only." }
+    },
+    "shadows": [
+      { "name": "raised", "value": "0 1px 2px rgb(17 24 39 / 0.04), 0 2px 8px rgb(17 24 39 / 0.06)", "purpose": "Resting state of every card, panel and table container on the grey canvas." },
+      { "name": "detached-frame", "value": "2px 0 12px rgb(17 24 39 / 0.06)", "purpose": "Right edge of the navy sidebar, lifting it off the content area (paired with the sidebar border)." },
+      { "name": "overlay", "value": "0 8px 24px rgb(17 24 39 / 0.12)", "purpose": "Dropdown menus, popovers, the mobile nav sheet, and hovered action cards." },
+      { "name": "modal", "value": "0 24px 64px rgb(0 0 0 / 0.28)", "purpose": "Centered dialogs and the auth card; strongest step, signals resolve-before-continuing." }
+    ],
+    "motion": [
+      { "name": "ease-standard", "value": "cubic-bezier(0.4, 0, 0.2, 1)", "purpose": "Default easing for color, shadow and transform transitions." },
+      { "name": "duration-fast", "value": "150ms", "purpose": "Color and background state changes (hover, focus)." },
+      { "name": "duration-base", "value": "200ms", "purpose": "Shadow and transform transitions (card hover lift)." },
+      { "name": "hover-lift", "value": "translateY(-2px)", "purpose": "Interactive cards on hover, paired with a step from raised to overlay shadow." }
+    ],
+    "breakpoints": [
+      { "name": "sm", "value": "640px" },
+      { "name": "md", "value": "768px" },
+      { "name": "lg", "value": "1024px" },
+      { "name": "xl", "value": "1280px" }
+    ]
+  },
+  "components": [
+    {
+      "name": "Primary Button",
+      "kind": "button",
+      "refersTo": "button-primary",
+      "description": "The one high-emphasis action per view.",
+      "html": "<button class=\"ds-btn-primary\">Subir documento</button>",
+      "css": ".ds-btn-primary { display: inline-flex; align-items: center; justify-content: center; gap: 8px; height: 2.25rem; padding: 0 1.25rem; border: none; border-radius: 10px; background: var(--color-primary, #0a77a6); color: var(--color-primary-foreground, #fff); font: 500 0.875rem/1 'DM Sans', system-ui, sans-serif; box-shadow: 0 1px 2px rgb(17 24 39 / 0.08); cursor: pointer; transition: background 150ms cubic-bezier(0.4,0,0.2,1); } .ds-btn-primary:hover { background: var(--color-primary-deep, #086a95); } .ds-btn-primary:focus-visible { outline: none; box-shadow: 0 0 0 3px rgb(10 119 166 / 0.5); } .ds-btn-primary:active { transform: translateY(0.5px); }"
+    },
+    {
+      "name": "Secondary Button",
+      "kind": "button",
+      "refersTo": "button-secondary",
+      "description": "Cancel and secondary paths; sits next to a primary or destructive action.",
+      "html": "<button class=\"ds-btn-secondary\">Cancelar</button>",
+      "css": ".ds-btn-secondary { display: inline-flex; align-items: center; justify-content: center; gap: 8px; height: 2.25rem; padding: 0 1.25rem; border: none; border-radius: 10px; background: var(--color-secondary, #f0f2f5); color: var(--color-secondary-foreground, #4b5563); font: 500 0.875rem/1 'DM Sans', system-ui, sans-serif; cursor: pointer; transition: background 150ms cubic-bezier(0.4,0,0.2,1); } .ds-btn-secondary:hover { background: #e6e9ee; } .ds-btn-secondary:focus-visible { outline: none; box-shadow: 0 0 0 3px rgb(10 119 166 / 0.5); }"
+    },
+    {
+      "name": "Destructive Button",
+      "kind": "button",
+      "refersTo": "button-destructive",
+      "description": "Only for actions that delete; the confirm button inside the destructive dialog.",
+      "html": "<button class=\"ds-btn-destructive\">Eliminar</button>",
+      "css": ".ds-btn-destructive { display: inline-flex; align-items: center; justify-content: center; gap: 8px; height: 2.25rem; padding: 0 1.25rem; border: none; border-radius: 10px; background: var(--color-destructive, #dc2626); color: #fff; font: 500 0.875rem/1 'DM Sans', system-ui, sans-serif; cursor: pointer; transition: background 150ms cubic-bezier(0.4,0,0.2,1); } .ds-btn-destructive:hover { background: #c31d1d; } .ds-btn-destructive:focus-visible { outline: none; box-shadow: 0 0 0 3px rgb(220 38 38 / 0.35); } .ds-btn-destructive:disabled { opacity: 0.5; cursor: not-allowed; }"
+    },
+    {
+      "name": "Search Input",
+      "kind": "input",
+      "refersTo": "input",
+      "description": "Document search and every text field; leading icon optional.",
+      "html": "<label class=\"ds-field\"><svg class=\"ds-field__icon\" viewBox=\"0 0 24 24\" width=\"16\" height=\"16\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><circle cx=\"11\" cy=\"11\" r=\"8\"></circle><path d=\"m21 21-4.3-4.3\"></path></svg><input class=\"ds-input\" type=\"text\" placeholder=\"Buscar por título…\" /></label>",
+      "css": ".ds-field { position: relative; display: inline-flex; align-items: center; width: 320px; max-width: 100%; } .ds-field__icon { position: absolute; left: 12px; color: var(--color-muted-foreground, #4b5563); pointer-events: none; } .ds-input { width: 100%; height: 2.25rem; padding: 0 12px 0 36px; border: 1px solid var(--color-input, #e2e6ec); border-radius: 10px; background: var(--color-card, #fff); color: var(--color-foreground, #111827); font: 400 0.875rem/1.5 'DM Sans', system-ui, sans-serif; transition: border-color 150ms cubic-bezier(0.4,0,0.2,1), box-shadow 150ms cubic-bezier(0.4,0,0.2,1); } .ds-input::placeholder { color: var(--color-muted-foreground, #4b5563); } .ds-input:focus-visible { outline: none; border-color: var(--color-primary, #0a77a6); box-shadow: 0 0 0 3px rgb(10 119 166 / 0.5); } .ds-input[aria-invalid=\"true\"] { border-color: var(--color-destructive, #dc2626); box-shadow: 0 0 0 3px rgb(220 38 38 / 0.2); }"
+    },
+    {
+      "name": "Sidebar Nav Item",
+      "kind": "nav",
+      "refersTo": "nav-item-active",
+      "description": "Navy sidebar link, rest and active state; icon + label, 10px radius.",
+      "html": "<nav class=\"ds-nav\"><p class=\"ds-nav__section\">Principal</p><a class=\"ds-nav__item ds-nav__item--active\" href=\"#\"><svg viewBox=\"0 0 24 24\" width=\"16\" height=\"16\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><path d=\"M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z\"></path><path d=\"M14 2v6h6\"></path></svg>Documentos</a><a class=\"ds-nav__item\" href=\"#\"><svg viewBox=\"0 0 24 24\" width=\"16\" height=\"16\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><path d=\"M12 3v12\"></path><path d=\"m8 11 4 4 4-4\"></path><path d=\"M8 21h8\"></path></svg>Subir documento</a></nav>",
+      "css": ".ds-nav { display: flex; flex-direction: column; gap: 2px; width: 224px; padding: 12px 10px; background: var(--color-sidebar, #1a2744); border-radius: 12px; } .ds-nav__section { margin: 8px 0 4px; padding: 0 10px; font: 600 0.65625rem/1.4 'DM Sans', system-ui, sans-serif; letter-spacing: 0.1em; text-transform: uppercase; color: rgb(255 255 255 / 0.35); } .ds-nav__item { display: flex; align-items: center; gap: 10px; padding: 8px 10px; border-radius: 10px; font: 500 0.84375rem/1 'DM Sans', system-ui, sans-serif; color: rgb(255 255 255 / 0.6); text-decoration: none; transition: background 150ms cubic-bezier(0.4,0,0.2,1), color 150ms cubic-bezier(0.4,0,0.2,1); } .ds-nav__item svg { opacity: 0.9; flex-shrink: 0; } .ds-nav__item:hover { background: rgb(255 255 255 / 0.07); color: rgb(255 255 255 / 0.9); } .ds-nav__item--active, .ds-nav__item--active:hover { background: rgb(10 119 166 / 0.32); color: #7dd3f7; }"
+    },
+    {
+      "name": "Stat Card",
+      "kind": "card",
+      "refersTo": "card",
+      "description": "Dashboard metric: uppercase caption, large tabular value, one muted line with a teal icon.",
+      "html": "<div class=\"ds-stat\"><p class=\"ds-stat__caption\">Documentos</p><p class=\"ds-stat__value\">1.284</p><p class=\"ds-stat__meta\"><svg viewBox=\"0 0 24 24\" width=\"16\" height=\"16\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><path d=\"M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z\"></path><path d=\"M14 2v6h6\"></path></svg>Registro total de archivos</p></div>",
+      "css": ".ds-stat { display: flex; flex-direction: column; gap: 6px; padding: 24px; background: var(--color-card, #fff); border: 1px solid var(--color-border, #e2e6ec); border-radius: 12px; box-shadow: 0 1px 2px rgb(17 24 39 / 0.04), 0 2px 8px rgb(17 24 39 / 0.06); font-family: 'DM Sans', system-ui, sans-serif; } .ds-stat__caption { margin: 0; font-size: 0.71875rem; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase; color: var(--color-muted-foreground, #4b5563); } .ds-stat__value { margin: 0; font-size: 28px; font-weight: 700; line-height: 1; font-variant-numeric: tabular-nums; color: var(--color-foreground, #111827); } .ds-stat__meta { display: flex; align-items: center; gap: 8px; margin: 4px 0 0; font-size: 0.75rem; color: var(--color-muted-foreground, #4b5563); } .ds-stat__meta svg { color: var(--color-primary, #0a77a6); flex-shrink: 0; }"
+    },
+    {
+      "name": "Data Table",
+      "kind": "custom",
+      "refersTo": "table-header",
+      "description": "Management listing: uppercase header labels, hairline rows, right-aligned Acciones column, inside a raised card.",
+      "html": "<div class=\"ds-table-wrap\"><table class=\"ds-table\"><thead><tr><th>Título</th><th>Categoría</th><th>Autor</th><th class=\"ds-table__right\">Acciones</th></tr></thead><tbody><tr><td>Contrato prestación de servicios.pdf</td><td>Jurídica</td><td>M. Ramírez</td><td class=\"ds-table__right\"><button class=\"ds-table__menu\" aria-label=\"Acciones\">&#8943;</button></td></tr><tr><td>Soporte facturación octubre.xlsx</td><td>Facturación</td><td>J. Álvarez</td><td class=\"ds-table__right\"><button class=\"ds-table__menu\" aria-label=\"Acciones\">&#8943;</button></td></tr></tbody></table></div>",
+      "css": ".ds-table-wrap { background: var(--color-card, #fff); border: 1px solid var(--color-border, #e2e6ec); border-radius: 12px; box-shadow: 0 1px 2px rgb(17 24 39 / 0.04), 0 2px 8px rgb(17 24 39 / 0.06); overflow: hidden; } .ds-table { width: 100%; border-collapse: collapse; font: 400 0.875rem/1.5 'DM Sans', system-ui, sans-serif; color: var(--color-foreground, #111827); } .ds-table th { padding: 0.625rem 1.5rem; text-align: left; font-size: 0.71875rem; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase; color: var(--color-muted-foreground, #4b5563); border-bottom: 1px solid var(--color-border, #e2e6ec); } .ds-table td { padding: 0.75rem 1.5rem; border-bottom: 1px solid var(--color-border, #e2e6ec); } .ds-table tbody tr:last-child td { border-bottom: none; } .ds-table tbody tr:hover { background: var(--color-muted, #f0f2f5); } .ds-table__right { text-align: right; } .ds-table__menu { border: none; background: transparent; border-radius: 8px; padding: 4px 8px; font-size: 1rem; line-height: 1; color: var(--color-muted-foreground, #4b5563); cursor: pointer; transition: background 150ms cubic-bezier(0.4,0,0.2,1); } .ds-table__menu:hover { background: var(--color-accent, #e8f6fd); color: var(--color-accent-foreground, #0369a1); }"
+    },
+    {
+      "name": "Status Badge",
+      "kind": "chip",
+      "refersTo": "badge",
+      "description": "Role names, category tags and counts; fully round, four semantic variants. Never a button.",
+      "html": "<span class=\"ds-badge\">Administrador</span> <span class=\"ds-badge ds-badge--secondary\">Facturación</span> <span class=\"ds-badge ds-badge--outline\">12</span>",
+      "css": ".ds-badge { display: inline-flex; align-items: center; gap: 4px; padding: 0.125rem 0.5rem; border: 1px solid transparent; border-radius: 9999px; font: 500 0.75rem/1.4 'DM Sans', system-ui, sans-serif; background: var(--color-primary, #0a77a6); color: var(--color-primary-foreground, #fff); } .ds-badge--secondary { background: var(--color-secondary, #f0f2f5); color: var(--color-secondary-foreground, #4b5563); } .ds-badge--outline { background: transparent; border-color: var(--color-border, #e2e6ec); color: var(--color-foreground, #111827); } .ds-badge--destructive { background: var(--color-destructive, #dc2626); color: #fff; }"
+    },
+    {
+      "name": "Confirm Destructive Dialog",
+      "kind": "custom",
+      "refersTo": "button-destructive",
+      "description": "Signature component: the single centered confirmation for every delete action across documents, users, categories and tags.",
+      "html": "<div class=\"ds-confirm\"><h2 class=\"ds-confirm__title\">Eliminar documento</h2><p class=\"ds-confirm__body\">¿Eliminar “Contrato prestación de servicios.pdf”? Esta acción no se puede deshacer.</p><div class=\"ds-confirm__actions\"><button class=\"ds-btn-secondary\">Cancelar</button><button class=\"ds-btn-destructive\">Eliminar</button></div></div>",
+      "css": ".ds-confirm { max-width: 420px; padding: 24px; background: var(--color-card, #fff); border-radius: 16px; box-shadow: 0 24px 64px rgb(0 0 0 / 0.28); font-family: 'DM Sans', system-ui, sans-serif; } .ds-confirm__title { margin: 0 0 8px; font-size: 1.125rem; font-weight: 600; letter-spacing: -0.01em; color: var(--color-foreground, #111827); } .ds-confirm__body { margin: 0 0 20px; font-size: 0.875rem; line-height: 1.5; color: var(--color-muted-foreground, #4b5563); } .ds-confirm__actions { display: flex; justify-content: flex-end; gap: 8px; } .ds-confirm .ds-btn-secondary, .ds-confirm .ds-btn-destructive { display: inline-flex; align-items: center; justify-content: center; height: 2.25rem; padding: 0 1.25rem; border: none; border-radius: 10px; font: 500 0.875rem/1 'DM Sans', system-ui, sans-serif; cursor: pointer; } .ds-confirm .ds-btn-secondary { background: var(--color-secondary, #f0f2f5); color: var(--color-secondary-foreground, #4b5563); } .ds-confirm .ds-btn-destructive { background: var(--color-destructive, #dc2626); color: #fff; }"
+    }
+  ],
+  "narrative": {
+    "northStar": "The Clinic Front Desk",
+    "overview": "This is the interface of a competent institutional front desk in a healthcare setting: someone who knows exactly where every document lives, answers quickly, and never loses a file. A deep institutional navy carries authority and holds the frame; a clean clinical teal signals action and care. Everything between is white paper on a soft grey counter. Nothing is decorative — the personality is in the precision.\n\nThe system is Operate mode: staff come to finish a task (upload, classify, find, download), not to be impressed. Density is comfortable-professional, not cramped and not airy-marketing. Screens follow one skeleton — a white header band with breadcrumb, title and one-line description, then a centered working column (max ~1152px) of white cards on the grey canvas. The reading experience is quiet and scannable; the color does the pointing.\n\nTwo deliberate moves away from a generic admin template: surfaces carry real, standing elevation (cards, the sidebar and dialogs are visibly layered at rest, not flat rectangles separated only by hairlines), and controls feel solid and confident — full-height targets, firm contrast, unambiguous affordances. The one rejected direction is 'SaaS marketing dashboard': no gradient hero cards, no multi-color chart candy, no illustration in the working screens.",
+    "keyCharacteristics": [
+      "Navy frame, white paper, one teal accent — a three-value system.",
+      "One consistent page skeleton: header band + centered working column.",
+      "Standing elevation: surfaces are layered at rest, hover adds one more step.",
+      "Uppercase micro-labels for all metadata; body copy never shouts.",
+      "Solid, full-height controls (2.5rem) on a unified 10px corner radius.",
+      "Every management table ends in a right-aligned ⋯ actions column.",
+      "Destructive actions always route through one centered confirm dialog."
+    ],
+    "rules": [
+      { "name": "The Navy Frame Rule", "body": "Navy appears only as chrome — the sidebar and the auth backdrop. It never fills a card, section, or surface inside the content canvas.", "section": "colors" },
+      { "name": "The One Teal Rule", "body": "Clinical Teal covers ≤10% of any working screen: the primary action, the active nav item, focus, selection. If a second element wants teal, one of them is not actually primary.", "section": "colors" },
+      { "name": "The Status-Only Rule", "body": "Red, green and amber are outcomes, not styling. A button is teal or neutral unless its job is to destroy something.", "section": "colors" },
+      { "name": "The Uppercase Label Rule", "body": "Metadata is uppercase, ~11px, 600, letter-spaced: table headers, eyebrows, stat captions, sidebar sections. Running text, buttons and links are never uppercase.", "section": "typography" },
+      { "name": "The Weight-Not-Size Rule", "body": "Seven sizes ship — five running roles (display, headline, title, body, label) plus micro and metric for two specific jobs. New emphasis comes from 400 → 600 → 700 and from muted vs. ink color, not from an eighth size.", "section": "typography" },
+      { "name": "The Standing Depth Rule", "body": "Elevation exists at rest — card = Raised, sidebar = Detached Frame, dialog = Modal. Hover moves a surface one step up the ladder; it is never what makes a surface leave the page for the first time.", "section": "elevation" },
+      { "name": "The Hairline-Plus-Shadow Rule", "body": "A resting surface keeps its 1px #e2e6ec border and its Raised shadow. The border defines the edge crisply; the shadow does the lifting.", "section": "elevation" },
+      { "name": "The Two-Radius Rule", "body": "Controls (button, input, menu, nav item) use 10px; containers (card, dialog, sheet) use 12–16px; badges, avatars and status dots are fully round.", "section": "shapes" },
+      { "name": "The Actions Column Rule", "body": "Every management table ends in a right-aligned Acciones column whose trigger is a ⋯ ghost icon button; row-level actions never float inline.", "section": "components" }
+    ],
+    "dos": [
+      "Do keep the one page skeleton: white header band (breadcrumb → h1 → description) then a centered max-w-6xl working column of white cards.",
+      "Do reserve Clinical Teal (#0a77a6) for the primary action, active nav, focus and selection — ≤10% of a screen.",
+      "Do give every surface standing elevation (Raised for cards, Detached Frame for the sidebar, Modal for dialogs) and keep its 1px hairline.",
+      "Do set metadata — table headers, eyebrows, stat captions, sidebar sections — in uppercase ~11px / 600 / letter-spaced.",
+      "Do use tabular-nums for every count, size and page number.",
+      "Do end every management table with a right-aligned Acciones column whose trigger is a ⋯ ghost icon button.",
+      "Do route every destructive action through the centered Confirm Destructive Dialog.",
+      "Do build new controls at 2.5rem height on the 10px radius; migrate 6px shadcn primitives toward it."
+    ],
+    "donts": [
+      "Don't put Institutional Navy anywhere inside the content canvas — it is sidebar and auth backdrop only.",
+      "Don't introduce a second accent hue in Operate screens; red / green / amber are status outcomes, not styling.",
+      "Don't use pure black — text is Ink #111827.",
+      "Don't ship flat cards separated only by hairlines; the chosen direction is permanent depth.",
+      "Don't uppercase body text, buttons or links.",
+      "Don't mix corner radii ad hoc — controls 10px, containers 12–16px, pills full.",
+      "Don't add gradients, hero imagery or illustration to the working screens. The auth screen's radial teal glow is the one sanctioned exception, scoped to (auth).",
+      "Don't replace the Confirm Destructive Dialog with an inline or slide-over confirmation."
+    ]
+  }
+}
