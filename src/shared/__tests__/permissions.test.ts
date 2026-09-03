@@ -7,7 +7,9 @@ import {
   hasAnyPermission,
   hasModulePermission,
   hasPermission,
+  hasPermissionKey,
   MODULE_PERMISSIONS,
+  permissionsNotGrantableBy,
 } from "@/shared/lib/auth/permissions";
 
 describe("permissions", () => {
@@ -50,5 +52,20 @@ describe("permissions", () => {
   it("MODULE_PERMISSIONS has 4 keys per admin module", () => {
     expect(MODULE_PERMISSIONS.users).toHaveLength(4);
     expect(MODULE_PERMISSIONS.categories).toHaveLength(4);
+  });
+
+  it("hasPermissionKey honours the legacy .manage alias", () => {
+    expect(hasPermissionKey(["categories.create"], "categories.create")).toBe(true);
+    expect(hasPermissionKey(["categories.manage"], "categories.create")).toBe(true);
+    expect(hasPermissionKey(["categories.read"], "categories.create")).toBe(false);
+  });
+
+  it("permissionsNotGrantableBy returns keys the caller lacks", () => {
+    expect(permissionsNotGrantableBy(["roles.create", "roles.read"], ["roles.read"])).toEqual([]);
+    expect(
+      permissionsNotGrantableBy(["roles.create"], ["users.delete", "roles.update"])
+    ).toEqual(["users.delete", "roles.update"]);
+    // an admin holding .manage can grant every granular key of that module
+    expect(permissionsNotGrantableBy(["users.manage"], ["users.create", "users.delete"])).toEqual([]);
   });
 });

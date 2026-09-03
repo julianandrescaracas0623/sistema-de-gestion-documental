@@ -8,7 +8,6 @@ import { getSession } from "@/shared/lib/auth/get-session";
 import { hasModulePermission } from "@/shared/lib/auth/permissions";
 import { CACHE_TAGS } from "@/shared/lib/cache/cached-queries";
 import { createClient } from "@/shared/lib/supabase/server";
-import { createServiceRoleClient } from "@/shared/lib/supabase/service-role";
 
 const schema = z.object({
   id: z.string().uuid("ID inválido."),
@@ -37,9 +36,15 @@ export async function updateTagAction(_prev: unknown, formData: FormData): Promi
 
   if (existing !== null) return { status: "error", message: "Ya existe una etiqueta con ese nombre." };
 
-  const adminClient = createServiceRoleClient();
-  const { error } = await adminClient.from("tags").update({ name: parsed.data.name }).eq("id", parsed.data.id);
+  const { data: updated, error } = await supabase
+    .from("tags")
+    .update({ name: parsed.data.name })
+    .eq("id", parsed.data.id)
+    .select("id");
   if (error !== null) return { status: "error", message: "No se pudo actualizar la etiqueta." };
+  if (updated.length === 0) {
+    return { status: "error", message: "No se pudo actualizar la etiqueta (sin permiso o no existe)." };
+  }
 
   revalidatePath("/admin/tags");
   revalidateTag(CACHE_TAGS.tags, "default");

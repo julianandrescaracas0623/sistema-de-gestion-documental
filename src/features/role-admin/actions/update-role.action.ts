@@ -5,7 +5,12 @@ import { z } from "zod";
 
 import type { ActionResult } from "@/shared/lib/action-result";
 import { getSession } from "@/shared/lib/auth/get-session";
-import { hasModulePermission, PERMISSION_KEYS, type PermissionKey } from "@/shared/lib/auth/permissions";
+import {
+  hasModulePermission,
+  permissionsNotGrantableBy,
+  PERMISSION_KEYS,
+  type PermissionKey,
+} from "@/shared/lib/auth/permissions";
 import { createClient } from "@/shared/lib/supabase/server";
 
 const rowWithIdSchema = z.object({ id: z.string().uuid() });
@@ -50,7 +55,20 @@ export async function updateRoleAction(_prev: unknown, formData: FormData): Prom
     return { status: "error", message: parsed.error.issues[0]?.message ?? "Datos inválidos." };
   }
 
+  if (parsed.data.id === session.roleId) {
+    return { status: "error", message: "No puedes editar tu propio rol." };
+  }
+
   const permissionKeys = parsePermissionKeys(parsed.data.permissionKeys);
+
+  const notGrantable = permissionsNotGrantableBy(session.permissions, permissionKeys);
+  if (notGrantable.length > 0) {
+    return {
+      status: "error",
+      message: `No puedes otorgar permisos que tú no tienes: ${notGrantable.join(", ")}.`,
+    };
+  }
+
   const supabase = await createClient();
 
   const { data: roleRow, error: roleLookupError } = await supabase
@@ -69,13 +87,17 @@ export async function updateRoleAction(_prev: unknown, formData: FormData): Prom
     updated_at: new Date().toISOString(),
   };
 
-  const { error: updateError } = await supabase
+  const { data: updatedRole, error: updateError } = await supabase
     .from("roles")
     .update(updatePayload)
-    .eq("id", parsed.data.id);
+    .eq("id", parsed.data.id)
+    .select("id");
 
   if (updateError !== null) {
     return { status: "error", message: "No se pudo actualizar el rol." };
+  }
+  if (updatedRole.length === 0) {
+    return { status: "error", message: "No tienes permiso para editar este rol." };
   }
 
   const { error: deleteLinksError } = await supabase

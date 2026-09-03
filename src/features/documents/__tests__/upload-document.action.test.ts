@@ -1,5 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 
+import type { PermissionKey } from "@/shared/lib/auth/permissions";
+
 const mockGetUser = vi.fn();
 const mockStorageFrom = vi.fn();
 const mockFrom = vi.fn();
@@ -14,10 +16,27 @@ vi.mock("@/shared/lib/supabase/server", () => ({
   ),
 }));
 
+vi.mock("@/shared/lib/auth/get-session", () => ({ getSession: vi.fn() }));
+
+function sessionWith(permissions: PermissionKey[]) {
+  return {
+    userId: "user-1",
+    email: "u@test.com",
+    fullName: "U",
+    roleId: "r1",
+    roleSlug: "user",
+    roleName: "Usuario",
+    permissions,
+    role: "user" as const,
+  };
+}
+
 describe("uploadDocumentAction", () => {
-  beforeEach(() => {
+  beforeEach(async () => {
     vi.clearAllMocks();
     mockGetUser.mockResolvedValue({ data: { user: { id: "user-1" } } });
+    const { getSession } = await import("@/shared/lib/auth/get-session");
+    vi.mocked(getSession).mockResolvedValue(sessionWith(["documents.create"]));
     mockStorageFrom.mockReturnValue({
       upload: vi.fn().mockResolvedValue({ error: null }),
       remove: vi.fn().mockResolvedValue({ error: null }),
@@ -76,5 +95,18 @@ describe("uploadDocumentAction", () => {
     const result = await uploadDocumentAction(null, fd);
 
     expect(result).toEqual({ status: "error", message: "Selecciona un archivo válido." });
+  });
+
+  it("denies a user without documents.create", async () => {
+    const { getSession } = await import("@/shared/lib/auth/get-session");
+    vi.mocked(getSession).mockResolvedValue(sessionWith(["documents.read"]));
+    const { uploadDocumentAction } = await import("../actions/upload-document.action");
+    const fd = new FormData();
+    fd.set("title", "Doc");
+    fd.set("file", new File(["x"], "a.pdf", { type: "application/pdf" }));
+
+    const result = await uploadDocumentAction(null, fd);
+
+    expect(result).toEqual({ status: "error", message: "No tienes permiso para subir documentos." });
   });
 });

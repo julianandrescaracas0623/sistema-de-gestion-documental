@@ -8,7 +8,6 @@ import { getSession } from "@/shared/lib/auth/get-session";
 import { hasModulePermission } from "@/shared/lib/auth/permissions";
 import { CACHE_TAGS } from "@/shared/lib/cache/cached-queries";
 import { createClient } from "@/shared/lib/supabase/server";
-import { createServiceRoleClient } from "@/shared/lib/supabase/service-role";
 
 const schema = z.object({ id: z.string().uuid("ID inválido.") });
 
@@ -25,9 +24,30 @@ export async function deleteTagAction(_prev: unknown, formData: FormData): Promi
     return { status: "error", message: "No tienes permiso para eliminar etiquetas." };
   }
 
-  const adminClient = createServiceRoleClient();
-  const { error } = await adminClient.from("tags").delete().eq("id", parsed.data.id);
+  const { count: usageCount, error: countError } = await supabase
+    .from("document_tags")
+    .select("document_id", { count: "exact", head: true })
+    .eq("tag_id", parsed.data.id);
+
+  if (countError !== null) {
+    return { status: "error", message: "No se pudo verificar los documentos asociados." };
+  }
+  if ((usageCount ?? 0) > 0) {
+    return {
+      status: "error",
+      message: `No se puede eliminar: la etiqueta está en ${String(usageCount)} documento(s). Quítala de esos documentos primero.`,
+    };
+  }
+
+  const { data: deleted, error } = await supabase
+    .from("tags")
+    .delete()
+    .eq("id", parsed.data.id)
+    .select("id");
   if (error !== null) return { status: "error", message: "No se pudo eliminar la etiqueta." };
+  if (deleted.length === 0) {
+    return { status: "error", message: "No se pudo eliminar la etiqueta (sin permiso o no existe)." };
+  }
 
   revalidatePath("/admin/tags");
   revalidateTag(CACHE_TAGS.tags, "default");

@@ -6,6 +6,8 @@ import { z } from "zod";
 import { resolveCategoryId } from "@/features/documents/lib/resolve-category-id";
 import { parseTagInput } from "@/features/documents/lib/tag-utils";
 import type { ActionResult } from "@/shared/lib/action-result";
+import { getSession } from "@/shared/lib/auth/get-session";
+import { hasModulePermission } from "@/shared/lib/auth/permissions";
 import { formFieldText } from "@/shared/lib/form-utils";
 import { createClient } from "@/shared/lib/supabase/server";
 
@@ -14,6 +16,7 @@ const rowWithIdSchema = z.object({ id: z.string().uuid() });
 const existingDocSchema = z.object({
   id: z.string().uuid(),
   deleted_at: z.string().nullable(),
+  uploaded_by: z.string().uuid().nullable(),
 });
 
 const schema = z.object({
@@ -38,6 +41,11 @@ export async function updateDocumentMetadataAction(_prev: unknown, formData: For
     return { status: "error", message: "Debes iniciar sesión." };
   }
 
+  const session = await getSession();
+  if (session === null) {
+    return { status: "error", message: "Debes iniciar sesión." };
+  }
+
   const parsed = schema.safeParse({
     documentId: formFieldText(formData, "documentId"),
     title: formFieldText(formData, "title"),
@@ -56,7 +64,7 @@ export async function updateDocumentMetadataAction(_prev: unknown, formData: For
 
   const { data: existing, error: fetchErr } = await supabase
     .from("documents")
-    .select("id, deleted_at")
+    .select("id, deleted_at, uploaded_by")
     .eq("id", documentId)
     .maybeSingle();
 
@@ -75,19 +83,27 @@ export async function updateDocumentMetadataAction(_prev: unknown, formData: For
     return { status: "error", message: "Este documento ya fue eliminado." };
   }
 
+  const canUpdate =
+    hasModulePermission(session.permissions, "documents", "update") ||
+    existingParsed.data.uploaded_by === session.userId;
+  if (!canUpdate) {
+    return { status: "error", message: "No tienes permiso para editar este documento." };
+  }
+
   const descriptionValue =
     description === undefined || description === "" ? null : description;
 
   const { categoryId: resolvedCategoryId, error: categoryError } = await resolveCategoryId(
     supabase,
     categoryId,
-    categoryName
+    categoryName,
+    hasModulePermission(session.permissions, "categories", "create")
   );
   if (categoryError !== null) {
     return { status: "error", message: categoryError };
   }
 
-  const { error: updErr } = await supabase
+  const { data: updatedRows, error: updErr } = await supabase
     .from("documents")
     .update({
       title,
@@ -95,10 +111,14 @@ export async function updateDocumentMetadataAction(_prev: unknown, formData: For
       category_id: resolvedCategoryId,
       updated_at: new Date().toISOString(),
     })
-    .eq("id", documentId);
+    .eq("id", documentId)
+    .select("id");
 
   if (updErr !== null) {
     return { status: "error", message: `No se pudo actualizar: ${updErr.message}` };
+  }
+  if (updatedRows.length === 0) {
+    return { status: "error", message: "No se pudo actualizar el documento (sin permiso)." };
   }
 
   const { error: delTagsErr } = await supabase.from("document_tags").delete().eq("document_id", documentId);

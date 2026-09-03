@@ -10,6 +10,8 @@ import { DOCUMENTS_STORAGE_BUCKET, getMaxDocumentUploadMb } from "@/features/doc
 import { sanitizeStorageFilename } from "@/features/documents/lib/sanitize-storage-filename";
 import { parseTagInput } from "@/features/documents/lib/tag-utils";
 import type { ActionResult } from "@/shared/lib/action-result";
+import { getSession } from "@/shared/lib/auth/get-session";
+import { hasModulePermission } from "@/shared/lib/auth/permissions";
 import { formFieldText } from "@/shared/lib/form-utils";
 import { createClient } from "@/shared/lib/supabase/server";
 import { isFileSizeValid, isFileTypeAllowed, readUploadFileBuffer, getFileTypeErrorMessage } from "@/shared/lib/upload-utils";
@@ -39,6 +41,11 @@ export async function uploadDocumentAction(_prev: unknown, formData: FormData): 
 
   if (user === null) {
     return { status: "error", message: "Debes iniciar sesión para subir documentos." };
+  }
+
+  const session = await getSession();
+  if (session === null || !hasModulePermission(session.permissions, "documents", "create")) {
+    return { status: "error", message: "No tienes permiso para subir documentos." };
   }
 
   const file = formData.get("file");

@@ -6,7 +6,12 @@ import { z } from "zod";
 import { slugifyRoleName } from "@/features/role-admin/lib/slugify-role";
 import type { ActionResult } from "@/shared/lib/action-result";
 import { getSession } from "@/shared/lib/auth/get-session";
-import { hasModulePermission, PERMISSION_KEYS, type PermissionKey } from "@/shared/lib/auth/permissions";
+import {
+  hasModulePermission,
+  permissionsNotGrantableBy,
+  PERMISSION_KEYS,
+  type PermissionKey,
+} from "@/shared/lib/auth/permissions";
 import { createClient } from "@/shared/lib/supabase/server";
 
 const rowWithIdSchema = z.object({ id: z.string().uuid() });
@@ -50,6 +55,15 @@ export async function createRoleAction(_prev: unknown, formData: FormData): Prom
   }
 
   const permissionKeys = parsePermissionKeys(parsed.data.permissionKeys);
+
+  const notGrantable = permissionsNotGrantableBy(session.permissions, permissionKeys);
+  if (notGrantable.length > 0) {
+    return {
+      status: "error",
+      message: `No puedes otorgar permisos que tú no tienes: ${notGrantable.join(", ")}.`,
+    };
+  }
+
   const baseSlug = slugifyRoleName(parsed.data.name);
   if (baseSlug.length < 2) {
     return { status: "error", message: "El nombre no genera un identificador válido." };

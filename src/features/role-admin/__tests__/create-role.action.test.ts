@@ -62,7 +62,7 @@ describe("createRoleAction", () => {
       roleId: "role-1",
       roleSlug: "admin",
       roleName: "Administrador",
-      permissions: ["roles.create"],
+      permissions: ["roles.create", "documents.read"],
       role: "admin",
     });
     mockSlugLookup.mockResolvedValue({ data: null, error: null });
@@ -112,5 +112,30 @@ describe("createRoleAction", () => {
     expect(result.status).toBe("success");
     expect(mockInsertRole).toHaveBeenCalled();
     expect(mockLinkInsert).toHaveBeenCalled();
+  });
+
+  it("blocks granting a permission the caller does not hold (anti-escalation)", async () => {
+    const { getSession } = await import("@/shared/lib/auth/get-session");
+    vi.mocked(getSession).mockResolvedValue({
+      userId: "mgr-1",
+      email: "mgr@test.com",
+      fullName: "Manager",
+      roleId: "role-3",
+      roleSlug: "roles-manager",
+      roleName: "Gestor de roles",
+      permissions: ["roles.create", "roles.read"],
+      role: null,
+    });
+
+    const { createRoleAction } = await import("../actions/create-role.action");
+    const fd = new FormData();
+    fd.set("name", "Superusuario");
+    fd.set("permissionKeys", "users.delete,roles.update");
+
+    const result = await createRoleAction(null, fd);
+
+    expect(result.status).toBe("error");
+    expect(result.message).toMatch(/no puedes otorgar/i);
+    expect(mockInsertRole).not.toHaveBeenCalled();
   });
 });

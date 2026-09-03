@@ -85,3 +85,22 @@ export function hasModulePermission(
 export function hasAnyAdminNavPermission(permissions: readonly string[]): boolean {
   return ADMIN_NAV_MODULES.some((m) => canAccessModule(permissions, m));
 }
+
+/** True if the holder has a permission key, honouring the legacy `<module>.manage` alias. */
+export function hasPermissionKey(permissions: readonly string[], key: PermissionKey): boolean {
+  if (permissions.includes(key)) return true;
+  const module = key.split(".")[0] as PermissionModule;
+  return permissions.includes(LEGACY_MANAGE_ALIASES[module]);
+}
+
+/**
+ * The subset of `requestedKeys` that the caller is NOT allowed to grant because
+ * they do not hold it themselves. Empty = the caller may grant everything asked.
+ * Prevents privilege escalation through the role editor.
+ */
+export function permissionsNotGrantableBy(
+  callerPermissions: readonly string[],
+  requestedKeys: readonly PermissionKey[]
+): PermissionKey[] {
+  return requestedKeys.filter((key) => !hasPermissionKey(callerPermissions, key));
+}
