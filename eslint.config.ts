@@ -99,6 +99,6 @@ export default tseslint.config(
     rules: { "@typescript-eslint/no-deprecated": "off" },
   },
   {
-    ignores: [".next/**", "node_modules/**", "dist/**", "coverage/**", "eslint.config.ts", "next-env.d.ts", "next.config.ts", "playwright.config.ts", "drizzle.config.ts", "vitest.config.ts", "postcss.config.mjs"],
+    ignores: [".next/**", "node_modules/**", "dist/**", "coverage/**", ".claude/**", ".cursor/**", ".opencode/**", ".github/skills/**", ".impeccable/**", "scripts/**/*.mjs", "eslint.config.ts", "next-env.d.ts", "next.config.ts", "playwright.config.ts", "drizzle.config.ts", "vitest.config.ts", "postcss.config.mjs"],
   }
 );

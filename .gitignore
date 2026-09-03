@@ -29,3 +29,17 @@ drizzle/
 
 # MCP memory service (Docker volume)
 .memory/
+
+# Impeccable design skill — the tool itself is not versioned (like a linter plugin).
+# The project artifacts it produces ARE committed: PRODUCT.md, DESIGN.md,
+# .impeccable/config.json, .impeccable/design.json
+.claude/skills/impeccable/
+.claude/agents/impeccable-*.md
+.cursor/skills/impeccable/
+.cursor/agents/impeccable-*.md
+.cursor/hooks.json
+.opencode/skills/impeccable/
+.github/skills/
+.github/agents/
+.github/hooks/
+.impeccable/live/
