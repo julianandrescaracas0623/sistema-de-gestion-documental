@@ -49,19 +49,17 @@ function SheetContent({
       <SheetPrimitive.Content
         data-slot="sheet-content"
         className={cn(
-          "bg-sidebar fixed z-50 flex max-h-full flex-col shadow-lg outline-none",
-          side === "right" &&
-            "inset-y-0 right-0 h-full w-[min(280px,88vw)] border-sidebar-border border-l",
-          side === "left" &&
-            "inset-y-0 left-0 h-full w-[min(280px,88vw)] border-sidebar-border border-r",
-          side === "top" && "inset-x-0 top-0 max-h-[80vh] w-full border-sidebar-border border-b",
-          side === "bottom" && "inset-x-0 bottom-0 max-h-[80vh] w-full border-sidebar-border border-t",
+          "bg-background text-foreground fixed z-50 flex max-h-full flex-col shadow-lg outline-none",
+          side === "right" && "border-border inset-y-0 right-0 h-full w-[min(280px,88vw)] border-l",
+          side === "left" && "border-border inset-y-0 left-0 h-full w-[min(280px,88vw)] border-r",
+          side === "top" && "border-border inset-x-0 top-0 max-h-[80vh] w-full border-b",
+          side === "bottom" && "border-border inset-x-0 bottom-0 max-h-[80vh] w-full border-t",
           className
         )}
         {...props}
       >
         {children}
-        <SheetPrimitive.Close className="ring-offset-background focus:ring-ring absolute top-4 right-4 rounded-md p-1 text-sidebar-foreground opacity-80 transition-opacity hover:opacity-100 focus:ring-2 focus:ring-offset-2 focus:outline-none">
+        <SheetPrimitive.Close className="ring-offset-background focus:ring-ring absolute top-4 right-4 rounded-md p-1 text-current opacity-80 transition-opacity hover:opacity-100 focus:ring-2 focus:ring-offset-2 focus:outline-none">
           <X className="size-4" />
           <span className="sr-only">Cerrar</span>
         </SheetPrimitive.Close>
@@ -78,7 +76,7 @@ function SheetFooter({ className, ...props }: React.ComponentProps<"div">) {
   return (
     <div
       data-slot="sheet-footer"
-      className={cn("mt-auto flex flex-col gap-2 border-sidebar-border border-t p-4", className)}
+      className={cn("border-border mt-auto flex flex-col gap-2 border-t p-4", className)}
       {...props}
     />
   );
@@ -88,7 +86,7 @@ function SheetTitle({ className, ...props }: React.ComponentProps<typeof SheetPr
   return (
     <SheetPrimitive.Title
       data-slot="sheet-title"
-      className={cn("text-sidebar-foreground font-semibold", className)}
+      className={cn("text-foreground font-semibold", className)}
       {...props}
     />
   );
@@ -101,7 +99,7 @@ function SheetDescription({
   return (
     <SheetPrimitive.Description
       data-slot="sheet-description"
-      className={cn("text-sidebar-muted text-sm", className)}
+      className={cn("text-muted-foreground text-sm", className)}
       {...props}
     />
   );

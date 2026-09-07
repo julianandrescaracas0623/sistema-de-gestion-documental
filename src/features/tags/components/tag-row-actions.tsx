@@ -47,7 +47,7 @@ function EditTagSheet({ tag, open, onOpenChange }: { tag: TagAdminRow; open: boo
         <form ref={formRef} action={formAction} className="mt-6 space-y-4 px-1">
           <input type="hidden" name="id" value={tag.id} />
           <div className="space-y-2">
-            <Label htmlFor={`edit-tag-name-${tag.id}`} className="text-sidebar-foreground">
+            <Label htmlFor={`edit-tag-name-${tag.id}`}>
               Nombre <span className="text-destructive">*</span>
             </Label>
             <Input
