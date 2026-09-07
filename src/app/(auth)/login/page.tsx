@@ -27,10 +27,10 @@ export default function LoginPage() {
       />
 
       <div className="relative z-[1] w-full max-w-[380px]">
-        <Card className="rounded-2xl border-0 py-2 shadow-[0_24px_64px_rgb(0_0_0/0.28)]">
+        <Card className="shadow-modal rounded-2xl border-0 py-2">
           <CardHeader className="space-y-5 px-9 pt-10 pb-2">
             <div className="flex items-center gap-3">
-              <div className="flex size-[42px] shrink-0 items-center justify-center rounded-[10px] bg-primary text-[15px] font-extrabold text-primary-foreground">
+              <div className="flex size-[42px] shrink-0 items-center justify-center rounded-[10px] bg-primary text-base font-extrabold text-primary-foreground">
                 IPS
               </div>
               <div className="space-y-0.5 text-left">
@@ -42,7 +42,7 @@ export default function LoginPage() {
                 </CardTitle>
               </div>
             </div>
-            <CardDescription className="text-left text-[13px] leading-relaxed">
+            <CardDescription className="text-left text-sm leading-relaxed">
               Accede con tu cuenta institucional para gestionar documentos de forma segura.
             </CardDescription>
           </CardHeader>

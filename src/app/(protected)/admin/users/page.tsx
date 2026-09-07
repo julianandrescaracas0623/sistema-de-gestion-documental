@@ -7,6 +7,7 @@ import { RoleFilterSelect } from "@/features/user-admin/components/RoleFilterSel
 import { UserTable } from "@/features/user-admin/components/UserTable";
 import { CreateUserForm } from "@/features/user-admin/components/create-user-form";
 import { listRoles, listUsersWithRoles } from "@/features/user-admin/queries/users.queries";
+import { PageBreadcrumb } from "@/shared/components/page-breadcrumb";
 import { Badge } from "@/shared/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/shared/components/ui/card";
 import { getSession } from "@/shared/lib/auth/get-session";
@@ -61,10 +62,7 @@ export default async function AdminUsersPage({
   return (
     <div className="flex min-h-0 flex-1 flex-col">
       <header className="bg-card shrink-0 border-b px-4 py-4 sm:px-6 lg:px-7">
-        <p className="text-muted-foreground text-xs tracking-wide">
-          Inicio <span className="opacity-50">/</span> Administración <span className="opacity-50">/</span>{" "}
-          Usuarios
-        </p>
+        <PageBreadcrumb items={[{ label: "Inicio", href: "/" }, { label: "Usuarios" }]} />
         <h1 className="text-lg font-semibold tracking-tight text-foreground">Usuarios</h1>
         <p className="text-muted-foreground mt-0.5 text-sm">
           Alta, eliminación de cuentas y asignación de roles. Los documentos de usuarios eliminados se conservan.

@@ -9,8 +9,8 @@ import { z } from "zod";
 
 import { requestPasswordResetAction } from "@/features/auth/actions/request-password-reset.action";
 import { Button } from "@/shared/components/ui/button";
+import { FormField } from "@/shared/components/ui/form-field";
 import { Input } from "@/shared/components/ui/input";
-import { Label } from "@/shared/components/ui/label";
 
 const schema = z.object({
   email: z.string().email("Correo electrónico inválido"),
@@ -49,19 +49,17 @@ export function ForgotPasswordForm() {
       }}
       className="space-y-5"
     >
-      <div className="space-y-2">
-        <Label htmlFor="email">Correo electrónico</Label>
-        <Input
-          id="email"
-          type="email"
-          autoComplete="email"
-          placeholder="usuario@ips.com"
-          {...register("email")}
-        />
-        {errors.email !== undefined ? (
-          <p className="text-destructive text-sm">{errors.email.message}</p>
-        ) : null}
-      </div>
+      <FormField id="email" label="Correo electrónico" error={errors.email?.message}>
+        {(field) => (
+          <Input
+            type="email"
+            autoComplete="email"
+            placeholder="usuario@ips.com"
+            {...field}
+            {...register("email")}
+          />
+        )}
+      </FormField>
       <Button type="submit" className="w-full" loading={isPending}>
         Enviar enlace de recuperación
       </Button>

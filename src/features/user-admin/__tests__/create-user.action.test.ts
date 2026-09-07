@@ -12,6 +12,12 @@ vi.mock("@/shared/lib/auth/get-session", () => ({
   getSession: vi.fn(),
 }));
 
+vi.mock("@/shared/lib/supabase/server", () => ({
+  createClient: vi.fn(() => Promise.resolve({})),
+}));
+
+vi.mock("@/shared/lib/audit/record-audit", () => ({ recordAudit: vi.fn() }));
+
 vi.mock("@/shared/lib/supabase/service-role", () => ({
   createServiceRoleClient: vi.fn(() => ({
     auth: {

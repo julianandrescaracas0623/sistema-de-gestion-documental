@@ -16,7 +16,8 @@ function normalizeCategoryName(value: string | undefined): string | undefined {
 export async function resolveCategoryId(
   supabase: SupabaseServer,
   selectedCategoryId: string | undefined,
-  categoryName: string | undefined
+  categoryName: string | undefined,
+  canCreateCategory: boolean
 ): Promise<{ categoryId: string | null; error: string | null }> {
   const normalizedName = normalizeCategoryName(categoryName);
   if (normalizedName === undefined) {
@@ -40,6 +41,13 @@ export async function resolveCategoryId(
       return { categoryId: null, error: "Respuesta inválida al consultar categoría." };
     }
     return { categoryId: existingParsed.data.id, error: null };
+  }
+
+  if (!canCreateCategory) {
+    return {
+      categoryId: null,
+      error: "No tienes permiso para crear categorías. Selecciona una categoría existente.",
+    };
   }
 
   let adminClient;

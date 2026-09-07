@@ -4,11 +4,15 @@ import { revalidatePath } from "next/cache";
 import { z } from "zod";
 
 import type { ActionResult } from "@/shared/lib/action-result";
+import { recordAudit } from "@/shared/lib/audit/record-audit";
 import { getSession } from "@/shared/lib/auth/get-session";
-import { hasModulePermission, PERMISSION_KEYS, type PermissionKey } from "@/shared/lib/auth/permissions";
+import {
+  hasModulePermission,
+  permissionsNotGrantableBy,
+  PERMISSION_KEYS,
+  type PermissionKey,
+} from "@/shared/lib/auth/permissions";
 import { createClient } from "@/shared/lib/supabase/server";
-
-const rowWithIdSchema = z.object({ id: z.string().uuid() });
 
 function parsePermissionKeys(raw: string): PermissionKey[] {
   const keys = raw
@@ -50,7 +54,20 @@ export async function updateRoleAction(_prev: unknown, formData: FormData): Prom
     return { status: "error", message: parsed.error.issues[0]?.message ?? "Datos inválidos." };
   }
 
+  if (parsed.data.id === session.roleId) {
+    return { status: "error", message: "No puedes editar tu propio rol." };
+  }
+
   const permissionKeys = parsePermissionKeys(parsed.data.permissionKeys);
+
+  const notGrantable = permissionsNotGrantableBy(session.permissions, permissionKeys);
+  if (notGrantable.length > 0) {
+    return {
+      status: "error",
+      message: `No puedes otorgar permisos que tú no tienes: ${notGrantable.join(", ")}.`,
+    };
+  }
+
   const supabase = await createClient();
 
   const { data: roleRow, error: roleLookupError } = await supabase
@@ -63,57 +80,30 @@ export async function updateRoleAction(_prev: unknown, formData: FormData): Prom
     return { status: "error", message: "El rol no existe." };
   }
 
-  const updatePayload: { name: string; description: string | null; updated_at: string } = {
-    name: parsed.data.name,
-    description: parsed.data.description ?? null,
-    updated_at: new Date().toISOString(),
-  };
+  const { data: updated, error: rpcError } = (await supabase.rpc("update_role_with_permissions", {
+    p_role_id: parsed.data.id,
+    p_name: parsed.data.name,
+    p_description: parsed.data.description ?? null,
+    p_permission_keys: permissionKeys,
+  })) as { data: boolean | null; error: { message: string } | null };
 
-  const { error: updateError } = await supabase
-    .from("roles")
-    .update(updatePayload)
-    .eq("id", parsed.data.id);
-
-  if (updateError !== null) {
+  if (rpcError !== null) {
+    if (rpcError.message.includes("invalid_permission_keys")) {
+      return { status: "error", message: "Uno o más permisos no son válidos." };
+    }
     return { status: "error", message: "No se pudo actualizar el rol." };
   }
-
-  const { error: deleteLinksError } = await supabase
-    .from("role_permissions")
-    .delete()
-    .eq("role_id", parsed.data.id);
-
-  if (deleteLinksError !== null) {
-    return { status: "error", message: "No se pudieron actualizar los permisos." };
+  if (updated !== true) {
+    return { status: "error", message: "No tienes permiso para editar este rol." };
   }
 
-  const { data: perms, error: permsError } = await supabase
-    .from("permissions")
-    .select("id, key")
-    .in("key", permissionKeys);
-
-  if (permsError !== null || perms.length !== permissionKeys.length) {
-    return { status: "error", message: "Uno o más permisos no son válidos." };
-  }
-
-  const parsedPerms = perms
-    .map((row) => rowWithIdSchema.safeParse(row))
-    .filter((r) => r.success);
-
-  if (parsedPerms.length !== permissionKeys.length) {
-    return { status: "error", message: "Uno o más permisos no son válidos." };
-  }
-
-  const { error: linkError } = await supabase.from("role_permissions").insert(
-    parsedPerms.map((p) => ({
-      role_id: parsed.data.id,
-      permission_id: p.data.id,
-    }))
-  );
-
-  if (linkError !== null) {
-    return { status: "error", message: "No se pudieron asignar los permisos al rol." };
-  }
+  await recordAudit(supabase, {
+    action: "role.update",
+    entityType: "role",
+    entityId: parsed.data.id,
+    summary: parsed.data.name,
+    metadata: { permissionKeys },
+  });
 
   revalidatePath("/admin/roles");
   return { status: "success", message: "Rol actualizado correctamente." };

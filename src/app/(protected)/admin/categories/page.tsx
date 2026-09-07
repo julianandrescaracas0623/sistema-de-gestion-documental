@@ -4,6 +4,7 @@ import { redirect } from "next/navigation";
 import { CategoryTable } from "@/features/categories/components/CategoryTable";
 import { CreateCategoryForm } from "@/features/categories/components/CreateCategoryForm";
 import { listCategoriesWithCount } from "@/features/categories/queries/categories.queries";
+import { PageBreadcrumb } from "@/shared/components/page-breadcrumb";
 import { Badge } from "@/shared/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/shared/components/ui/card";
 import { getSession } from "@/shared/lib/auth/get-session";
@@ -22,10 +23,7 @@ export default async function AdminCategoriesPage() {
     <div className="flex min-h-0 flex-1 flex-col">
       <header className="bg-card flex shrink-0 flex-col gap-3 border-b px-4 py-4 sm:px-6 lg:px-7 md:flex-row md:items-center md:justify-between">
         <div>
-          <p className="text-muted-foreground text-xs tracking-wide">
-            Inicio <span className="opacity-50">/</span> Administración <span className="opacity-50">/</span>{" "}
-            Categorías
-          </p>
+          <PageBreadcrumb items={[{ label: "Inicio", href: "/" }, { label: "Categorías" }]} />
           <h1 className="text-lg font-semibold tracking-tight text-foreground">Categorías</h1>
           <p className="text-muted-foreground mt-0.5 text-sm">Organiza los documentos del sistema.</p>
         </div>

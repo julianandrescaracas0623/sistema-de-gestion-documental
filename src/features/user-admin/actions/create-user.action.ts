@@ -3,8 +3,10 @@
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
 
+import { recordAudit } from "@/shared/lib/audit/record-audit";
 import { getSession } from "@/shared/lib/auth/get-session";
 import { hasModulePermission } from "@/shared/lib/auth/permissions";
+import { createClient } from "@/shared/lib/supabase/server";
 import { createServiceRoleClient } from "@/shared/lib/supabase/service-role";
 
 const createUserSchema = z.object({
@@ -115,6 +117,14 @@ export async function createUserByAdminAction(
     await adminClient.auth.admin.deleteUser(newId);
     return { status: "error", message: "No se pudo asignar el rol. Intenta de nuevo." };
   }
+
+  await recordAudit(await createClient(), {
+    action: "user.create",
+    entityType: "user",
+    entityId: newId,
+    summary: email,
+    metadata: { fullName, roleId },
+  });
 
   revalidatePath("/");
   revalidatePath("/admin/users");

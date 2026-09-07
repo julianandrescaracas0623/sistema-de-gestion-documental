@@ -96,7 +96,7 @@ export function RoleTable({
           </p>
         </div>
         <Button asChild>
-          <Link href={"/admin/roles/new" as Route}>Crear rol</Link>
+          <Link href="/admin/roles/new">Crear rol</Link>
         </Button>
       </div>
     );
@@ -128,7 +128,7 @@ export function RoleTable({
               <div className="flex flex-wrap items-center gap-2">
                 <span className="font-medium text-foreground">{row.name}</span>
                 {row.is_system ? (
-                  <Badge variant="outline" className="text-[10px]">
+                  <Badge variant="outline" className="text-micro">
                     Sistema
                   </Badge>
                 ) : null}

@@ -4,9 +4,11 @@ import { revalidatePath } from "next/cache";
 import { z } from "zod";
 
 import type { ActionResult } from "@/shared/lib/action-result";
+import { recordAudit } from "@/shared/lib/audit/record-audit";
 import { getSession } from "@/shared/lib/auth/get-session";
 import { hasModulePermission } from "@/shared/lib/auth/permissions";
 import { formFieldText } from "@/shared/lib/form-utils";
+import { createClient } from "@/shared/lib/supabase/server";
 import { createServiceRoleClient } from "@/shared/lib/supabase/service-role";
 
 const deleteUserSchema = z.object({
@@ -98,6 +100,13 @@ export async function deleteUserByAdminAction(_prev: unknown, formData: FormData
     return { status: "error", message: "El usuario no existe o ya fue eliminado." };
   }
 
+  const { data: targetProfile } = await adminClient
+    .from("profiles")
+    .select("email")
+    .eq("id", userId)
+    .maybeSingle();
+  const targetEmail = typeof targetProfile?.email === "string" ? targetProfile.email : userId;
+
   if (targetRoleSlug === "admin") {
     const adminCount = await countAdminRoleUsers(adminClient);
     if (adminCount <= 1) {
@@ -118,6 +127,14 @@ export async function deleteUserByAdminAction(_prev: unknown, formData: FormData
         "La cuenta de acceso fue eliminada, pero no se pudo limpiar el perfil. Contacta al soporte técnico.",
     };
   }
+
+  await recordAudit(await createClient(), {
+    action: "user.delete",
+    entityType: "user",
+    entityId: userId,
+    summary: targetEmail,
+    metadata: { roleSlug: targetRoleSlug },
+  });
 
   revalidatePath("/admin/users");
   revalidatePath("/documents");

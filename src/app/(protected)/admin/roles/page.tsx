@@ -5,6 +5,7 @@ import { redirect } from "next/navigation";
 import { RoleTable } from "@/features/role-admin/components/RoleTable";
 import { listPermissionsCatalog } from "@/features/role-admin/queries/permissions.queries";
 import { listRolesWithDetails } from "@/features/role-admin/queries/roles.queries";
+import { PageBreadcrumb } from "@/shared/components/page-breadcrumb";
 import { Badge } from "@/shared/components/ui/badge";
 import { Button } from "@/shared/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/shared/components/ui/card";
@@ -26,10 +27,7 @@ export default async function AdminRolesPage() {
       <header className="bg-card shrink-0 border-b px-4 py-4 sm:px-6 lg:px-7">
         <div className="flex flex-wrap items-end justify-between gap-4">
           <div>
-            <p className="text-muted-foreground text-xs tracking-wide">
-              Inicio <span className="opacity-50">/</span> Administración{" "}
-              <span className="opacity-50">/</span> Roles
-            </p>
+            <PageBreadcrumb items={[{ label: "Inicio", href: "/" }, { label: "Roles" }]} />
             <h1 className="text-lg font-semibold tracking-tight text-foreground">Roles y permisos</h1>
             <p className="text-muted-foreground mt-0.5 max-w-xl text-sm">
               Administra quién puede hacer qué en el sistema. Selecciona un rol para configurar sus

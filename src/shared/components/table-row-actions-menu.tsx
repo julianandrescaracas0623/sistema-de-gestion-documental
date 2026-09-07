@@ -31,7 +31,7 @@ export function TableRowActionsMenu({ items }: { items: TableRowActionItem[] }) 
           type="button"
           variant="ghost"
           size="icon"
-          className="size-8"
+          className="size-9"
           aria-label="Abrir menú de acciones"
         >
           <MoreHorizontal className="size-4" />

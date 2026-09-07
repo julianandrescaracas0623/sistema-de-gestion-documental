@@ -2,14 +2,18 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 
 const mockSignInWithPassword = vi.fn();
 const mockRedirect = vi.fn();
+const mockProfileUpdateEq = vi.fn().mockResolvedValue({ error: null });
 
 vi.mock("@/shared/lib/supabase/server", () => ({
   createClient: vi.fn(() =>
     Promise.resolve({
       auth: { signInWithPassword: mockSignInWithPassword },
+      from: () => ({ update: () => ({ eq: mockProfileUpdateEq }) }),
     })
   ),
 }));
+
+vi.mock("@/shared/lib/audit/record-audit", () => ({ recordAudit: vi.fn() }));
 
 vi.mock("next/navigation", () => ({
   redirect: (url: string): unknown => mockRedirect(url),
@@ -71,7 +75,7 @@ describe("loginAction", () => {
 
   it("redirects to / on successful login", async () => {
     // Arrange
-    mockSignInWithPassword.mockResolvedValue({ error: null });
+    mockSignInWithPassword.mockResolvedValue({ data: { user: { id: "u1" } }, error: null });
     const { loginAction } = await import("../actions/login.action");
     const fd = new FormData();
     fd.set("email", "user@example.com");

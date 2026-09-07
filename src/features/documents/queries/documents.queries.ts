@@ -22,6 +22,7 @@ export interface DocumentDetailRow extends DocumentListRow {
   description: string | null;
   storage_object_path: string;
   deleted_at: string | null;
+  retention_until: string | null;
   document_tags: { tag_id: string; tag: { id: string; name: string } | null }[];
 }
 
@@ -97,6 +98,73 @@ export async function listDocuments(
   return { data: data as unknown as DocumentListRow[], count, error: null };
 }
 
+export interface TrashedDocumentRow {
+  id: string;
+  title: string;
+  file_name: string;
+  size_bytes: number;
+  created_at: string;
+  deleted_at: string;
+  retention_until: string | null;
+  uploader: { email: string } | null;
+}
+
+export async function listTrashedDocuments(
+  supabase: SupabaseServer,
+  params: { page: number; pageSize: number }
+): Promise<{ data: TrashedDocumentRow[]; count: number; error: Error | null }> {
+  const from = (params.page - 1) * params.pageSize;
+  const to = from + params.pageSize - 1;
+
+  const { data, error, count } = await supabase
+    .from("documents")
+    .select(
+      "id, title, file_name, size_bytes, created_at, deleted_at, retention_until, uploader:profiles!uploaded_by (email)",
+      { count: "exact" }
+    )
+    .not("deleted_at", "is", null)
+    .order("deleted_at", { ascending: false })
+    .range(from, to);
+
+  if (error !== null) {
+    return { data: [], count: 0, error: new Error(error.message) };
+  }
+  return { data: data as unknown as TrashedDocumentRow[], count: count ?? 0, error: null };
+}
+
+export async function countTrashedDocuments(
+  supabase: SupabaseServer
+): Promise<{ count: number; error: Error | null }> {
+  const { count, error } = await supabase
+    .from("documents")
+    .select("*", { count: "exact", head: true })
+    .not("deleted_at", "is", null);
+  if (error !== null) return { count: 0, error: new Error(error.message) };
+  return { count: count ?? 0, error: null };
+}
+
+/** Active documents whose retention date is within `days` (or already past). */
+export async function listExpiringDocuments(
+  supabase: SupabaseServer,
+  days = 30
+): Promise<{ data: { id: string; title: string; retention_until: string }[]; error: Error | null }> {
+  const limit = new Date();
+  limit.setDate(limit.getDate() + days);
+  const { data, error } = await supabase
+    .from("documents")
+    .select("id, title, retention_until")
+    .is("deleted_at", null)
+    .not("retention_until", "is", null)
+    .lte("retention_until", limit.toISOString().slice(0, 10))
+    .order("retention_until", { ascending: true })
+    .limit(50);
+  if (error !== null) return { data: [], error: new Error(error.message) };
+  return {
+    data: data as unknown as { id: string; title: string; retention_until: string }[],
+    error: null,
+  };
+}
+
 export async function listTagsForFilter(supabase: SupabaseServer): Promise<{
   data: { id: string; name: string }[] | null;
   error: Error | null;
@@ -155,6 +223,7 @@ export async function getDocumentById(
       uploaded_by,
       storage_object_path,
       deleted_at,
+      retention_until,
       category:categories (id, name),
       uploader:profiles!uploaded_by (email),
       document_tags (

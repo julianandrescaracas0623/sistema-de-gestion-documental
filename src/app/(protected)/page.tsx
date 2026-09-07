@@ -7,11 +7,16 @@ import {
   Clock,
   Files,
   ShieldCheck,
+  CalendarClock,
 } from "lucide-react";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 
-import { countDocuments, listRecentDocuments } from "@/features/documents/queries/documents.queries";
+import {
+  countDocuments,
+  listExpiringDocuments,
+  listRecentDocuments,
+} from "@/features/documents/queries/documents.queries";
 import {
   Card,
   CardContent,
@@ -34,10 +39,12 @@ export default async function HomePage() {
   const { fullName, roleName, permissions } = session;
 
   const supabase = await createClient();
-  const [{ count: totalDocuments }, { data: recentDocuments }] = await Promise.all([
-    countDocuments(supabase),
-    listRecentDocuments(supabase, 5),
-  ]);
+  const [{ count: totalDocuments }, { data: recentDocuments }, { data: expiringDocuments }] =
+    await Promise.all([
+      countDocuments(supabase),
+      listRecentDocuments(supabase, 5),
+      listExpiringDocuments(supabase, 30),
+    ]);
 
   return (
     <div className="flex min-h-0 flex-1 flex-col">
@@ -58,12 +65,12 @@ export default async function HomePage() {
         </section>
 
         <section className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-          <Card className="shadow-sm">
+          <Card>
             <CardHeader className="pb-2">
               <CardDescription className="text-xs font-medium tracking-wide uppercase">
                 Documentos
               </CardDescription>
-              <CardTitle className="text-[28px] font-bold leading-none tabular-nums">
+              <CardTitle className="text-metric font-bold tabular-nums">
                 {totalDocuments ?? "—"}
               </CardTitle>
             </CardHeader>
@@ -72,12 +79,12 @@ export default async function HomePage() {
               Registro total de archivos
             </CardContent>
           </Card>
-          <Card className="shadow-sm">
+          <Card>
             <CardHeader className="pb-2">
               <CardDescription className="text-xs font-medium tracking-wide uppercase">
                 Recientes
               </CardDescription>
-              <CardTitle className="text-[28px] font-bold leading-none tabular-nums">
+              <CardTitle className="text-metric font-bold tabular-nums">
                 {recentDocuments?.length ?? 0}
               </CardTitle>
             </CardHeader>
@@ -104,10 +111,43 @@ export default async function HomePage() {
               )}
             </CardContent>
           </Card>
-          <Card className="shadow-sm sm:col-span-2 lg:col-span-2">
+          <Card>
+            <CardHeader className="pb-2">
+              <CardDescription className="text-xs font-medium tracking-wide uppercase">
+                Por vencer
+              </CardDescription>
+              <CardTitle className="text-metric font-bold tabular-nums">
+                {String(expiringDocuments.length)}
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="text-muted-foreground flex flex-col gap-1 text-xs">
+              <div className="flex items-center gap-2">
+                <CalendarClock className="text-primary size-4" />
+                Retención en los próximos 30 días
+              </div>
+              {expiringDocuments.length > 0 ? (
+                <ul className="mt-2 space-y-1">
+                  {expiringDocuments.slice(0, 3).map((doc) => (
+                    <li key={doc.id} className="truncate">
+                      <Link
+                        href={`/documents/${doc.id}`}
+                        className="hover:text-primary transition-colors"
+                      >
+                        {doc.title}
+                      </Link>{" "}
+                      <span className="opacity-60">· {doc.retention_until}</span>
+                    </li>
+                  ))}
+                </ul>
+              ) : (
+                <span className="text-muted-foreground/60">Ninguno próximo</span>
+              )}
+            </CardContent>
+          </Card>
+          <Card>
             <CardHeader className="pb-2">
               <CardDescription className="text-xs font-medium tracking-wide uppercase">Tu rol</CardDescription>
-              <CardTitle className="text-[28px] font-bold leading-none">
+              <CardTitle className="text-metric font-bold">
                 {roleName !== "" ? roleName : "—"}
               </CardTitle>
             </CardHeader>
@@ -129,7 +169,7 @@ export default async function HomePage() {
           </div>
           <div className="grid gap-3 md:grid-cols-2 lg:grid-cols-3">
             <Link href="/documents" className="group block rounded-[var(--radius)]">
-              <Card className="border-border h-full transition-all group-hover:-translate-y-0.5 group-hover:shadow-md">
+              <Card className="border-border h-full transition-[transform,box-shadow] group-hover:-translate-y-0.5 group-hover:shadow-overlay">
                 <CardHeader className="gap-3">
                   <div className="bg-primary/10 w-fit rounded-lg p-2">
                     <FileText className="text-primary size-5" />
@@ -142,7 +182,7 @@ export default async function HomePage() {
 
             {hasPermission(permissions, "documents.create") ? (
               <Link href="/documents/new" className="group block rounded-[var(--radius)]">
-                <Card className="border-border h-full transition-all group-hover:-translate-y-0.5 group-hover:shadow-md">
+                <Card className="border-border h-full transition-[transform,box-shadow] group-hover:-translate-y-0.5 group-hover:shadow-overlay">
                   <CardHeader className="gap-3">
                     <div className="bg-accent w-fit rounded-lg p-2">
                       <Upload className="text-accent-foreground size-5" />
@@ -156,7 +196,7 @@ export default async function HomePage() {
 
             {canAccessModule(permissions, "users") ? (
               <Link href="/admin/users" className="group block rounded-[var(--radius)]">
-                <Card className="border-border h-full transition-all group-hover:-translate-y-0.5 group-hover:shadow-md">
+                <Card className="border-border h-full transition-[transform,box-shadow] group-hover:-translate-y-0.5 group-hover:shadow-overlay">
                   <CardHeader className="gap-3">
                     <div className="bg-primary/10 w-fit rounded-lg p-2">
                       <Users className="text-primary size-5" />
@@ -170,7 +210,7 @@ export default async function HomePage() {
 
             {canAccessModule(permissions, "categories") ? (
               <Link href="/admin/categories" className="group block rounded-[var(--radius)]">
-                <Card className="border-border h-full transition-all group-hover:-translate-y-0.5 group-hover:shadow-md">
+                <Card className="border-border h-full transition-[transform,box-shadow] group-hover:-translate-y-0.5 group-hover:shadow-overlay">
                   <CardHeader className="gap-3">
                     <div className="bg-primary/10 w-fit rounded-lg p-2">
                       <FolderOpen className="text-primary size-5" />
@@ -184,7 +224,7 @@ export default async function HomePage() {
 
             {canAccessModule(permissions, "tags") ? (
               <Link href="/admin/tags" className="group block rounded-[var(--radius)]">
-                <Card className="border-border h-full transition-all group-hover:-translate-y-0.5 group-hover:shadow-md">
+                <Card className="border-border h-full transition-[transform,box-shadow] group-hover:-translate-y-0.5 group-hover:shadow-overlay">
                   <CardHeader className="gap-3">
                     <div className="bg-primary/10 w-fit rounded-lg p-2">
                       <Tag className="text-primary size-5" />

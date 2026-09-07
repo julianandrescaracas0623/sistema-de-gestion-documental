@@ -119,7 +119,7 @@ export function TagInput({
 
       {/* Suggestions dropdown */}
       {open && suggestions.length > 0 ? (
-        <ul className="absolute z-50 mt-1 w-full rounded-md border bg-popover shadow-md">
+        <ul className="bg-popover shadow-overlay absolute z-50 mt-1 w-full rounded-md border">
           {suggestions.map((t) => (
             <li key={t.id}>
               <button

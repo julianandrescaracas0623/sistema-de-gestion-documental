@@ -10,8 +10,8 @@ import { z } from "zod";
 import { loginAction, type LoginActionState } from "../actions/login.action";
 
 import { Button } from "@/shared/components/ui/button";
+import { FormField } from "@/shared/components/ui/form-field";
 import { Input } from "@/shared/components/ui/input";
-import { Label } from "@/shared/components/ui/label";
 
 const schema = z.object({
   email: z.string().email("Correo electrónico inválido"),
@@ -51,35 +51,31 @@ export function LoginForm() {
         </p>
       )}
 
-      <div className="space-y-2">
-        <Label htmlFor="email">Correo electrónico</Label>
-        <Input
-          id="email"
-          type="email"
-          autoComplete="email"
-          placeholder="usuario@ips.com"
-          className="h-10 bg-background/70"
-          {...register("email")}
-        />
-        {errors.email !== undefined && (
-          <p className="text-sm text-destructive">{errors.email.message}</p>
+      <FormField id="email" label="Correo electrónico" error={errors.email?.message}>
+        {(field) => (
+          <Input
+            type="email"
+            autoComplete="email"
+            placeholder="usuario@ips.com"
+            className="h-10 bg-background/70"
+            {...field}
+            {...register("email")}
+          />
         )}
-      </div>
+      </FormField>
 
-      <div className="space-y-2">
-        <Label htmlFor="password">Contraseña</Label>
-        <Input
-          id="password"
-          type="password"
-          autoComplete="current-password"
-          placeholder="••••••••"
-          className="h-10 bg-background/70"
-          {...register("password")}
-        />
-        {errors.password !== undefined && (
-          <p className="text-sm text-destructive">{errors.password.message}</p>
+      <FormField id="password" label="Contraseña" error={errors.password?.message}>
+        {(field) => (
+          <Input
+            type="password"
+            autoComplete="current-password"
+            placeholder="••••••••"
+            className="h-10 bg-background/70"
+            {...field}
+            {...register("password")}
+          />
         )}
-      </div>
+      </FormField>
 
       <Button type="submit" className="mt-1 h-10 w-full text-sm font-semibold" loading={isPending}>
         Iniciar sesión

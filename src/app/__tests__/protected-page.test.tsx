@@ -19,6 +19,7 @@ vi.mock("@/shared/lib/supabase/server", () => ({
 vi.mock("@/features/documents/queries/documents.queries", () => ({
   countDocuments: vi.fn(() => Promise.resolve({ count: 0, error: null })),
   listRecentDocuments: vi.fn(() => Promise.resolve({ data: [], error: null })),
+  listExpiringDocuments: vi.fn(() => Promise.resolve({ data: [], error: null })),
 }));
 
 vi.mock("next/navigation", () => ({

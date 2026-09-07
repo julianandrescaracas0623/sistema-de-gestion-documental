@@ -11,6 +11,8 @@ import type { DocumentDetailRow } from "@/features/documents/queries/documents.q
 import { Button } from "@/shared/components/ui/button";
 import { Input } from "@/shared/components/ui/input";
 import { Label } from "@/shared/components/ui/label";
+import { Select } from "@/shared/components/ui/select";
+import { Textarea } from "@/shared/components/ui/textarea";
 
 function isActionResult(v: unknown): v is { status: "success" | "error"; message: string } {
   return (
@@ -60,9 +62,10 @@ export function DocumentMetadataForm({
       </div>
       <div className="space-y-2">
         <Label htmlFor="description">Descripción</Label>
-        <Input
+        <Textarea
           id="description"
           name="description"
+          rows={3}
           maxLength={5000}
           defaultValue={document.description ?? ""}
           disabled={isPending}
@@ -71,11 +74,10 @@ export function DocumentMetadataForm({
       </div>
       <div className="space-y-2">
         <Label htmlFor="categoryId">Categoría</Label>
-        <select
+        <Select
           id="categoryId"
           name="categoryId"
           disabled={isPending}
-          className="border-input bg-background ring-offset-background focus-visible:ring-ring flex h-9 w-full rounded-md border px-3 py-1 text-sm shadow-xs focus-visible:ring-[3px] focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-50"
           defaultValue={document.category !== null ? document.category.id : ""}
         >
           <option value="">Sin categoría</option>
@@ -84,7 +86,7 @@ export function DocumentMetadataForm({
               {c.name}
             </option>
           ))}
-        </select>
+        </Select>
       </div>
       <div className="space-y-2">
         <Label>Etiquetas</Label>
@@ -95,6 +97,20 @@ export function DocumentMetadataForm({
           disabled={isPending}
           placeholder="Separadas por coma"
         />
+      </div>
+      <div className="space-y-1.5">
+        <Label htmlFor="retentionUntil">Conservar hasta</Label>
+        <Input
+          id="retentionUntil"
+          name="retentionUntil"
+          type="date"
+          defaultValue={document.retention_until ?? ""}
+          disabled={isPending}
+        />
+        <p className="text-muted-foreground text-xs">
+          Pasada esta fecha, el documento puede eliminarse de forma permanente. Déjalo vacío si no
+          aplica.
+        </p>
       </div>
       <div className="flex flex-wrap items-center gap-2">
         <Button type="submit" variant="secondary" disabled={isPending}>

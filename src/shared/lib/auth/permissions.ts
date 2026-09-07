@@ -19,11 +19,12 @@ export const PERMISSION_KEYS = [
   "tags.create",
   "tags.update",
   "tags.delete",
+  "audit.read",
 ] as const;
 
 export type PermissionKey = (typeof PERMISSION_KEYS)[number];
 
-export type PermissionModule = "users" | "roles" | "documents" | "categories" | "tags";
+export type PermissionModule = "users" | "roles" | "documents" | "categories" | "tags" | "audit";
 
 export const MODULE_PERMISSIONS: Record<PermissionModule, PermissionKey[]> = {
   users: ["users.read", "users.create", "users.update", "users.delete"],
@@ -31,6 +32,7 @@ export const MODULE_PERMISSIONS: Record<PermissionModule, PermissionKey[]> = {
   documents: ["documents.read", "documents.create", "documents.update", "documents.delete"],
   categories: ["categories.read", "categories.create", "categories.update", "categories.delete"],
   tags: ["tags.read", "tags.create", "tags.update", "tags.delete"],
+  audit: ["audit.read"],
 };
 
 /** Legacy keys mapped during DB migration — still recognized in has_permission SQL. */
@@ -40,6 +42,7 @@ export const LEGACY_MANAGE_ALIASES: Record<PermissionModule, string> = {
   documents: "documents.manage",
   categories: "categories.manage",
   tags: "tags.manage",
+  audit: "audit.manage",
 };
 
 export const ADMIN_PERMISSION_KEYS: PermissionKey[] = [...PERMISSION_KEYS];
@@ -51,7 +54,13 @@ export const DEFAULT_USER_PERMISSION_KEYS: PermissionKey[] = [
   "documents.delete",
 ];
 
-export const ADMIN_NAV_MODULES: PermissionModule[] = ["users", "roles", "categories", "tags"];
+export const ADMIN_NAV_MODULES: PermissionModule[] = [
+  "users",
+  "roles",
+  "categories",
+  "tags",
+  "audit",
+];
 
 export function hasPermission(permissions: readonly string[], key: PermissionKey): boolean {
   return permissions.includes(key);
@@ -84,4 +93,23 @@ export function hasModulePermission(
 
 export function hasAnyAdminNavPermission(permissions: readonly string[]): boolean {
   return ADMIN_NAV_MODULES.some((m) => canAccessModule(permissions, m));
+}
+
+/** True if the holder has a permission key, honouring the legacy `<module>.manage` alias. */
+export function hasPermissionKey(permissions: readonly string[], key: PermissionKey): boolean {
+  if (permissions.includes(key)) return true;
+  const module = key.split(".")[0] as PermissionModule;
+  return permissions.includes(LEGACY_MANAGE_ALIASES[module]);
+}
+
+/**
+ * The subset of `requestedKeys` that the caller is NOT allowed to grant because
+ * they do not hold it themselves. Empty = the caller may grant everything asked.
+ * Prevents privilege escalation through the role editor.
+ */
+export function permissionsNotGrantableBy(
+  callerPermissions: readonly string[],
+  requestedKeys: readonly PermissionKey[]
+): PermissionKey[] {
+  return requestedKeys.filter((key) => !hasPermissionKey(callerPermissions, key));
 }

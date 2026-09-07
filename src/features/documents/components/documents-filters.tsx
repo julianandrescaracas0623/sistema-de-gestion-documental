@@ -20,6 +20,7 @@ import {
 } from "@/shared/components/ui/card";
 import { Input } from "@/shared/components/ui/input";
 import { Label } from "@/shared/components/ui/label";
+import { Select } from "@/shared/components/ui/select";
 
 interface DocumentsFiltersProps {
   q: string;
@@ -109,14 +110,13 @@ export function DocumentsFilters({
           </div>
           <div className="space-y-2">
             <Label htmlFor="category">Categoría</Label>
-            <select
+            <Select
               id="category"
               name="category"
               value={categoryId}
               onChange={(e) => {
                 setCategoryId(e.target.value);
               }}
-              className="border-input bg-background focus-visible:border-ring focus-visible:ring-ring/50 h-9 w-full rounded-md border px-3 text-sm outline-none focus-visible:ring-[3px]"
             >
               <option value="">Todas</option>
               {categories.map((c) => (
@@ -124,18 +124,17 @@ export function DocumentsFilters({
                   {c.name}
                 </option>
               ))}
-            </select>
+            </Select>
           </div>
           <div className="space-y-2">
             <Label htmlFor="tag">Etiqueta</Label>
-            <select
+            <Select
               id="tag"
               name="tag"
               value={tagId}
               onChange={(e) => {
                 setTagId(e.target.value);
               }}
-              className="border-input bg-background focus-visible:border-ring focus-visible:ring-ring/50 h-9 w-full rounded-md border px-3 text-sm outline-none focus-visible:ring-[3px]"
             >
               <option value="">Todas</option>
               {tags.map((t) => (
@@ -143,7 +142,7 @@ export function DocumentsFilters({
                   {t.name}
                 </option>
               ))}
-            </select>
+            </Select>
           </div>
           <div className="space-y-2 sm:col-span-2 lg:col-span-4">
             <Label>Período rápido</Label>

@@ -130,7 +130,7 @@ function XlsxViewer({ url }: { url: string }) {
         </div>
       ) : null}
       <div
-        className="overflow-auto max-h-[70vh] p-4 [&_table]:border-collapse [&_td]:border [&_td]:border-gray-300 [&_td]:px-2 [&_td]:py-1 [&_td]:text-sm [&_th]:border [&_th]:border-gray-300 [&_th]:px-2 [&_th]:py-1 [&_th]:bg-gray-100 [&_th]:text-sm"
+        className="max-h-[70vh] overflow-auto p-4 [&_table]:border-collapse [&_td]:border [&_td]:border-border [&_td]:px-2 [&_td]:py-1 [&_td]:text-sm [&_th]:border [&_th]:border-border [&_th]:bg-muted [&_th]:px-2 [&_th]:py-1 [&_th]:text-sm"
         dangerouslySetInnerHTML={{ __html: workbook.sheets[activeSheet] ?? "" }}
       />
     </div>
@@ -140,15 +140,15 @@ function XlsxViewer({ url }: { url: string }) {
 export function OfficePreview({ url, mime }: { url: string; mime: string }) {
   if (mime === DOCX_MIME) {
     return (
-      <div className="overflow-auto max-h-[80vh] bg-gray-100">
+      <div className="bg-muted max-h-[80vh] overflow-auto">
         <style>{`
           .docx-container .docx-wrapper {
             padding: 2rem;
-            background: #f3f4f6;
+            background: var(--color-muted);
           }
           .docx-container .docx-wrapper > section.docx {
-            background: white;
-            box-shadow: 0 1px 4px rgba(0,0,0,0.15);
+            background: var(--color-card);
+            box-shadow: var(--shadow-raised);
             margin-bottom: 1rem;
           }
         `}</style>

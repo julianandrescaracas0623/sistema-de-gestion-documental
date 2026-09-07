@@ -3,8 +3,10 @@
 import { revalidatePath, revalidateTag } from "next/cache";
 import { z } from "zod";
 
-import { DOCUMENTS_STORAGE_BUCKET } from "@/features/documents/lib/documents-config";
 import type { ActionResult } from "@/shared/lib/action-result";
+import { recordAudit } from "@/shared/lib/audit/record-audit";
+import { getSession } from "@/shared/lib/auth/get-session";
+import { hasModulePermission } from "@/shared/lib/auth/permissions";
 import { CACHE_TAGS } from "@/shared/lib/cache/cached-queries";
 import { formFieldText } from "@/shared/lib/form-utils";
 import { createClient } from "@/shared/lib/supabase/server";
@@ -22,6 +24,12 @@ const schema = z.object({
     .pipe(z.array(z.string().uuid()).min(1, "IDs inválidos.")),
 });
 
+const rowSchema = z.object({
+  id: z.string().uuid(),
+  deleted_at: z.string().nullable(),
+  uploaded_by: z.string().uuid().nullable(),
+});
+
 export async function bulkSoftDeleteDocumentsAction(
   _prev: unknown,
   formData: FormData
@@ -35,6 +43,11 @@ export async function bulkSoftDeleteDocumentsAction(
     return { status: "error", message: "Debes iniciar sesión." };
   }
 
+  const session = await getSession();
+  if (session === null) {
+    return { status: "error", message: "Debes iniciar sesión." };
+  }
+
   const parsed = schema.safeParse({
     documentIds: formFieldText(formData, "documentIds"),
   });
@@ -45,34 +58,53 @@ export async function bulkSoftDeleteDocumentsAction(
     };
   }
 
-  const now = new Date().toISOString();
-  let deleted = 0;
+  const { data: rows, error: fetchErr } = await supabase
+    .from("documents")
+    .select("id, deleted_at, uploaded_by")
+    .in("id", parsed.data.documentIds);
 
-  for (const documentId of parsed.data.documentIds) {
-    const { data: row, error: fetchErr } = await supabase
-      .from("documents")
-      .select("id, storage_object_path, deleted_at")
-      .eq("id", documentId)
-      .maybeSingle();
-
-    if (fetchErr !== null || row === null || row.deleted_at != null) continue;
-
-    const storagePath = row.storage_object_path as string;
-
-    const { error: delErr } = await supabase
-      .from("documents")
-      .update({ deleted_at: now })
-      .eq("id", documentId);
-
-    if (delErr !== null) continue;
-
-    await supabase.storage.from(DOCUMENTS_STORAGE_BUCKET).remove([storagePath]);
-    deleted += 1;
+  if (fetchErr !== null) {
+    return { status: "error", message: "No se pudo cargar la selección." };
   }
 
+  const canDeleteAny = hasModulePermission(session.permissions, "documents", "delete");
+  const deletable = rows
+    .flatMap((r) => {
+      const p = rowSchema.safeParse(r);
+      return p.success ? [p.data] : [];
+    })
+    .filter((r) => r.deleted_at === null && (canDeleteAny || r.uploaded_by === session.userId));
+
+  if (deletable.length === 0) {
+    return { status: "error", message: "No hay documentos que puedas eliminar en la selección." };
+  }
+
+  const now = new Date().toISOString();
+  const ids = deletable.map((r) => r.id);
+  const { data: updated, error: delErr } = await supabase
+    .from("documents")
+    .update({ deleted_at: now })
+    .in("id", ids)
+    .is("deleted_at", null)
+    .select("id");
+
+  if (delErr !== null) {
+    return { status: "error", message: "No se pudieron eliminar los documentos." };
+  }
+
+  const deletedIds = new Set(updated.map((r) => r.id as string));
+  const deleted = deletedIds.size;
   if (deleted === 0) {
     return { status: "error", message: "No se pudo eliminar ningún documento." };
   }
+
+  // El binario permanece en el storage (papelera).
+  await recordAudit(supabase, {
+    action: "document.delete",
+    entityType: "document",
+    summary: `${String(deleted)} documento(s) en lote`,
+    metadata: { ids: [...deletedIds] },
+  });
 
   revalidatePath("/documents");
   revalidatePath("/admin/tags");

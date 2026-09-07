@@ -4,6 +4,7 @@ import { z } from "zod";
 
 import { syncProfileNameToAuthMetadata } from "@/features/auth/lib/sync-profile-name-to-auth-metadata";
 import type { ActionResult } from "@/shared/lib/action-result";
+import { publicEnv } from "@/shared/lib/env";
 import { formFieldText } from "@/shared/lib/form-utils";
 import { createClient } from "@/shared/lib/supabase/server";
 import { createServiceRoleClient } from "@/shared/lib/supabase/service-role";
@@ -13,8 +14,7 @@ const schema = z.object({
 });
 
 function getResetRedirectUrl(): string {
-  const siteUrl = process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000";
-  return `${siteUrl.replace(/\/$/, "")}/api/auth/callback?next=/reset-password`;
+  return `${publicEnv.NEXT_PUBLIC_APP_URL.replace(/\/$/, "")}/api/auth/callback?next=/reset-password`;
 }
 
 export async function requestPasswordResetAction(

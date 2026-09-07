@@ -22,7 +22,7 @@ function AuthConfirmContent() {
 
   if (tokenHash === null || tokenHash === "" || type === null || type === "") {
     return (
-      <Card className="rounded-2xl border-0 py-2 shadow-[0_24px_64px_rgb(0_0_0/0.28)]">
+      <Card className="rounded-2xl border-0 py-2 shadow-modal">
         <CardHeader className="space-y-2 px-9 pt-10 pb-2">
           <CardTitle className="text-lg font-semibold">Enlace no válido</CardTitle>
           <CardDescription>
@@ -41,7 +41,7 @@ function AuthConfirmContent() {
   const callbackUrl = `/api/auth/callback?token_hash=${encodeURIComponent(tokenHash)}&type=${encodeURIComponent(type)}&next=${encodeURIComponent(next)}`;
 
   return (
-    <Card className="rounded-2xl border-0 py-2 shadow-[0_24px_64px_rgb(0_0_0/0.28)]">
+    <Card className="rounded-2xl border-0 py-2 shadow-modal">
       <CardHeader className="space-y-2 px-9 pt-10 pb-2">
         <CardTitle className="text-lg font-semibold">Confirmar acción</CardTitle>
         <CardDescription>

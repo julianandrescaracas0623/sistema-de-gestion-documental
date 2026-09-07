@@ -9,8 +9,8 @@ import { z } from "zod";
 
 import { resetPasswordAction } from "@/features/auth/actions/reset-password.action";
 import { Button } from "@/shared/components/ui/button";
+import { FormField } from "@/shared/components/ui/form-field";
 import { Input } from "@/shared/components/ui/input";
-import { Label } from "@/shared/components/ui/label";
 
 const schema = z
   .object({
@@ -55,25 +55,25 @@ export function ResetPasswordForm() {
       }}
       className="space-y-5"
     >
-      <div className="space-y-2">
-        <Label htmlFor="password">Nueva contraseña</Label>
-        <Input id="password" type="password" autoComplete="new-password" {...register("password")} />
-        {errors.password !== undefined ? (
-          <p className="text-destructive text-sm">{errors.password.message}</p>
-        ) : null}
-      </div>
-      <div className="space-y-2">
-        <Label htmlFor="confirmPassword">Confirmar contraseña</Label>
-        <Input
-          id="confirmPassword"
-          type="password"
-          autoComplete="new-password"
-          {...register("confirmPassword")}
-        />
-        {errors.confirmPassword !== undefined ? (
-          <p className="text-destructive text-sm">{errors.confirmPassword.message}</p>
-        ) : null}
-      </div>
+      <FormField id="password" label="Nueva contraseña" error={errors.password?.message}>
+        {(field) => (
+          <Input type="password" autoComplete="new-password" {...field} {...register("password")} />
+        )}
+      </FormField>
+      <FormField
+        id="confirmPassword"
+        label="Confirmar contraseña"
+        error={errors.confirmPassword?.message}
+      >
+        {(field) => (
+          <Input
+            type="password"
+            autoComplete="new-password"
+            {...field}
+            {...register("confirmPassword")}
+          />
+        )}
+      </FormField>
       <Button type="submit" className="w-full" loading={isPending}>
         Guardar nueva contraseña
       </Button>

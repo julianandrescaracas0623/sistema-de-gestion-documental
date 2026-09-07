@@ -1,7 +1,6 @@
 "use client";
 
 import { ArrowLeft, ShieldCheck, Users } from "lucide-react";
-import type { Route } from "next";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useActionState, useEffect, useState, useTransition } from "react";
@@ -25,6 +24,7 @@ import {
 import { Input } from "@/shared/components/ui/input";
 import { Label } from "@/shared/components/ui/label";
 import { Separator } from "@/shared/components/ui/separator";
+import { Textarea } from "@/shared/components/ui/textarea";
 import type { ActionResult } from "@/shared/lib/action-result";
 
 const idleState = { status: "idle" } as unknown as ActionResult;
@@ -54,7 +54,7 @@ export function RoleEditor({
       if (isEdit) {
         router.refresh();
       } else {
-        router.push("/admin/roles" as Route);
+        router.push("/admin/roles");
       }
     }
   }, [state, isEdit, router]);
@@ -81,7 +81,7 @@ export function RoleEditor({
         <PageBreadcrumb
           items={[
             { label: "Inicio", href: "/" },
-            { label: "Roles", href: "/admin/roles" as Route },
+            { label: "Roles", href: "/admin/roles" },
             { label: isEdit ? "Editar rol" : "Nuevo rol" },
           ]}
         />
@@ -94,7 +94,7 @@ export function RoleEditor({
               <div className="flex flex-wrap items-center gap-2">
                 <h1 className="text-lg font-semibold tracking-tight text-foreground">{title}</h1>
                 {isEdit && role.is_system ? (
-                  <Badge variant="outline" className="text-[10px]">
+                  <Badge variant="outline" className="text-micro">
                     Rol del sistema
                   </Badge>
                 ) : null}
@@ -123,7 +123,7 @@ export function RoleEditor({
             </div>
           </div>
           <Button variant="outline" size="sm" asChild className="shrink-0">
-            <Link href={"/admin/roles" as Route}>
+            <Link href={"/admin/roles"}>
               <ArrowLeft className="size-4" aria-hidden />
               Volver al listado
             </Link>
@@ -173,7 +173,7 @@ export function RoleEditor({
 
               <div className="space-y-1.5">
                 <Label htmlFor="role-description">Descripción</Label>
-                <textarea
+                <Textarea
                   id="role-description"
                   value={description}
                   onChange={(e) => {
@@ -182,7 +182,6 @@ export function RoleEditor({
                   rows={4}
                   maxLength={500}
                   placeholder="Describe el propósito de este rol en la IPS…"
-                  className="border-input bg-background placeholder:text-muted-foreground focus-visible:border-ring focus-visible:ring-ring/50 flex min-h-[96px] w-full rounded-md border px-3 py-2 text-sm shadow-xs outline-none focus-visible:ring-[3px] disabled:cursor-not-allowed disabled:opacity-50"
                 />
               </div>
 
@@ -193,7 +192,7 @@ export function RoleEditor({
                   {isEdit ? "Guardar cambios" : "Crear rol"}
                 </Button>
                 <Button type="button" variant="outline" className="w-full" asChild>
-                  <Link href={"/admin/roles" as Route}>Cancelar</Link>
+                  <Link href={"/admin/roles"}>Cancelar</Link>
                 </Button>
               </div>
             </CardContent>
