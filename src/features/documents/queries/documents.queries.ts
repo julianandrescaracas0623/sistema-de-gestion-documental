@@ -48,12 +48,16 @@ export async function listDocuments(
     dateTo?: string;
     page: number;
     pageSize: number;
+    sort?: "title" | "size_bytes" | "created_at";
+    dir?: "asc" | "desc";
   }
 ): Promise<{ data: DocumentListRow[] | null; count: number | null; error: Error | null }> {
   const { q, categoryId, tagId, dateFrom: rawFrom, dateTo: rawTo, page, pageSize } = params;
   const { dateFrom, dateTo } = normalizeDateRange(rawFrom ?? "", rawTo ?? "");
   const from = page * pageSize;
   const to = from + pageSize - 1;
+  const sortColumn = params.sort ?? "created_at";
+  const ascending = (params.dir ?? (params.sort === undefined ? "desc" : "asc")) === "asc";
 
   const safeQ = q !== undefined && q !== "" ? sanitizeDocumentSearchQuery(q) : "";
 
@@ -66,7 +70,7 @@ export async function listDocuments(
     .from("documents")
     .select(selectBody, { count: "exact" })
     .is("deleted_at", null)
-    .order("created_at", { ascending: false })
+    .order(sortColumn, { ascending })
     .range(from, to);
 
   if (tagId !== undefined && tagId !== "") {

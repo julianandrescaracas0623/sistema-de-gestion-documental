@@ -3,12 +3,18 @@ import { DocumentsTableClient } from "./documents-table-client";
 import type { DocumentSearchParams } from "@/features/documents/lib/documents-search-params";
 import { getRolesForUploaders, listDocuments } from "@/features/documents/queries/documents.queries";
 import { Card, CardContent } from "@/shared/components/ui/card";
+import { getSession } from "@/shared/lib/auth/get-session";
+import { hasModulePermission } from "@/shared/lib/auth/permissions";
 import { createClient } from "@/shared/lib/supabase/server";
 
 
 export async function DocumentsTable({ params }: { params: DocumentSearchParams }) {
   const supabase = await createClient();
   const pageIndex = params.page - 1;
+
+  const session = await getSession();
+  const canDelete =
+    session !== null && hasModulePermission(session.permissions, "documents", "delete");
 
   const { data: rows, count, error: listErr } = await listDocuments(supabase, {
     q: params.q,
@@ -18,6 +24,8 @@ export async function DocumentsTable({ params }: { params: DocumentSearchParams 
     dateTo: params.dateTo,
     page: pageIndex,
     pageSize: params.pageSize,
+    sort: params.sort,
+    dir: params.dir,
   });
 
   if (listErr !== null) {
@@ -59,6 +67,7 @@ export async function DocumentsTable({ params }: { params: DocumentSearchParams 
       fromItem={fromItem}
       toItem={toItem}
       exportQuery={exportParams.toString()}
+      canDelete={canDelete}
     />
   );
 }

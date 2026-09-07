@@ -10,14 +10,9 @@ import { QuickDateFilters } from "@/features/documents/components/QuickDateFilte
 import { ActiveDateFilterHint } from "@/features/documents/components/active-date-filter-hint";
 import { DateRangeInputs } from "@/features/documents/components/date-range-inputs";
 import { buildDocumentsQueryPath } from "@/features/documents/lib/documents-search-params";
+import { CollapsibleCard } from "@/shared/components/collapsible-card";
 import { Button } from "@/shared/components/ui/button";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/shared/components/ui/card";
+import { CardContent } from "@/shared/components/ui/card";
 import { Input } from "@/shared/components/ui/input";
 import { Label } from "@/shared/components/ui/label";
 import { Select } from "@/shared/components/ui/select";
@@ -86,15 +81,11 @@ export function DocumentsFilters({
   };
 
   return (
-    <Card>
-      <CardHeader className="gap-2">
-        <CardTitle className="flex items-center gap-2 text-base">
-          <Filter className="size-4 text-primary" />
-          Filtros de búsqueda
-        </CardTitle>
-        <CardDescription>Refina el listado por texto, categoría, etiqueta o fecha.</CardDescription>
-      </CardHeader>
-      <CardContent>
+    <CollapsibleCard storageId="documents-filters" icon={Filter} title="Filtros de búsqueda">
+      <CardContent className="pt-4">
+        <p className="text-muted-foreground mb-3 text-sm">
+          Refina el listado por texto, categoría, etiqueta o fecha.
+        </p>
         <form onSubmit={handleSubmit} className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
           <div className="space-y-2">
             <Label htmlFor="q">Texto</Label>
@@ -177,6 +168,6 @@ export function DocumentsFilters({
           )}
         </form>
       </CardContent>
-    </Card>
+    </CollapsibleCard>
   );
 }

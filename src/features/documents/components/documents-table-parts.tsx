@@ -6,12 +6,9 @@ import { formatFileSize } from "@/features/documents/lib/format-bytes";
 import { LocalDate } from "@/shared/components/local-date";
 import { Badge } from "@/shared/components/ui/badge";
 import { Button } from "@/shared/components/ui/button";
-import {
-  Card,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/shared/components/ui/card";
+import { Card, CardDescription, CardHeader, CardTitle } from "@/shared/components/ui/card";
+import { Checkbox } from "@/shared/components/ui/checkbox";
+import { TableCell, TableRow } from "@/shared/components/ui/table";
 
 export function DocumentTableRow({
   row,
@@ -19,6 +16,7 @@ export function DocumentTableRow({
   selected,
   onToggle,
   showCheckbox,
+  canDelete = true,
 }: {
   row: {
     id: string;
@@ -33,24 +31,23 @@ export function DocumentTableRow({
   selected?: boolean;
   onToggle?: (id: string) => void;
   showCheckbox?: boolean;
+  canDelete?: boolean;
 }) {
   return (
-    <tr className="border-border hover:bg-muted/50 border-b transition-colors last:border-b-0">
+    <TableRow data-state={selected === true ? "selected" : undefined}>
       {showCheckbox === true ? (
-        <td className="px-4 py-4">
-          <input
-            type="checkbox"
+        <TableCell>
+          <Checkbox
             checked={selected === true}
             aria-label={`Seleccionar ${row.title}`}
-            onChange={() => {
+            onCheckedChange={() => {
               onToggle?.(row.id);
             }}
-            className="border-input size-[18px] rounded"
           />
-        </td>
+        </TableCell>
       ) : null}
-      <td className="px-6 py-4 font-medium">{row.title}</td>
-      <td className="px-6 py-4 text-muted-foreground">
+      <TableCell className="font-medium">{row.title}</TableCell>
+      <TableCell className="text-muted-foreground">
         {row.category?.name != null && row.category.name !== "" ? (
           <Badge variant="outline" className="max-w-full truncate">
             <Tag className="size-3" />
@@ -59,30 +56,28 @@ export function DocumentTableRow({
         ) : (
           "Sin categoría"
         )}
-      </td>
-      <td className="px-6 py-4">
+      </TableCell>
+      <TableCell>
         <div className="flex flex-col gap-0.5">
-          <span className="text-xs text-muted-foreground">{row.uploader?.email ?? "—"}</span>
+          <span className="text-muted-foreground text-xs">{row.uploader?.email ?? "—"}</span>
           {role != null ? (
             <Badge variant="secondary" className="text-micro w-fit px-1.5 py-0">
               {role}
             </Badge>
           ) : null}
         </div>
-      </td>
-      <td className="px-6 py-4 text-muted-foreground">{formatFileSize(row.size_bytes)}</td>
-      <td className="px-6 py-4 text-muted-foreground">
+      </TableCell>
+      <TableCell className="text-muted-foreground">{formatFileSize(row.size_bytes)}</TableCell>
+      <TableCell className="text-muted-foreground whitespace-nowrap">
         <span className="inline-flex items-center gap-1.5">
           <CalendarDays className="size-3.5" />
           <LocalDate date={row.created_at} />
         </span>
-      </td>
-      <td className="px-6 py-4 text-right">
-        <div className="flex justify-end">
-          <DocumentRowActions documentId={row.id} title={row.title} />
-        </div>
-      </td>
-    </tr>
+      </TableCell>
+      <TableCell className="text-right">
+        <DocumentRowActions documentId={row.id} title={row.title} canDelete={canDelete} />
+      </TableCell>
+    </TableRow>
   );
 }
 
@@ -105,7 +100,7 @@ export function DocumentsTableHeaderActions({
       {total > 0 ? (
         <a
           href={`/api/documents/export?${exportQuery}`}
-          className="inline-flex items-center gap-1.5 rounded-md border px-3 py-1.5 text-sm transition-colors hover:bg-muted"
+          className="hover:bg-muted inline-flex items-center gap-1.5 rounded-md border px-3 py-1.5 text-sm transition-colors"
         >
           <Download className="size-3.5" />
           Descargar archivos ({String(total)})
@@ -121,7 +116,7 @@ export function DocumentsTableShell({ children }: { children: React.ReactNode })
       <CardHeader className="border-b py-4">
         <div className="flex flex-wrap items-center justify-between gap-2">
           <CardTitle className="flex items-center gap-2 text-base">
-            <FileText className="size-4 text-primary" />
+            <FileText className="text-primary size-4" />
             Listado de documentos
           </CardTitle>
         </div>

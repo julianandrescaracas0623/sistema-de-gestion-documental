@@ -20,9 +20,18 @@ import {
 } from "@/features/documents/lib/documents-search-params";
 import type { DocumentListRow } from "@/features/documents/queries/documents.queries";
 import { ConfirmDestructiveDialog } from "@/shared/components/confirm-destructive-dialog";
+import { ServerSortHeader } from "@/shared/components/server-sort-header";
 import { Button } from "@/shared/components/ui/button";
 import { CardContent, CardFooter } from "@/shared/components/ui/card";
+import { Checkbox } from "@/shared/components/ui/checkbox";
 import { Select } from "@/shared/components/ui/select";
+import {
+  Table,
+  TableBody,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/shared/components/ui/table";
 
 interface DocumentsTableClientProps {
   rows: DocumentListRow[];
@@ -33,6 +42,7 @@ interface DocumentsTableClientProps {
   fromItem: number;
   toItem: number;
   exportQuery: string;
+  canDelete: boolean;
 }
 
 export function DocumentsTableClient({
@@ -44,6 +54,7 @@ export function DocumentsTableClient({
   fromItem,
   toItem,
   exportQuery,
+  canDelete,
 }: DocumentsTableClientProps) {
   const router = useRouter();
   const [selected, setSelected] = useState<Set<string>>(new Set());
@@ -70,19 +81,12 @@ export function DocumentsTableClient({
   };
 
   const toggleAllPage = () => {
-    if (allPageSelected) {
-      setSelected((prev) => {
-        const next = new Set(prev);
-        for (const row of rows) next.delete(row.id);
-        return next;
-      });
-    } else {
-      setSelected((prev) => {
-        const next = new Set(prev);
-        for (const row of rows) next.add(row.id);
-        return next;
-      });
-    }
+    setSelected((prev) => {
+      const next = new Set(prev);
+      if (allPageSelected) for (const row of rows) next.delete(row.id);
+      else for (const row of rows) next.add(row.id);
+      return next;
+    });
   };
 
   const handleBulkDelete = () => {
@@ -105,96 +109,112 @@ export function DocumentsTableClient({
     router.push(buildDocumentsQueryPath({ ...params, pageSize: size, page: 1 }) as Route);
   };
 
+  const buildSortHref = (sort: string, dir: "asc" | "desc") =>
+    buildDocumentsQueryPath({
+      ...params,
+      sort: sort as DocumentSearchParams["sort"],
+      dir,
+      page: 1,
+    });
+
   return (
     <DocumentsTableShell>
-      <div className="flex flex-wrap items-center justify-end gap-2 border-b px-6 py-3">
+      <div className="flex flex-wrap items-center justify-end gap-2 border-b px-4 py-3 sm:px-6">
         <DocumentsTableHeaderActions total={total} exportQuery={exportQuery} />
       </div>
 
       {selectedCount > 0 ? (
-        <div className="bg-muted/60 flex flex-wrap items-center gap-2 border-b px-6 py-2 text-sm">
+        <div className="bg-muted/60 flex flex-wrap items-center gap-2 border-b px-4 py-2 text-sm sm:px-6">
           <span>{String(selectedCount)} seleccionado(s)</span>
           {selectedExportUrl !== "" ? (
             <Button variant="outline" size="sm" asChild>
               <a href={selectedExportUrl}>Descargar seleccionados</a>
             </Button>
           ) : null}
-          <Button
-            type="button"
-            size="sm"
-            variant="destructive"
-            onClick={() => {
-              setDeleteOpen(true);
-            }}
-          >
-            Eliminar seleccionados
-          </Button>
+          {canDelete ? (
+            <Button
+              type="button"
+              size="sm"
+              variant="destructive"
+              onClick={() => {
+                setDeleteOpen(true);
+              }}
+            >
+              Eliminar seleccionados
+            </Button>
+          ) : null}
         </div>
       ) : null}
 
       <CardContent className="px-0">
-        <div className="overflow-x-auto">
-          <table className="w-full text-left text-sm">
-            <thead>
-              <tr className="border-b">
-                <th className="text-muted-foreground w-10 px-4 py-2.5">
-                  <input
-                    type="checkbox"
+        {rows.length === 0 ? (
+          <div className="p-10 text-center">
+            <p className="text-foreground text-sm font-medium">No hay resultados</p>
+            <p className="text-muted-foreground mt-1 text-sm">
+              Ajusta los filtros o sube un documento nuevo.
+            </p>
+          </div>
+        ) : (
+          <Table>
+            <TableHeader>
+              <TableRow className="hover:bg-transparent">
+                <TableHead className="w-10">
+                  <Checkbox
                     checked={allPageSelected}
                     aria-label="Seleccionar todos en esta página"
-                    onChange={toggleAllPage}
-                    className="border-input size-[18px] rounded"
+                    onCheckedChange={toggleAllPage}
                   />
-                </th>
-                <th className="text-muted-foreground px-6 py-2.5 text-left text-[11.5px] font-semibold tracking-wide uppercase">
-                  Título
-                </th>
-                <th className="text-muted-foreground px-6 py-2.5 text-left text-[11.5px] font-semibold tracking-wide uppercase">
-                  Categoría
-                </th>
-                <th className="text-muted-foreground px-6 py-2.5 text-left text-[11.5px] font-semibold tracking-wide uppercase">
-                  Autor
-                </th>
-                <th className="text-muted-foreground px-6 py-2.5 text-left text-[11.5px] font-semibold tracking-wide uppercase">
-                  Tamaño
-                </th>
-                <th className="text-muted-foreground px-6 py-2.5 text-left text-[11.5px] font-semibold tracking-wide uppercase">
-                  Fecha
-                </th>
-                <th className="text-muted-foreground w-16 px-6 py-2.5 text-right text-[11.5px] font-semibold tracking-wide uppercase">
-                  Acciones
-                </th>
-              </tr>
-            </thead>
-            <tbody>
-              {rows.length === 0 ? (
-                <tr>
-                  <td colSpan={7} className="p-10 text-center">
-                    <p className="text-sm font-medium text-foreground">No hay resultados</p>
-                    <p className="mt-1 text-sm text-muted-foreground">
-                      Ajusta los filtros o sube un documento nuevo.
-                    </p>
-                  </td>
-                </tr>
-              ) : (
-                rows.map((row) => {
-                  const roleLabel =
-                    row.uploaded_by !== null ? roleMap[row.uploaded_by] : undefined;
-                  return (
-                    <DocumentTableRow
-                      key={row.id}
-                      row={row}
-                      {...(roleLabel !== undefined ? { role: roleLabel } : {})}
-                      showCheckbox
-                      selected={selected.has(row.id)}
-                      onToggle={toggleOne}
-                    />
-                  );
-                })
-              )}
-            </tbody>
-          </table>
-        </div>
+                </TableHead>
+                <TableHead>
+                  <ServerSortHeader
+                    columnKey="title"
+                    label="Título"
+                    activeKey={params.sort}
+                    activeDir={params.dir}
+                    buildHref={buildSortHref}
+                  />
+                </TableHead>
+                <TableHead>Categoría</TableHead>
+                <TableHead>Autor</TableHead>
+                <TableHead>
+                  <ServerSortHeader
+                    columnKey="size_bytes"
+                    label="Tamaño"
+                    activeKey={params.sort}
+                    activeDir={params.dir}
+                    buildHref={buildSortHref}
+                  />
+                </TableHead>
+                <TableHead>
+                  <ServerSortHeader
+                    columnKey="created_at"
+                    label="Fecha"
+                    activeKey={params.sort}
+                    activeDir={params.dir}
+                    buildHref={buildSortHref}
+                  />
+                </TableHead>
+                <TableHead className="w-24 text-right">Acciones</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {rows.map((row) => {
+                const roleLabel = row.uploaded_by !== null ? roleMap[row.uploaded_by] : undefined;
+                return (
+                  <DocumentTableRow
+                    key={row.id}
+                    row={row}
+                    {...(roleLabel !== undefined ? { role: roleLabel } : {})}
+                    showCheckbox
+                    canDelete={canDelete}
+                    selected={selected.has(row.id)}
+                    onToggle={toggleOne}
+                  />
+                );
+              })}
+            </TableBody>
+          </Table>
+        )}
       </CardContent>
 
       <CardFooter className="flex flex-wrap items-center justify-between gap-3 border-t py-4 text-sm">

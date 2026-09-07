@@ -1,6 +1,10 @@
 export const DEFAULT_PAGE_SIZE = 10;
 export const PAGE_SIZE_OPTIONS = [10, 25, 50] as const;
 
+export const DOCUMENT_SORT_KEYS = ["title", "size_bytes", "created_at"] as const;
+export type DocumentSortKey = (typeof DOCUMENT_SORT_KEYS)[number];
+export const DEFAULT_DOCUMENT_SORT: DocumentSortKey = "created_at";
+
 export interface DocumentSearchParams {
   q: string;
   categoryId: string;
@@ -9,6 +13,8 @@ export interface DocumentSearchParams {
   dateTo: string;
   page: number;
   pageSize: number;
+  sort: DocumentSortKey;
+  dir: "asc" | "desc";
 }
 
 type RawSearchParams = Record<string, string | string[] | undefined>;
@@ -29,6 +35,12 @@ export function parseDocumentSearchParams(sp: RawSearchParams): DocumentSearchPa
     ? parsedSize
     : DEFAULT_PAGE_SIZE;
 
+  const sortRaw = firstParam(sp.sort);
+  const sort: DocumentSortKey = (DOCUMENT_SORT_KEYS as readonly string[]).includes(sortRaw)
+    ? (sortRaw as DocumentSortKey)
+    : DEFAULT_DOCUMENT_SORT;
+  const dir: "asc" | "desc" = firstParam(sp.dir) === "asc" ? "asc" : "desc";
+
   return {
     q: firstParam(sp.q),
     categoryId: firstParam(sp.category),
@@ -37,6 +49,8 @@ export function parseDocumentSearchParams(sp: RawSearchParams): DocumentSearchPa
     dateTo: firstParam(sp.dateTo),
     page: pageNum,
     pageSize,
+    sort,
+    dir,
   };
 }
 
@@ -52,6 +66,13 @@ export function buildDocumentsQueryPath(
   if (params.page !== undefined && params.page > 1) p.set("page", String(params.page));
   if (params.pageSize !== undefined && params.pageSize !== DEFAULT_PAGE_SIZE) {
     p.set("pageSize", String(params.pageSize));
+  }
+  if (
+    (params.sort !== undefined && params.sort !== DEFAULT_DOCUMENT_SORT) ||
+    (params.dir !== undefined && params.dir === "asc")
+  ) {
+    p.set("sort", params.sort ?? DEFAULT_DOCUMENT_SORT);
+    p.set("dir", params.dir ?? "desc");
   }
   const s = p.toString();
   return s === "" ? "/documents" : `/documents?${s}`;
@@ -70,5 +91,7 @@ export function serializeDocumentSearchKey(params: DocumentSearchParams): string
     params.dateTo,
     String(params.page),
     String(params.pageSize),
+    params.sort,
+    params.dir,
   ].join("|");
 }

@@ -3,9 +3,10 @@ import { redirect } from "next/navigation";
 
 import { CreateTagForm } from "@/features/tags/components/CreateTagForm";
 import { TagTable } from "@/features/tags/components/TagTable";
+import { CollapsibleCard } from "@/shared/components/collapsible-card";
 import { PageBreadcrumb } from "@/shared/components/page-breadcrumb";
 import { Badge } from "@/shared/components/ui/badge";
-import { Card, CardContent, CardHeader, CardTitle } from "@/shared/components/ui/card";
+import { CardContent } from "@/shared/components/ui/card";
 import { getSession } from "@/shared/lib/auth/get-session";
 import { canAccessModule, hasModulePermission } from "@/shared/lib/auth/permissions";
 import { getCachedTagsWithCount } from "@/shared/lib/cache/cached-queries";
@@ -29,20 +30,16 @@ export default async function AdminTagsPage() {
 
       <div className="mx-auto w-full max-w-6xl flex-1 px-4 py-4 sm:px-6 sm:py-6 lg:px-7 lg:py-7">
         <div className="space-y-6">
-          <Card className="gap-0 py-0">
-            <CardHeader className="border-b py-4">
-              <div className="flex flex-wrap items-center justify-between gap-2">
-                <CardTitle className="flex items-center gap-2 text-base">
-                  <Tag className="size-4 text-primary" />
-                  Listado de etiquetas
-                </CardTitle>
-                <Badge variant="outline">{String(tags.length)} en total</Badge>
-              </div>
-            </CardHeader>
+          <CollapsibleCard
+            storageId="admin-tags"
+            icon={Tag}
+            title="Listado de etiquetas"
+            actions={<Badge variant="outline">{String(tags.length)} en total</Badge>}
+          >
             <CardContent className="px-0">
               <TagTable rows={tags} canUpdate={canUpdate} canDelete={canDelete} />
             </CardContent>
-          </Card>
+          </CollapsibleCard>
           <CreateTagForm />
         </div>
       </div>

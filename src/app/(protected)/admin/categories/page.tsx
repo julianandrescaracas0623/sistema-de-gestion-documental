@@ -4,9 +4,10 @@ import { redirect } from "next/navigation";
 import { CategoryTable } from "@/features/categories/components/CategoryTable";
 import { CreateCategoryForm } from "@/features/categories/components/CreateCategoryForm";
 import { listCategoriesWithCount } from "@/features/categories/queries/categories.queries";
+import { CollapsibleCard } from "@/shared/components/collapsible-card";
 import { PageBreadcrumb } from "@/shared/components/page-breadcrumb";
 import { Badge } from "@/shared/components/ui/badge";
-import { Card, CardContent, CardHeader, CardTitle } from "@/shared/components/ui/card";
+import { CardContent } from "@/shared/components/ui/card";
 import { getSession } from "@/shared/lib/auth/get-session";
 import { canAccessModule, hasModulePermission } from "@/shared/lib/auth/permissions";
 import { createClient } from "@/shared/lib/supabase/server";
@@ -39,16 +40,12 @@ export default async function AdminCategoriesPage() {
           </p>
         ) : (
           <div className="space-y-6">
-            <Card className="gap-0 py-0">
-              <CardHeader className="border-b py-4">
-                <div className="flex flex-wrap items-center justify-between gap-2">
-                  <CardTitle className="flex items-center gap-2 text-base">
-                    <FolderOpen className="size-4 text-primary" />
-                    Listado de categorías
-                  </CardTitle>
-                  <Badge variant="outline">{String(categories?.length ?? 0)} en total</Badge>
-                </div>
-              </CardHeader>
+            <CollapsibleCard
+              storageId="admin-categories"
+              icon={FolderOpen}
+              title="Listado de categorías"
+              actions={<Badge variant="outline">{String(categories?.length ?? 0)} en total</Badge>}
+            >
               <CardContent className="px-0">
                 <CategoryTable
                   rows={categories ?? []}
@@ -56,7 +53,7 @@ export default async function AdminCategoriesPage() {
                   canDelete={canDelete}
                 />
               </CardContent>
-            </Card>
+            </CollapsibleCard>
             <CreateCategoryForm />
           </div>
         )}

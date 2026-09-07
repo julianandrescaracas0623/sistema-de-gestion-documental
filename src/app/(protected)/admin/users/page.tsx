@@ -12,10 +12,11 @@ import {
   listRoles,
   listUsersWithRoles,
 } from "@/features/user-admin/queries/users.queries";
+import { CollapsibleCard } from "@/shared/components/collapsible-card";
 import { PageBreadcrumb } from "@/shared/components/page-breadcrumb";
 import type { SortDirection } from "@/shared/components/sortable-header";
 import { Badge } from "@/shared/components/ui/badge";
-import { Card, CardContent, CardHeader, CardTitle } from "@/shared/components/ui/card";
+import { CardContent } from "@/shared/components/ui/card";
 import { getSession } from "@/shared/lib/auth/get-session";
 import { canAccessModule, hasModulePermission } from "@/shared/lib/auth/permissions";
 
@@ -97,19 +98,17 @@ export default async function AdminUsersPage({
       </header>
 
       <div className="mx-auto w-full max-w-6xl flex-1 space-y-6 px-4 py-4 sm:px-6 sm:py-6 lg:px-7 lg:py-7">
-        <Card className="gap-0 py-0">
-          <CardHeader className="border-b py-4">
-            <div className="flex flex-wrap items-center justify-between gap-3">
-              <CardTitle className="flex items-center gap-2 text-base">
-                <Users className="size-4 text-primary" />
-                Listado de usuarios
-              </CardTitle>
-              <div className="flex flex-wrap items-center gap-3">
-                {roles !== null ? <RoleFilterSelect value={roleFilter} roles={roles} /> : null}
-                <Badge variant="outline">{String(total)} en total</Badge>
-              </div>
-            </div>
-          </CardHeader>
+        <CollapsibleCard
+          storageId="admin-users"
+          icon={Users}
+          title="Listado de usuarios"
+          actions={
+            <>
+              {roles !== null ? <RoleFilterSelect value={roleFilter} roles={roles} /> : null}
+              <Badge variant="outline">{String(total)} en total</Badge>
+            </>
+          }
+        >
           <CardContent className="px-0">
             {usersError !== null ? (
               <p className="p-6 text-destructive" role="alert">
@@ -153,7 +152,7 @@ export default async function AdminUsersPage({
               </div>
             </div>
           ) : null}
-        </Card>
+        </CollapsibleCard>
 
         {rolesError !== null ? (
           <p className="text-destructive" role="alert">
