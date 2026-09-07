@@ -1,71 +1,107 @@
-import { DeleteUserButton } from "@/features/user-admin/components/delete-user-button";
-import type { UserAdminRow } from "@/features/user-admin/queries/users.queries";
+import { UserRowActions } from "@/features/user-admin/components/user-row-actions";
+import type { RoleOption, UserAdminRow, UserSortKey } from "@/features/user-admin/queries/users.queries";
 import { LocalDate } from "@/shared/components/local-date";
+import { ServerSortHeader } from "@/shared/components/server-sort-header";
+import type { SortDirection } from "@/shared/components/sortable-header";
 import { Badge } from "@/shared/components/ui/badge";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/shared/components/ui/table";
 
 function RoleBadge({ roleName, roleSlug }: { roleName: string; roleSlug: string }) {
-  const variant = roleSlug === "admin" ? "default" : "secondary";
-  return <Badge variant={variant}>{roleName}</Badge>;
+  return <Badge variant={roleSlug === "admin" ? "default" : "secondary"}>{roleName}</Badge>;
 }
 
-export function UserTable({ rows, currentAdminId }: { rows: UserAdminRow[]; currentAdminId: string }) {
+export function UserTable({
+  rows,
+  currentAdminId,
+  roles,
+  canUpdate,
+  canDelete,
+  sort,
+  dir,
+  buildSortHref,
+}: {
+  rows: UserAdminRow[];
+  currentAdminId: string;
+  roles: RoleOption[];
+  canUpdate: boolean;
+  canDelete: boolean;
+  sort: UserSortKey;
+  dir: SortDirection;
+  buildSortHref: (sort: string, dir: SortDirection) => string;
+}) {
   if (rows.length === 0) {
     return (
       <div className="p-10 text-center">
-        <p className="text-sm font-medium text-foreground">No hay usuarios</p>
+        <p className="text-foreground text-sm font-medium">No hay usuarios</p>
       </div>
     );
   }
 
   return (
-    <div className="overflow-x-auto">
-      <table className="w-full text-left text-sm">
-        <thead>
-          <tr className="border-b">
-            <th className="text-muted-foreground px-6 py-2.5 text-[11.5px] font-semibold tracking-wide uppercase">
-              Nombre
-            </th>
-            <th className="text-muted-foreground px-6 py-2.5 text-[11.5px] font-semibold tracking-wide uppercase">
-              Correo electrónico
-            </th>
-            <th className="text-muted-foreground px-6 py-2.5 text-[11.5px] font-semibold tracking-wide uppercase">
-              Rol
-            </th>
-            <th className="text-muted-foreground px-6 py-2.5 text-[11.5px] font-semibold tracking-wide uppercase">
-              Creado
-            </th>
-            <th className="text-muted-foreground w-16 px-6 py-2.5 text-right text-[11.5px] font-semibold tracking-wide uppercase">
-              Acciones
-            </th>
-          </tr>
-        </thead>
-        <tbody>
-          {rows.map((row) => (
-            <tr
-              key={row.id}
-              className="border-border hover:bg-muted/50 border-b transition-colors last:border-b-0"
-            >
-              <td className="px-6 py-4 font-medium">{row.fullName}</td>
-              <td className="px-6 py-4 text-muted-foreground">{row.email}</td>
-              <td className="px-6 py-4">
-                <RoleBadge roleName={row.roleName} roleSlug={row.roleSlug} />
-              </td>
-              <td className="px-6 py-4 text-muted-foreground">
-                <LocalDate date={row.created_at} />
-              </td>
-              <td className="px-6 py-4 text-right">
-                <div className="flex justify-end">
-                  {row.id !== currentAdminId ? (
-                    <DeleteUserButton userId={row.id} email={row.email} />
-                  ) : (
-                    <span className="text-muted-foreground text-xs">Tu cuenta</span>
-                  )}
-                </div>
-              </td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
-    </div>
+    <Table>
+      <TableHeader>
+        <TableRow className="hover:bg-transparent">
+          <TableHead>
+            <ServerSortHeader
+              columnKey="fullName"
+              label="Nombre"
+              activeKey={sort}
+              activeDir={dir}
+              buildHref={buildSortHref}
+            />
+          </TableHead>
+          <TableHead>
+            <ServerSortHeader
+              columnKey="email"
+              label="Correo electrónico"
+              activeKey={sort}
+              activeDir={dir}
+              buildHref={buildSortHref}
+            />
+          </TableHead>
+          <TableHead>Rol</TableHead>
+          <TableHead>
+            <ServerSortHeader
+              columnKey="created_at"
+              label="Creado"
+              activeKey={sort}
+              activeDir={dir}
+              buildHref={buildSortHref}
+            />
+          </TableHead>
+          <TableHead className="w-24 text-right">Acciones</TableHead>
+        </TableRow>
+      </TableHeader>
+      <TableBody>
+        {rows.map((row) => (
+          <TableRow key={row.id}>
+            <TableCell className="font-medium">{row.fullName}</TableCell>
+            <TableCell className="text-muted-foreground">{row.email}</TableCell>
+            <TableCell>
+              <RoleBadge roleName={row.roleName} roleSlug={row.roleSlug} />
+            </TableCell>
+            <TableCell className="text-muted-foreground whitespace-nowrap">
+              <LocalDate date={row.created_at} />
+            </TableCell>
+            <TableCell className="text-right">
+              <UserRowActions
+                user={row}
+                roles={roles}
+                currentAdminId={currentAdminId}
+                canUpdate={canUpdate}
+                canDelete={canDelete}
+              />
+            </TableCell>
+          </TableRow>
+        ))}
+      </TableBody>
+    </Table>
   );
 }

@@ -8,13 +8,16 @@ import { PageBreadcrumb } from "@/shared/components/page-breadcrumb";
 import { Badge } from "@/shared/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/shared/components/ui/card";
 import { getSession } from "@/shared/lib/auth/get-session";
-import { canAccessModule } from "@/shared/lib/auth/permissions";
+import { canAccessModule, hasModulePermission } from "@/shared/lib/auth/permissions";
 import { createClient } from "@/shared/lib/supabase/server";
 
 export default async function AdminCategoriesPage() {
   const session = await getSession();
   if (session === null) redirect("/login");
   if (!canAccessModule(session.permissions, "categories")) redirect("/");
+
+  const canUpdate = hasModulePermission(session.permissions, "categories", "update");
+  const canDelete = hasModulePermission(session.permissions, "categories", "delete");
 
   const supabase = await createClient();
   const { data: categories, error } = await listCategoriesWithCount(supabase);
@@ -47,7 +50,11 @@ export default async function AdminCategoriesPage() {
                 </div>
               </CardHeader>
               <CardContent className="px-0">
-                <CategoryTable rows={categories ?? []} />
+                <CategoryTable
+                  rows={categories ?? []}
+                  canUpdate={canUpdate}
+                  canDelete={canDelete}
+                />
               </CardContent>
             </Card>
             <CreateCategoryForm />

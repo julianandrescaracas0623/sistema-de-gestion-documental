@@ -9,19 +9,28 @@ import { deleteTagAction } from "@/features/tags/actions/delete-tag.action";
 import { updateTagAction } from "@/features/tags/actions/update-tag.action";
 import type { TagAdminRow } from "@/features/tags/queries/tags.queries";
 import { ConfirmDestructiveDialog } from "@/shared/components/confirm-destructive-dialog";
-import { TableRowActionsMenu } from "@/shared/components/table-row-actions-menu";
+import { RowActions, type RowActionItem } from "@/shared/components/row-actions";
 import { Button } from "@/shared/components/ui/button";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/shared/components/ui/dialog";
 import { Input } from "@/shared/components/ui/input";
 import { Label } from "@/shared/components/ui/label";
-import {
-  Sheet,
-  SheetContent,
-  SheetDescription,
-  SheetHeader,
-  SheetTitle,
-} from "@/shared/components/ui/sheet";
 
-function EditTagSheet({ tag, open, onOpenChange }: { tag: TagAdminRow; open: boolean; onOpenChange: (open: boolean) => void }) {
+function EditTagDialog({
+  tag,
+  open,
+  onOpenChange,
+}: {
+  tag: TagAdminRow;
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+}) {
   const [state, formAction, isPending] = useActionState(updateTagAction, null);
   const formRef = useRef<HTMLFormElement>(null);
   const router = useRouter();
@@ -38,16 +47,16 @@ function EditTagSheet({ tag, open, onOpenChange }: { tag: TagAdminRow; open: boo
   }, [state, router, onOpenChange]);
 
   return (
-    <Sheet open={open} onOpenChange={onOpenChange}>
-      <SheetContent side="right" className="bg-card text-foreground border-border w-[min(400px,92vw)]">
-        <SheetHeader>
-          <SheetTitle>Editar etiqueta</SheetTitle>
-          <SheetDescription>Modifica el nombre y guarda los cambios.</SheetDescription>
-        </SheetHeader>
-        <form ref={formRef} action={formAction} className="mt-6 space-y-4 px-1">
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent>
+        <DialogHeader>
+          <DialogTitle>Editar etiqueta</DialogTitle>
+          <DialogDescription>Modifica el nombre y guarda los cambios.</DialogDescription>
+        </DialogHeader>
+        <form ref={formRef} action={formAction} className="space-y-4">
           <input type="hidden" name="id" value={tag.id} />
           <div className="space-y-2">
-            <Label htmlFor={`edit-tag-name-${tag.id}`} className="text-sidebar-foreground">
+            <Label htmlFor={`edit-tag-name-${tag.id}`}>
               Nombre <span className="text-destructive">*</span>
             </Label>
             <Input
@@ -57,19 +66,28 @@ function EditTagSheet({ tag, open, onOpenChange }: { tag: TagAdminRow; open: boo
               maxLength={120}
               disabled={isPending}
               defaultValue={tag.name}
-              className="bg-background text-foreground"
             />
           </div>
-          <Button type="submit" disabled={isPending} className="w-full">
-            {isPending ? "Guardando…" : "Guardar cambios"}
-          </Button>
+          <DialogFooter>
+            <Button type="submit" disabled={isPending} className="w-full sm:w-auto">
+              {isPending ? "Guardando…" : "Guardar cambios"}
+            </Button>
+          </DialogFooter>
         </form>
-      </SheetContent>
-    </Sheet>
+      </DialogContent>
+    </Dialog>
   );
 }
 
-export function TagRowActions({ tag }: { tag: TagAdminRow }) {
+export function TagRowActions({
+  tag,
+  canUpdate = true,
+  canDelete = true,
+}: {
+  tag: TagAdminRow;
+  canUpdate?: boolean;
+  canDelete?: boolean;
+}) {
   const router = useRouter();
   const [editOpen, setEditOpen] = useState(false);
   const [deleteOpen, setDeleteOpen] = useState(false);
@@ -90,34 +108,31 @@ export function TagRowActions({ tag }: { tag: TagAdminRow }) {
     });
   };
 
+  const items: RowActionItem[] = [];
+  if (canUpdate) {
+    items.push({
+      label: `Editar etiqueta ${tag.name}`,
+      icon: Pencil,
+      onSelect: () => {
+        setEditOpen(true);
+      },
+    });
+  }
+  if (canDelete) {
+    items.push({
+      label: `Eliminar etiqueta ${tag.name}`,
+      icon: Trash2,
+      destructive: true,
+      onSelect: () => {
+        setDeleteOpen(true);
+      },
+    });
+  }
+
   return (
     <>
-      <div className="flex justify-end">
-        <TableRowActionsMenu
-          items={[
-            {
-              label: "Editar",
-              icon: Pencil,
-              onSelect: () => {
-                setTimeout(() => {
-                  setEditOpen(true);
-                }, 0);
-              },
-            },
-            {
-              label: "Eliminar",
-              icon: Trash2,
-              destructive: true,
-              onSelect: () => {
-                setTimeout(() => {
-                  setDeleteOpen(true);
-                }, 0);
-              },
-            },
-          ]}
-        />
-      </div>
-      <EditTagSheet tag={tag} open={editOpen} onOpenChange={setEditOpen} />
+      <RowActions items={items} />
+      <EditTagDialog tag={tag} open={editOpen} onOpenChange={setEditOpen} />
       <ConfirmDestructiveDialog
         open={deleteOpen}
         onOpenChange={setDeleteOpen}

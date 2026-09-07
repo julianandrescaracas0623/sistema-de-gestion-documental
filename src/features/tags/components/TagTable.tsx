@@ -1,48 +1,105 @@
 "use client";
 
+import { useMemo, useState } from "react";
+
 import { TagRowActions } from "@/features/tags/components/tag-row-actions";
 import type { TagAdminRow } from "@/features/tags/queries/tags.queries";
 import { LocalDate } from "@/shared/components/local-date";
+import { SortableHeader, type SortDirection } from "@/shared/components/sortable-header";
 import { Badge } from "@/shared/components/ui/badge";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/shared/components/ui/table";
 
-export function TagTable({ rows }: { rows: TagAdminRow[] }) {
+type SortKey = "name" | "doc_count" | "created_at";
+
+function compare(a: TagAdminRow, b: TagAdminRow, key: SortKey): number {
+  if (key === "doc_count") return a.doc_count - b.doc_count;
+  if (key === "created_at") return a.created_at.localeCompare(b.created_at);
+  return a.name.localeCompare(b.name, "es", { sensitivity: "base" });
+}
+
+export function TagTable({
+  rows,
+  canUpdate = true,
+  canDelete = true,
+}: {
+  rows: TagAdminRow[];
+  canUpdate?: boolean;
+  canDelete?: boolean;
+}) {
+  const [sort, setSort] = useState<{ key: SortKey; dir: SortDirection }>({
+    key: "name",
+    dir: "asc",
+  });
+
+  const sorted = useMemo(() => {
+    const copy = [...rows];
+    copy.sort((a, b) => {
+      const base = compare(a, b, sort.key);
+      return sort.dir === "asc" ? base : -base;
+    });
+    return copy;
+  }, [rows, sort]);
+
+  const toggle = (key: SortKey) => {
+    setSort((prev) =>
+      prev.key === key
+        ? { key, dir: prev.dir === "asc" ? "desc" : "asc" }
+        : { key, dir: key === "name" ? "asc" : "desc" }
+    );
+  };
+
+  const sortButton = (key: SortKey, label: string) => (
+    <button type="button" onClick={() => { toggle(key); }} className="cursor-pointer">
+      <SortableHeader label={label} active={sort.key === key} direction={sort.dir} />
+    </button>
+  );
+
   if (rows.length === 0) {
     return (
       <div className="p-10 text-center">
-        <p className="text-sm font-medium text-foreground">No hay etiquetas</p>
-        <p className="mt-1 text-sm text-muted-foreground">Crea la primera etiqueta con el formulario inferior.</p>
+        <p className="text-foreground text-sm font-medium">No hay etiquetas</p>
+        <p className="text-muted-foreground mt-1 text-sm">
+          Crea la primera etiqueta con el formulario inferior.
+        </p>
       </div>
     );
   }
 
   return (
-    <div className="overflow-x-auto">
-      <table className="w-full text-left text-sm">
-        <thead>
-          <tr className="border-b">
-            <th className="text-muted-foreground px-6 py-2.5 text-[11.5px] font-semibold tracking-wide uppercase">Nombre</th>
-            <th className="text-muted-foreground px-6 py-2.5 text-center text-[11.5px] font-semibold tracking-wide uppercase">Documentos</th>
-            <th className="text-muted-foreground px-6 py-2.5 text-[11.5px] font-semibold tracking-wide uppercase">Creada</th>
-            <th className="text-muted-foreground w-16 px-6 py-2.5 text-right text-[11.5px] font-semibold tracking-wide uppercase">Acciones</th>
-          </tr>
-        </thead>
-        <tbody>
-          {rows.map((row) => (
-            <tr key={row.id} className="border-border hover:bg-muted/50 border-b transition-colors last:border-b-0">
-              <td className="px-6 py-4 font-medium">{row.name}</td>
-              <td className="px-6 py-4 text-center">
-                <Badge variant={row.doc_count > 0 ? "default" : "secondary"}>{String(row.doc_count)}</Badge>
-              </td>
-              <td className="px-6 py-4 text-muted-foreground">
-                <LocalDate date={row.created_at} />
-              </td>
-              <td className="px-6 py-4 text-right">
-                <TagRowActions tag={row} />
-              </td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
-    </div>
+    <Table>
+      <TableHeader>
+        <TableRow className="hover:bg-transparent">
+          <TableHead>{sortButton("name", "Nombre")}</TableHead>
+          <TableHead className="text-center">{sortButton("doc_count", "Documentos")}</TableHead>
+          <TableHead>{sortButton("created_at", "Creada")}</TableHead>
+          <TableHead className="w-24 text-right">Acciones</TableHead>
+        </TableRow>
+      </TableHeader>
+      <TableBody>
+        {sorted.map((row) => (
+          <TableRow key={row.id}>
+            <TableCell className="font-medium">{row.name}</TableCell>
+            <TableCell className="text-center">
+              <Badge variant={row.doc_count > 0 ? "default" : "secondary"}>
+                {String(row.doc_count)}
+              </Badge>
+            </TableCell>
+            <TableCell className="text-muted-foreground whitespace-nowrap">
+              <LocalDate date={row.created_at} />
+            </TableCell>
+            <TableCell className="text-right">
+              <TagRowActions tag={row} canUpdate={canUpdate} canDelete={canDelete} />
+            </TableCell>
+          </TableRow>
+        ))}
+      </TableBody>
+    </Table>
   );
 }

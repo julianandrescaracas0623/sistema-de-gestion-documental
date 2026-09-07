@@ -7,7 +7,7 @@ import { PageBreadcrumb } from "@/shared/components/page-breadcrumb";
 import { Badge } from "@/shared/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/shared/components/ui/card";
 import { getSession } from "@/shared/lib/auth/get-session";
-import { canAccessModule } from "@/shared/lib/auth/permissions";
+import { canAccessModule, hasModulePermission } from "@/shared/lib/auth/permissions";
 import { getCachedTagsWithCount } from "@/shared/lib/cache/cached-queries";
 
 export default async function AdminTagsPage() {
@@ -15,6 +15,8 @@ export default async function AdminTagsPage() {
   if (session === null) redirect("/login");
   if (!canAccessModule(session.permissions, "tags")) redirect("/");
 
+  const canUpdate = hasModulePermission(session.permissions, "tags", "update");
+  const canDelete = hasModulePermission(session.permissions, "tags", "delete");
   const tags = await getCachedTagsWithCount();
 
   return (
@@ -38,7 +40,7 @@ export default async function AdminTagsPage() {
               </div>
             </CardHeader>
             <CardContent className="px-0">
-              <TagTable rows={tags} />
+              <TagTable rows={tags} canUpdate={canUpdate} canDelete={canDelete} />
             </CardContent>
           </Card>
           <CreateTagForm />

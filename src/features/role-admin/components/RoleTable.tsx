@@ -1,6 +1,6 @@
 "use client";
 
-import { ChevronRight, Pencil, ShieldCheck, Trash2 } from "lucide-react";
+import { ChevronRight, Eye, ShieldCheck, Trash2 } from "lucide-react";
 import type { Route } from "next";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -12,7 +12,7 @@ import type { PermissionCatalogRow } from "@/features/role-admin/queries/permiss
 import type { RoleAdminRow } from "@/features/role-admin/queries/roles.queries";
 import { ConfirmDestructiveDialog } from "@/shared/components/confirm-destructive-dialog";
 import { LocalDate } from "@/shared/components/local-date";
-import { TableRowActionsMenu } from "@/shared/components/table-row-actions-menu";
+import { RowActions, type RowActionItem } from "@/shared/components/row-actions";
 import { Badge } from "@/shared/components/ui/badge";
 import { Button } from "@/shared/components/ui/button";
 import { cn } from "@/shared/lib/utils";
@@ -41,24 +41,27 @@ function RoleRowActions({ row }: { row: RoleAdminRow }) {
 
   const canDelete = !row.is_system && row.user_count === 0;
 
+  const items: RowActionItem[] = [
+    {
+      label: `Configurar el rol ${row.name}`,
+      icon: Eye,
+      href: `/admin/roles/${row.id}` as Route,
+    },
+  ];
+  if (canDelete) {
+    items.push({
+      label: `Eliminar el rol ${row.name}`,
+      icon: Trash2,
+      destructive: true,
+      onSelect: () => {
+        setDeleteOpen(true);
+      },
+    });
+  }
+
   return (
     <>
-      <TableRowActionsMenu
-        items={[
-          ...(canDelete
-            ? [
-                {
-                  label: "Eliminar",
-                  icon: Trash2,
-                  destructive: true,
-                  onSelect: () => {
-                    setDeleteOpen(true);
-                  },
-                },
-              ]
-            : []),
-        ]}
-      />
+      <RowActions items={items} />
       <ConfirmDestructiveDialog
         open={deleteOpen}
         onOpenChange={setDeleteOpen}
@@ -150,12 +153,6 @@ export function RoleTable({
           </Link>
 
           <div className="flex shrink-0 items-center gap-2">
-            <Button variant="outline" size="sm" asChild>
-              <Link href={`/admin/roles/${row.id}` as Route}>
-                <Pencil className="size-3.5" aria-hidden />
-                Configurar
-              </Link>
-            </Button>
             <RoleRowActions row={row} />
           </div>
         </div>

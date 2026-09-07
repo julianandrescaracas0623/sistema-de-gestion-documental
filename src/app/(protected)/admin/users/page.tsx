@@ -6,12 +6,18 @@ import { redirect } from "next/navigation";
 import { RoleFilterSelect } from "@/features/user-admin/components/RoleFilterSelect";
 import { UserTable } from "@/features/user-admin/components/UserTable";
 import { CreateUserForm } from "@/features/user-admin/components/create-user-form";
-import { listRoles, listUsersWithRoles } from "@/features/user-admin/queries/users.queries";
+import {
+  USER_SORT_KEYS,
+  type UserSortKey,
+  listRoles,
+  listUsersWithRoles,
+} from "@/features/user-admin/queries/users.queries";
 import { PageBreadcrumb } from "@/shared/components/page-breadcrumb";
+import type { SortDirection } from "@/shared/components/sortable-header";
 import { Badge } from "@/shared/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/shared/components/ui/card";
 import { getSession } from "@/shared/lib/auth/get-session";
-import { canAccessModule } from "@/shared/lib/auth/permissions";
+import { canAccessModule, hasModulePermission } from "@/shared/lib/auth/permissions";
 
 const PAGE_SIZE = 20;
 
@@ -31,6 +37,9 @@ export default async function AdminUsersPage({
   if (session === null) redirect("/login");
   if (!canAccessModule(session.permissions, "users")) redirect("/");
 
+  const canUpdate = hasModulePermission(session.permissions, "users", "update");
+  const canDelete = hasModulePermission(session.permissions, "users", "delete");
+
   const sp = await searchParams;
   const roleFilter = firstParam(sp.role);
   const pageRaw = firstParam(sp.page);
@@ -38,26 +47,44 @@ export default async function AdminUsersPage({
   const pageNum = Number.isNaN(parsedPage) || parsedPage < 1 ? 1 : parsedPage;
   const pageIndex = pageNum - 1;
 
+  const sortRaw = firstParam(sp.sort);
+  const sort: UserSortKey = (USER_SORT_KEYS as readonly string[]).includes(sortRaw)
+    ? (sortRaw as UserSortKey)
+    : "created_at";
+  const dir: SortDirection = firstParam(sp.dir) === "asc" ? "asc" : "desc";
+
   const [{ data: users, count, error: usersError }, { data: roles, error: rolesError }] =
     await Promise.all([
       listUsersWithRoles({
         ...(roleFilter !== "" ? { roleSlugFilter: roleFilter } : {}),
         page: pageIndex,
         pageSize: PAGE_SIZE,
+        sort,
+        dir,
       }),
       listRoles(),
     ]);
 
+  const roleOptions = roles ?? [];
   const total = count ?? 0;
   const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE));
 
-  function buildQuery(nextPage: number) {
+  function buildQuery(overrides: { page?: number; sort?: string; dir?: string }) {
     const p = new URLSearchParams();
     if (roleFilter !== "") p.set("role", roleFilter);
+    const nextPage = overrides.page ?? pageNum;
     if (nextPage > 1) p.set("page", String(nextPage));
+    const nextSort = overrides.sort ?? (sort === "created_at" && dir === "desc" ? "" : sort);
+    if (nextSort !== "") {
+      p.set("sort", nextSort);
+      p.set("dir", overrides.dir ?? dir);
+    }
     const s = p.toString();
     return (s === "" ? "/admin/users" : `/admin/users?${s}`) as unknown as Route;
   }
+
+  const buildSortHref = (nextSort: string, nextDir: SortDirection) =>
+    buildQuery({ sort: nextSort, dir: nextDir, page: 1 }) as unknown as string;
 
   return (
     <div className="flex min-h-0 flex-1 flex-col">
@@ -89,7 +116,16 @@ export default async function AdminUsersPage({
                 No se pudo cargar el listado: {usersError.message}
               </p>
             ) : (
-              <UserTable rows={users ?? []} currentAdminId={session.userId} />
+              <UserTable
+                rows={users ?? []}
+                currentAdminId={session.userId}
+                roles={roleOptions}
+                canUpdate={canUpdate}
+                canDelete={canDelete}
+                sort={sort}
+                dir={dir}
+                buildSortHref={buildSortHref}
+              />
             )}
           </CardContent>
           {totalPages > 1 ? (
@@ -100,7 +136,7 @@ export default async function AdminUsersPage({
               <div className="flex gap-2">
                 {pageNum > 1 ? (
                   <Link
-                    href={buildQuery(pageNum - 1)}
+                    href={buildQuery({ page: pageNum - 1 })}
                     className="inline-flex h-8 items-center rounded-md border px-3 text-sm hover:bg-muted"
                   >
                     Anterior
@@ -108,7 +144,7 @@ export default async function AdminUsersPage({
                 ) : null}
                 {pageNum < totalPages ? (
                   <Link
-                    href={buildQuery(pageNum + 1)}
+                    href={buildQuery({ page: pageNum + 1 })}
                     className="inline-flex h-8 items-center rounded-md border px-3 text-sm hover:bg-muted"
                   >
                     Siguiente

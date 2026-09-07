@@ -6,16 +6,17 @@ import { toast } from "sonner";
 import { createCategoryAction } from "@/features/categories/actions/create-category.action";
 import { updateCategoryAction } from "@/features/categories/actions/update-category.action";
 import { Button } from "@/shared/components/ui/button";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/shared/components/ui/dialog";
 import { Input } from "@/shared/components/ui/input";
 import { Label } from "@/shared/components/ui/label";
-import {
-  Sheet,
-  SheetContent,
-  SheetDescription,
-  SheetHeader,
-  SheetTitle,
-  SheetTrigger,
-} from "@/shared/components/ui/sheet";
 import { Textarea } from "@/shared/components/ui/textarea";
 
 interface CategoryFormProps {
@@ -71,19 +72,19 @@ export function CategoryForm({
   }, [state, isControlled, controlledOnOpenChange]);
 
   return (
-    <Sheet open={open} onOpenChange={setOpen}>
-      {trigger !== undefined ? <SheetTrigger asChild>{trigger}</SheetTrigger> : null}
-      <SheetContent>
-        <SheetHeader>
-          <SheetTitle>{mode === "create" ? "Nueva categoría" : "Editar categoría"}</SheetTitle>
-          <SheetDescription>
+    <Dialog open={open} onOpenChange={setOpen}>
+      {trigger !== undefined ? <DialogTrigger asChild>{trigger}</DialogTrigger> : null}
+      <DialogContent>
+        <DialogHeader>
+          <DialogTitle>{mode === "create" ? "Nueva categoría" : "Editar categoría"}</DialogTitle>
+          <DialogDescription>
             {mode === "create"
               ? "Completa los campos para crear una nueva categoría."
               : "Modifica los campos y guarda los cambios."}
-          </SheetDescription>
-        </SheetHeader>
+          </DialogDescription>
+        </DialogHeader>
 
-        <form ref={formRef} action={formAction} className="mt-6 space-y-4 px-1">
+        <form ref={formRef} action={formAction} className="space-y-4">
           {mode === "edit" && category !== undefined ? (
             <input type="hidden" name="id" value={category.id} />
           ) : null}
@@ -116,11 +117,13 @@ export function CategoryForm({
             />
           </div>
 
-          <Button type="submit" disabled={isPending} className="w-full">
-            {isPending ? "Guardando…" : mode === "create" ? "Crear" : "Guardar cambios"}
-          </Button>
+          <DialogFooter>
+            <Button type="submit" disabled={isPending} className="w-full sm:w-auto">
+              {isPending ? "Guardando…" : mode === "create" ? "Crear" : "Guardar cambios"}
+            </Button>
+          </DialogFooter>
         </form>
-      </SheetContent>
-    </Sheet>
+      </DialogContent>
+    </Dialog>
   );
 }
