@@ -44,4 +44,4 @@ drizzle/
 .github/hooks/
 .impeccable/live/
 .vercel
-.env*
+tsconfig.tsbuildinfo

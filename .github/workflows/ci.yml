@@ -26,6 +26,12 @@ jobs:
 
       - run: pnpm install --frozen-lockfile
 
+      # typedRoutes (next.config.ts) makes `Route` a strict literal union, but
+      # that type only exists once .next/types is generated — without it,
+      # `as Route` assertions look "unnecessary" to typecheck/lint (false
+      # positive) even though they're required in a real build.
+      - run: pnpm exec next typegen
+
       - run: pnpm typecheck
 
       - run: pnpm lint
