@@ -100,8 +100,12 @@ export default async function AdminUsersPage({
       <div className="mx-auto w-full max-w-6xl flex-1 space-y-6 px-4 py-4 sm:px-6 sm:py-6 lg:px-7 lg:py-7">
         <CollapsibleCard
           storageId="admin-users"
-          icon={Users}
-          title="Listado de usuarios"
+          title={
+            <>
+              <Users className="text-primary size-4 shrink-0" aria-hidden />
+              Listado de usuarios
+            </>
+          }
           actions={
             <>
               {roles !== null ? <RoleFilterSelect value={roleFilter} roles={roles} /> : null}

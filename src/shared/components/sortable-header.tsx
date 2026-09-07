@@ -25,7 +25,7 @@ export function SortableHeader({
   return (
     <span
       className={cn(
-        "inline-flex items-center gap-1 transition-colors hover:text-foreground",
+        "inline-flex items-center gap-1 text-micro font-semibold tracking-wide uppercase transition-colors hover:text-foreground",
         active && "text-foreground",
         className
       )}

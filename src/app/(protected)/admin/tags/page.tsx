@@ -32,8 +32,12 @@ export default async function AdminTagsPage() {
         <div className="space-y-6">
           <CollapsibleCard
             storageId="admin-tags"
-            icon={Tag}
-            title="Listado de etiquetas"
+            title={
+              <>
+                <Tag className="text-primary size-4 shrink-0" aria-hidden />
+                Listado de etiquetas
+              </>
+            }
             actions={<Badge variant="outline">{String(tags.length)} en total</Badge>}
           >
             <CardContent className="px-0">

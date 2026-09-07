@@ -42,8 +42,12 @@ export default async function AdminCategoriesPage() {
           <div className="space-y-6">
             <CollapsibleCard
               storageId="admin-categories"
-              icon={FolderOpen}
-              title="Listado de categorías"
+              title={
+                <>
+                  <FolderOpen className="text-primary size-4 shrink-0" aria-hidden />
+                  Listado de categorías
+                </>
+              }
               actions={<Badge variant="outline">{String(categories?.length ?? 0)} en total</Badge>}
             >
               <CardContent className="px-0">

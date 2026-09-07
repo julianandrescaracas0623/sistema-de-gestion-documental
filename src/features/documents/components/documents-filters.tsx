@@ -81,7 +81,15 @@ export function DocumentsFilters({
   };
 
   return (
-    <CollapsibleCard storageId="documents-filters" icon={Filter} title="Filtros de búsqueda">
+    <CollapsibleCard
+      storageId="documents-filters"
+      title={
+        <>
+          <Filter className="text-primary size-4 shrink-0" aria-hidden />
+          Filtros de búsqueda
+        </>
+      }
+    >
       <CardContent className="pt-4">
         <p className="text-muted-foreground mb-3 text-sm">
           Refina el listado por texto, categoría, etiqueta o fecha.

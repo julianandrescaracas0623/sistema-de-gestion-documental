@@ -1,7 +1,6 @@
 "use client";
 
 import { ChevronDown } from "lucide-react";
-import type { LucideIcon } from "lucide-react";
 import { useEffect, useState } from "react";
 
 import { Card } from "@/shared/components/ui/card";
@@ -33,7 +32,6 @@ function readStored(storageId: string, fallback: boolean): boolean {
 export function CollapsibleCard({
   storageId,
   title,
-  icon,
   actions,
   defaultOpen = true,
   children,
@@ -41,15 +39,14 @@ export function CollapsibleCard({
   className,
 }: {
   storageId: string;
+  /** Header label; include any leading icon element here. */
   title: React.ReactNode;
-  icon?: LucideIcon;
   actions?: React.ReactNode;
   defaultOpen?: boolean;
   children: React.ReactNode;
   contentClassName?: string;
   className?: string;
 }) {
-  const Icon = icon;
   const [open, setOpen] = useState(defaultOpen);
 
   useEffect(() => {
@@ -71,7 +68,6 @@ export function CollapsibleCard({
         <div className="flex flex-wrap items-center justify-between gap-2 border-b px-4 py-3 sm:px-6">
           <CollapsibleTrigger className="group focus-visible:ring-ring/50 -mx-1 flex items-center gap-2 rounded-md px-1 py-0.5 text-base font-semibold outline-none focus-visible:ring-2">
             <ChevronDown className="text-muted-foreground size-4 shrink-0 transition-transform group-data-[state=closed]:-rotate-90" aria-hidden />
-            {Icon !== undefined ? <Icon className="text-primary size-4 shrink-0" aria-hidden /> : null}
             {title}
           </CollapsibleTrigger>
           {actions !== undefined ? (

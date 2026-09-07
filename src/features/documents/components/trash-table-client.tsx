@@ -30,6 +30,19 @@ import {
   TableRow,
 } from "@/shared/components/ui/table";
 
+const DEFAULT_SORT = "deleted_at";
+
+function buildHref(opts: { page: number; sort: string; dir: SortDirection }): string {
+  const p = new URLSearchParams();
+  if (opts.page > 1) p.set("page", String(opts.page));
+  if (!(opts.sort === DEFAULT_SORT && opts.dir === "desc")) {
+    p.set("sort", opts.sort);
+    p.set("dir", opts.dir);
+  }
+  const s = p.toString();
+  return s === "" ? "/documents/papelera" : `/documents/papelera?${s}`;
+}
+
 export function TrashTableClient({
   rows,
   count,
@@ -38,8 +51,6 @@ export function TrashTableClient({
   canPurge,
   sort,
   dir,
-  buildSortHref,
-  buildPageHref,
 }: {
   rows: TrashedDocumentRow[];
   count: number;
@@ -48,10 +59,11 @@ export function TrashTableClient({
   canPurge: boolean;
   sort: string;
   dir: SortDirection;
-  buildSortHref: (sort: string, dir: SortDirection) => string;
-  buildPageHref: (page: number) => string;
 }) {
   const router = useRouter();
+  const buildSortHref = (nextSort: string, nextDir: SortDirection) =>
+    buildHref({ page: 1, sort: nextSort, dir: nextDir });
+  const buildPageHref = (nextPage: number) => buildHref({ page: nextPage, sort, dir });
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [purgeOpen, setPurgeOpen] = useState(false);
   const [emptyOpen, setEmptyOpen] = useState(false);

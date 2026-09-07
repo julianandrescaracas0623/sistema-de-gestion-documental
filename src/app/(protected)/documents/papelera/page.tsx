@@ -54,19 +54,6 @@ export default async function DocumentsTrashPage({
 
   const totalPages = Math.max(1, Math.ceil(count / PAGE_SIZE));
 
-  function buildHref(overrides: { page?: number; sort?: string; dir?: string }) {
-    const p = new URLSearchParams();
-    const nextPage = overrides.page ?? page;
-    if (nextPage > 1) p.set("page", String(nextPage));
-    const nextSort = overrides.sort ?? (sort === "deleted_at" && dir === "desc" ? "" : sort);
-    if (nextSort !== "") {
-      p.set("sort", nextSort);
-      p.set("dir", overrides.dir ?? dir);
-    }
-    const s = p.toString();
-    return s === "" ? "/documents/papelera" : `/documents/papelera?${s}`;
-  }
-
   return (
     <div className="flex min-h-0 flex-1 flex-col">
       <header className="bg-card shrink-0 border-b px-4 py-4 sm:px-6 lg:px-7">
@@ -101,8 +88,6 @@ export default async function DocumentsTrashPage({
               canPurge={canPurge}
               sort={sort}
               dir={dir}
-              buildSortHref={(nextSort, nextDir) => buildHref({ sort: nextSort, dir: nextDir, page: 1 })}
-              buildPageHref={(nextPage) => buildHref({ page: nextPage })}
             />
           </Card>
         )}
