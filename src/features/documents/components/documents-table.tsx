@@ -5,6 +5,7 @@ import { getRolesForUploaders, listDocuments } from "@/features/documents/querie
 import { Card, CardContent } from "@/shared/components/ui/card";
 import { getSession } from "@/shared/lib/auth/get-session";
 import { hasModulePermission } from "@/shared/lib/auth/permissions";
+import { getCachedCategories, getCachedTagsForFilter } from "@/shared/lib/cache/cached-queries";
 import { createClient } from "@/shared/lib/supabase/server";
 
 
@@ -12,7 +13,11 @@ export async function DocumentsTable({ params }: { params: DocumentSearchParams 
   const supabase = await createClient();
   const pageIndex = params.page - 1;
 
-  const session = await getSession();
+  const [session, categories, tags] = await Promise.all([
+    getSession(),
+    getCachedCategories(),
+    getCachedTagsForFilter(),
+  ]);
   const canDelete =
     session !== null && hasModulePermission(session.permissions, "documents", "delete");
 
@@ -68,6 +73,8 @@ export async function DocumentsTable({ params }: { params: DocumentSearchParams 
       toItem={toItem}
       exportQuery={exportParams.toString()}
       canDelete={canDelete}
+      categories={categories}
+      tags={tags}
     />
   );
 }

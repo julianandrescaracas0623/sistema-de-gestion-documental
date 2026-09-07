@@ -1,26 +1,17 @@
-import { Users } from "lucide-react";
-import type { Route } from "next";
-import Link from "next/link";
 import { redirect } from "next/navigation";
 
-import { RoleFilterSelect } from "@/features/user-admin/components/RoleFilterSelect";
 import { UserTable } from "@/features/user-admin/components/UserTable";
-import { CreateUserForm } from "@/features/user-admin/components/create-user-form";
 import {
+  USER_PAGE_SIZE_OPTIONS,
   USER_SORT_KEYS,
   type UserSortKey,
   listRoles,
   listUsersWithRoles,
 } from "@/features/user-admin/queries/users.queries";
-import { CollapsibleCard } from "@/shared/components/collapsible-card";
 import { PageBreadcrumb } from "@/shared/components/page-breadcrumb";
 import type { SortDirection } from "@/shared/components/sortable-header";
-import { Badge } from "@/shared/components/ui/badge";
-import { CardContent } from "@/shared/components/ui/card";
 import { getSession } from "@/shared/lib/auth/get-session";
 import { canAccessModule, hasModulePermission } from "@/shared/lib/auth/permissions";
-
-const PAGE_SIZE = 20;
 
 type SearchParams = Record<string, string | string[] | undefined>;
 
@@ -38,15 +29,22 @@ export default async function AdminUsersPage({
   if (session === null) redirect("/login");
   if (!canAccessModule(session.permissions, "users")) redirect("/");
 
+  const canCreate = hasModulePermission(session.permissions, "users", "create");
   const canUpdate = hasModulePermission(session.permissions, "users", "update");
   const canDelete = hasModulePermission(session.permissions, "users", "delete");
 
   const sp = await searchParams;
   const roleFilter = firstParam(sp.role);
+  const q = firstParam(sp.q);
+
   const pageRaw = firstParam(sp.page);
   const parsedPage = Number.parseInt(pageRaw === "" ? "1" : pageRaw, 10);
   const pageNum = Number.isNaN(parsedPage) || parsedPage < 1 ? 1 : parsedPage;
-  const pageIndex = pageNum - 1;
+
+  const parsedSize = Number.parseInt(firstParam(sp.pageSize), 10);
+  const pageSize = (USER_PAGE_SIZE_OPTIONS as readonly number[]).includes(parsedSize)
+    ? parsedSize
+    : USER_PAGE_SIZE_OPTIONS[0];
 
   const sortRaw = firstParam(sp.sort);
   const sort: UserSortKey = (USER_SORT_KEYS as readonly string[]).includes(sortRaw)
@@ -54,117 +52,58 @@ export default async function AdminUsersPage({
     : "created_at";
   const dir: SortDirection = firstParam(sp.dir) === "asc" ? "asc" : "desc";
 
-  const [{ data: users, count, error: usersError }, { data: roles, error: rolesError }] =
-    await Promise.all([
-      listUsersWithRoles({
-        ...(roleFilter !== "" ? { roleSlugFilter: roleFilter } : {}),
-        page: pageIndex,
-        pageSize: PAGE_SIZE,
-        sort,
-        dir,
-      }),
-      listRoles(),
-    ]);
+  const [{ data: users, count, error: usersError }, { data: roles }] = await Promise.all([
+    listUsersWithRoles({
+      ...(roleFilter !== "" ? { roleSlugFilter: roleFilter } : {}),
+      ...(q !== "" ? { q } : {}),
+      page: pageNum - 1,
+      pageSize,
+      sort,
+      dir,
+    }),
+    listRoles(),
+  ]);
 
-  const roleOptions = roles ?? [];
   const total = count ?? 0;
-  const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE));
-
-  function buildQuery(overrides: { page?: number; sort?: string; dir?: string }) {
-    const p = new URLSearchParams();
-    if (roleFilter !== "") p.set("role", roleFilter);
-    const nextPage = overrides.page ?? pageNum;
-    if (nextPage > 1) p.set("page", String(nextPage));
-    const nextSort = overrides.sort ?? (sort === "created_at" && dir === "desc" ? "" : sort);
-    if (nextSort !== "") {
-      p.set("sort", nextSort);
-      p.set("dir", overrides.dir ?? dir);
-    }
-    const s = p.toString();
-    return (s === "" ? "/admin/users" : `/admin/users?${s}`) as unknown as Route;
-  }
-
-  const buildSortHref = (nextSort: string, nextDir: SortDirection) =>
-    buildQuery({ sort: nextSort, dir: nextDir, page: 1 }) as unknown as string;
+  const totalPages = Math.max(1, Math.ceil(total / pageSize));
+  const fromItem = total === 0 ? 0 : (pageNum - 1) * pageSize + 1;
+  const toItem = Math.min(pageNum * pageSize, total);
 
   return (
     <div className="flex min-h-0 flex-1 flex-col">
       <header className="bg-card shrink-0 border-b px-4 py-4 sm:px-6 lg:px-7">
         <PageBreadcrumb items={[{ label: "Inicio", href: "/" }, { label: "Usuarios" }]} />
-        <h1 className="text-lg font-semibold tracking-tight text-foreground">Usuarios</h1>
+        <h1 className="text-foreground text-lg font-semibold tracking-tight">Usuarios</h1>
         <p className="text-muted-foreground mt-0.5 text-sm">
-          Alta, eliminación de cuentas y asignación de roles. Los documentos de usuarios eliminados se conservan.
+          Alta, edición y eliminación de cuentas. Los documentos de usuarios eliminados se conservan.
         </p>
       </header>
 
-      <div className="mx-auto w-full max-w-6xl flex-1 space-y-6 px-4 py-4 sm:px-6 sm:py-6 lg:px-7 lg:py-7">
-        <CollapsibleCard
-          storageId="admin-users"
-          title={
-            <>
-              <Users className="text-primary size-4 shrink-0" aria-hidden />
-              Listado de usuarios
-            </>
-          }
-          actions={
-            <>
-              {roles !== null ? <RoleFilterSelect value={roleFilter} roles={roles} /> : null}
-              <Badge variant="outline">{String(total)} en total</Badge>
-            </>
-          }
-        >
-          <CardContent className="px-0">
-            {usersError !== null ? (
-              <p className="p-6 text-destructive" role="alert">
-                No se pudo cargar el listado: {usersError.message}
-              </p>
-            ) : (
-              <UserTable
-                rows={users ?? []}
-                currentAdminId={session.userId}
-                roles={roleOptions}
-                canUpdate={canUpdate}
-                canDelete={canDelete}
-                sort={sort}
-                dir={dir}
-                buildSortHref={buildSortHref}
-              />
-            )}
-          </CardContent>
-          {totalPages > 1 ? (
-            <div className="flex flex-wrap items-center justify-between gap-2 border-t px-6 py-4 text-sm">
-              <span className="text-muted-foreground">
-                Página {String(pageNum)} de {String(totalPages)}
-              </span>
-              <div className="flex gap-2">
-                {pageNum > 1 ? (
-                  <Link
-                    href={buildQuery({ page: pageNum - 1 })}
-                    className="inline-flex h-8 items-center rounded-md border px-3 text-sm hover:bg-muted"
-                  >
-                    Anterior
-                  </Link>
-                ) : null}
-                {pageNum < totalPages ? (
-                  <Link
-                    href={buildQuery({ page: pageNum + 1 })}
-                    className="inline-flex h-8 items-center rounded-md border px-3 text-sm hover:bg-muted"
-                  >
-                    Siguiente
-                  </Link>
-                ) : null}
-              </div>
-            </div>
-          ) : null}
-        </CollapsibleCard>
-
-        {rolesError !== null ? (
+      <div className="mx-auto w-full max-w-6xl flex-1 px-4 py-4 sm:px-6 sm:py-6 lg:px-7 lg:py-7">
+        {usersError !== null ? (
           <p className="text-destructive" role="alert">
-            No se pudieron cargar los roles: {rolesError.message}
+            No se pudo cargar el listado: {usersError.message}
           </p>
-        ) : roles !== null && roles.length > 0 ? (
-          <CreateUserForm roles={roles} />
-        ) : null}
+        ) : (
+          <UserTable
+            rows={users ?? []}
+            total={total}
+            page={pageNum}
+            pageSize={pageSize}
+            totalPages={totalPages}
+            fromItem={fromItem}
+            toItem={toItem}
+            q={q}
+            roleFilter={roleFilter}
+            sort={sort}
+            dir={dir}
+            roles={roles ?? []}
+            currentAdminId={session.userId}
+            canCreate={canCreate}
+            canUpdate={canUpdate}
+            canDelete={canDelete}
+          />
+        )}
       </div>
     </div>
   );

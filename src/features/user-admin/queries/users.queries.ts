@@ -42,6 +42,8 @@ export async function listRoles(): Promise<{ data: RoleOption[] | null; error: E
 export const USER_SORT_KEYS = ["fullName", "email", "created_at"] as const;
 export type UserSortKey = (typeof USER_SORT_KEYS)[number];
 
+export const USER_PAGE_SIZE_OPTIONS = [20, 50, 100] as const;
+
 const USER_SORT_COLUMNS: Record<UserSortKey, string> = {
   fullName: "full_name",
   email: "email",
@@ -50,6 +52,7 @@ const USER_SORT_COLUMNS: Record<UserSortKey, string> = {
 
 export async function listUsersWithRoles(params: {
   roleSlugFilter?: string;
+  q?: string;
   page: number;
   pageSize: number;
   sort?: UserSortKey;
@@ -83,6 +86,12 @@ export async function listUsersWithRoles(params: {
 
   if (roleSlugFilter !== undefined && roleSlugFilter !== "") {
     query = query.eq("user_roles.roles.slug", roleSlugFilter);
+  }
+
+  const q = params.q?.trim() ?? "";
+  if (q !== "") {
+    const pattern = `%${q.replace(/[%_]/g, "")}%`;
+    query = query.or(`full_name.ilike.${pattern},email.ilike.${pattern}`);
   }
 
   const { data, error, count } = await query;

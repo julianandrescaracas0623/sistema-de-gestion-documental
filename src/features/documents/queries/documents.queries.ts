@@ -116,6 +116,8 @@ export interface TrashedDocumentRow {
 export const TRASH_SORT_KEYS = ["title", "size_bytes", "deleted_at"] as const;
 export type TrashSortKey = (typeof TRASH_SORT_KEYS)[number];
 
+export const TRASH_PAGE_SIZE_OPTIONS = [25, 50, 100] as const;
+
 export async function listTrashedDocuments(
   supabase: SupabaseServer,
   params: { page: number; pageSize: number; sort?: TrashSortKey; dir?: "asc" | "desc" }

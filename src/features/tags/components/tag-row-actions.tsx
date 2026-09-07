@@ -2,82 +2,14 @@
 
 import { Pencil, Trash2 } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { useActionState, useEffect, useRef, useState, useTransition } from "react";
+import { useState, useTransition } from "react";
 import { toast } from "sonner";
 
 import { deleteTagAction } from "@/features/tags/actions/delete-tag.action";
-import { updateTagAction } from "@/features/tags/actions/update-tag.action";
+import { TagForm } from "@/features/tags/components/TagForm";
 import type { TagAdminRow } from "@/features/tags/queries/tags.queries";
 import { ConfirmDestructiveDialog } from "@/shared/components/confirm-destructive-dialog";
 import { RowActions, type RowActionItem } from "@/shared/components/row-actions";
-import { Button } from "@/shared/components/ui/button";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@/shared/components/ui/dialog";
-import { Input } from "@/shared/components/ui/input";
-import { Label } from "@/shared/components/ui/label";
-
-function EditTagDialog({
-  tag,
-  open,
-  onOpenChange,
-}: {
-  tag: TagAdminRow;
-  open: boolean;
-  onOpenChange: (open: boolean) => void;
-}) {
-  const [state, formAction, isPending] = useActionState(updateTagAction, null);
-  const formRef = useRef<HTMLFormElement>(null);
-  const router = useRouter();
-
-  useEffect(() => {
-    if (state === null) return;
-    if (state.status === "error") {
-      toast.error(state.message);
-    } else {
-      toast.success(state.message);
-      onOpenChange(false);
-      router.refresh();
-    }
-  }, [state, router, onOpenChange]);
-
-  return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent>
-        <DialogHeader>
-          <DialogTitle>Editar etiqueta</DialogTitle>
-          <DialogDescription>Modifica el nombre y guarda los cambios.</DialogDescription>
-        </DialogHeader>
-        <form ref={formRef} action={formAction} className="space-y-4">
-          <input type="hidden" name="id" value={tag.id} />
-          <div className="space-y-2">
-            <Label htmlFor={`edit-tag-name-${tag.id}`}>
-              Nombre <span className="text-destructive">*</span>
-            </Label>
-            <Input
-              id={`edit-tag-name-${tag.id}`}
-              name="name"
-              required
-              maxLength={120}
-              disabled={isPending}
-              defaultValue={tag.name}
-            />
-          </div>
-          <DialogFooter>
-            <Button type="submit" disabled={isPending} className="w-full sm:w-auto">
-              {isPending ? "Guardando…" : "Guardar cambios"}
-            </Button>
-          </DialogFooter>
-        </form>
-      </DialogContent>
-    </Dialog>
-  );
-}
 
 export function TagRowActions({
   tag,
@@ -132,7 +64,15 @@ export function TagRowActions({
   return (
     <>
       <RowActions items={items} />
-      <EditTagDialog tag={tag} open={editOpen} onOpenChange={setEditOpen} />
+      <TagForm
+        mode="edit"
+        tag={{ id: tag.id, name: tag.name }}
+        open={editOpen}
+        onOpenChange={setEditOpen}
+        onSuccess={() => {
+          router.refresh();
+        }}
+      />
       <ConfirmDestructiveDialog
         open={deleteOpen}
         onOpenChange={setDeleteOpen}

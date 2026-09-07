@@ -3,6 +3,7 @@ import { redirect } from "next/navigation";
 
 import { TrashTableClient } from "@/features/documents/components/trash-table-client";
 import {
+  TRASH_PAGE_SIZE_OPTIONS,
   TRASH_SORT_KEYS,
   type TrashSortKey,
   listTrashedDocuments,
@@ -15,8 +16,6 @@ import { hasModulePermission } from "@/shared/lib/auth/permissions";
 import { createClient } from "@/shared/lib/supabase/server";
 
 type SearchParams = Record<string, string | string[] | undefined>;
-
-const PAGE_SIZE = 25;
 
 function firstParam(v: string | string[] | undefined): string {
   if (v === undefined) return "";
@@ -38,6 +37,11 @@ export default async function DocumentsTrashPage({
   const rawPage = Number.parseInt(typeof sp.page === "string" ? sp.page : "", 10);
   const page = Number.isFinite(rawPage) && rawPage > 0 ? rawPage : 1;
 
+  const parsedSize = Number.parseInt(firstParam(sp.pageSize), 10);
+  const pageSize = (TRASH_PAGE_SIZE_OPTIONS as readonly number[]).includes(parsedSize)
+    ? parsedSize
+    : TRASH_PAGE_SIZE_OPTIONS[0];
+
   const sortRaw = firstParam(sp.sort);
   const sort: TrashSortKey = (TRASH_SORT_KEYS as readonly string[]).includes(sortRaw)
     ? (sortRaw as TrashSortKey)
@@ -47,12 +51,14 @@ export default async function DocumentsTrashPage({
   const supabase = await createClient();
   const { data: rows, count, error } = await listTrashedDocuments(supabase, {
     page,
-    pageSize: PAGE_SIZE,
+    pageSize,
     sort,
     dir,
   });
 
-  const totalPages = Math.max(1, Math.ceil(count / PAGE_SIZE));
+  const totalPages = Math.max(1, Math.ceil(count / pageSize));
+  const fromItem = count === 0 ? 0 : (page - 1) * pageSize + 1;
+  const toItem = Math.min(page * pageSize, count);
 
   return (
     <div className="flex min-h-0 flex-1 flex-col">
@@ -84,7 +90,10 @@ export default async function DocumentsTrashPage({
               rows={rows}
               count={count}
               page={page}
+              pageSize={pageSize}
               totalPages={totalPages}
+              fromItem={fromItem}
+              toItem={toItem}
               canPurge={canPurge}
               sort={sort}
               dir={dir}

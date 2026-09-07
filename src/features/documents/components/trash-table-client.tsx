@@ -12,14 +12,18 @@ import { bulkRestoreDocumentsAction } from "@/features/documents/actions/bulk-re
 import { emptyTrashAction } from "@/features/documents/actions/empty-trash.action";
 import { TrashRowActions } from "@/features/documents/components/trash-row-actions";
 import { formatFileSize } from "@/features/documents/lib/format-bytes";
-import type { TrashedDocumentRow } from "@/features/documents/queries/documents.queries";
+import {
+  TRASH_PAGE_SIZE_OPTIONS,
+  type TrashedDocumentRow,
+} from "@/features/documents/queries/documents.queries";
 import { ConfirmDestructiveDialog } from "@/shared/components/confirm-destructive-dialog";
+import { DataTableFooter } from "@/shared/components/data-table-shell";
 import { LocalDate } from "@/shared/components/local-date";
 import { ServerSortHeader } from "@/shared/components/server-sort-header";
 import type { SortDirection } from "@/shared/components/sortable-header";
 import { Badge } from "@/shared/components/ui/badge";
 import { Button } from "@/shared/components/ui/button";
-import { CardContent, CardFooter } from "@/shared/components/ui/card";
+import { CardContent } from "@/shared/components/ui/card";
 import { Checkbox } from "@/shared/components/ui/checkbox";
 import {
   Table,
@@ -32,9 +36,15 @@ import {
 
 const DEFAULT_SORT = "deleted_at";
 
-function buildHref(opts: { page: number; sort: string; dir: SortDirection }): string {
+function buildHref(opts: {
+  page: number;
+  pageSize: number;
+  sort: string;
+  dir: SortDirection;
+}): string {
   const p = new URLSearchParams();
   if (opts.page > 1) p.set("page", String(opts.page));
+  if (opts.pageSize !== TRASH_PAGE_SIZE_OPTIONS[0]) p.set("pageSize", String(opts.pageSize));
   if (!(opts.sort === DEFAULT_SORT && opts.dir === "desc")) {
     p.set("sort", opts.sort);
     p.set("dir", opts.dir);
@@ -47,7 +57,10 @@ export function TrashTableClient({
   rows,
   count,
   page,
+  pageSize,
   totalPages,
+  fromItem,
+  toItem,
   canPurge,
   sort,
   dir,
@@ -55,15 +68,17 @@ export function TrashTableClient({
   rows: TrashedDocumentRow[];
   count: number;
   page: number;
+  pageSize: number;
   totalPages: number;
+  fromItem: number;
+  toItem: number;
   canPurge: boolean;
   sort: string;
   dir: SortDirection;
 }) {
   const router = useRouter();
   const buildSortHref = (nextSort: string, nextDir: SortDirection) =>
-    buildHref({ page: 1, sort: nextSort, dir: nextDir });
-  const buildPageHref = (nextPage: number) => buildHref({ page: nextPage, sort, dir });
+    buildHref({ page: 1, pageSize, sort: nextSort, dir: nextDir });
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [purgeOpen, setPurgeOpen] = useState(false);
   const [emptyOpen, setEmptyOpen] = useState(false);
@@ -259,23 +274,19 @@ export function TrashTableClient({
         )}
       </CardContent>
 
-      <CardFooter className="flex items-center justify-between gap-3 border-t py-4 text-sm">
-        <span className="text-muted-foreground">
-          Página {String(page)} de {String(totalPages)}
-        </span>
-        <div className="flex items-center gap-2">
-          {page > 1 ? (
-            <Button variant="outline" size="sm" asChild>
-              <Link href={buildPageHref(page - 1) as Route}>Anterior</Link>
-            </Button>
-          ) : null}
-          {page < totalPages ? (
-            <Button variant="outline" size="sm" asChild>
-              <Link href={buildPageHref(page + 1) as Route}>Siguiente</Link>
-            </Button>
-          ) : null}
-        </div>
-      </CardFooter>
+      <DataTableFooter
+        page={page}
+        totalPages={totalPages}
+        total={count}
+        fromItem={fromItem}
+        toItem={toItem}
+        pageSize={pageSize}
+        pageSizeOptions={TRASH_PAGE_SIZE_OPTIONS}
+        onPageSizeChange={(size) => {
+          router.push(buildHref({ page: 1, pageSize: size, sort, dir }) as Route);
+        }}
+        buildHref={(p) => buildHref({ page: p, pageSize, sort, dir })}
+      />
 
       <ConfirmDestructiveDialog
         open={purgeOpen}

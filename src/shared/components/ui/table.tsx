@@ -7,7 +7,10 @@ function Table({ className, ...props }: React.ComponentProps<"table">) {
     <div data-slot="table-container" className="relative w-full overflow-x-auto">
       <table
         data-slot="table"
-        className={cn("w-full caption-bottom text-left text-sm", className)}
+        className={cn(
+          "w-full caption-bottom text-left text-sm [&_tbody_tr:nth-child(even)]:bg-muted/30",
+          className
+        )}
         {...props}
       />
     </div>
@@ -18,10 +21,7 @@ function TableHeader({ className, ...props }: React.ComponentProps<"thead">) {
   return (
     <thead
       data-slot="table-header"
-      className={cn(
-        "bg-card sticky top-0 z-10 [&_tr]:border-b [&_tr]:border-border",
-        className
-      )}
+      className={cn("bg-muted/40 [&_tr]:border-b [&_tr]:border-border", className)}
       {...props}
     />
   );
@@ -65,7 +65,7 @@ function TableHead({ className, ...props }: React.ComponentProps<"th">) {
     <th
       data-slot="table-head"
       className={cn(
-        "text-muted-foreground text-micro h-9 px-4 py-2.5 text-left align-middle font-semibold tracking-wide uppercase whitespace-nowrap [&:has([role=checkbox])]:pr-0",
+        "text-muted-foreground text-micro h-9 px-4 py-2.5 text-left align-middle font-semibold tracking-wide uppercase whitespace-nowrap select-none [&:has([role=checkbox])]:pr-0",
         className
       )}
       {...props}

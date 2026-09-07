@@ -1,12 +1,9 @@
-import { CalendarDays, Download, FileText, Tag, Upload } from "lucide-react";
-import Link from "next/link";
+import { CalendarDays, Tag } from "lucide-react";
 
 import { DocumentRowActions } from "@/features/documents/components/document-row-actions";
 import { formatFileSize } from "@/features/documents/lib/format-bytes";
 import { LocalDate } from "@/shared/components/local-date";
 import { Badge } from "@/shared/components/ui/badge";
-import { Button } from "@/shared/components/ui/button";
-import { Card, CardDescription, CardHeader, CardTitle } from "@/shared/components/ui/card";
 import { Checkbox } from "@/shared/components/ui/checkbox";
 import { TableCell, TableRow } from "@/shared/components/ui/table";
 
@@ -78,51 +75,5 @@ export function DocumentTableRow({
         <DocumentRowActions documentId={row.id} title={row.title} canDelete={canDelete} />
       </TableCell>
     </TableRow>
-  );
-}
-
-export function DocumentsTableHeaderActions({
-  total,
-  exportQuery,
-}: {
-  total: number;
-  exportQuery: string;
-}) {
-  return (
-    <div className="flex flex-wrap items-center gap-2">
-      <Button asChild size="sm">
-        <Link href="/documents/new">
-          <Upload className="size-4" />
-          Subir documento
-        </Link>
-      </Button>
-      <Badge variant="outline">{String(total)} en total</Badge>
-      {total > 0 ? (
-        <a
-          href={`/api/documents/export?${exportQuery}`}
-          className="hover:bg-muted inline-flex items-center gap-1.5 rounded-md border px-3 py-1.5 text-sm transition-colors"
-        >
-          <Download className="size-3.5" />
-          Descargar archivos ({String(total)})
-        </a>
-      ) : null}
-    </div>
-  );
-}
-
-export function DocumentsTableShell({ children }: { children: React.ReactNode }) {
-  return (
-    <Card className="gap-0 py-0">
-      <CardHeader className="border-b py-4">
-        <div className="flex flex-wrap items-center justify-between gap-2">
-          <CardTitle className="flex items-center gap-2 text-base">
-            <FileText className="text-primary size-4" />
-            Listado de documentos
-          </CardTitle>
-        </div>
-        <CardDescription className="sr-only">Tabla de documentos filtrados</CardDescription>
-      </CardHeader>
-      {children}
-    </Card>
   );
 }
