@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 
-import { publicSchema, requireServerEnv } from "@/shared/lib/env";
+import { publicSchema, requireServerEnv, sanitizeEnv } from "@/shared/lib/env";
 
 describe("publicSchema", () => {
   const valid = {
@@ -28,6 +28,44 @@ describe("publicSchema", () => {
 
   it("rejects an empty anon key", () => {
     expect(publicSchema.safeParse({ ...valid, NEXT_PUBLIC_SUPABASE_ANON_KEY: "" }).success).toBe(false);
+  });
+
+  it("strips a stray trailing line break from a URL before validating", () => {
+    const result = publicSchema.safeParse({
+      ...valid,
+      NEXT_PUBLIC_SUPABASE_URL: "https://abc.supabase.co\r\n",
+      NEXT_PUBLIC_SUPABASE_ANON_KEY: "  anon-key\n",
+    });
+    expect(result.success).toBe(true);
+    if (result.success) {
+      expect(result.data.NEXT_PUBLIC_SUPABASE_URL).toBe("https://abc.supabase.co");
+      expect(result.data.NEXT_PUBLIC_SUPABASE_ANON_KEY).toBe("anon-key");
+    }
+  });
+
+  it("strips a literal backslash-r-backslash-n suffix (dashboard paste artifact)", () => {
+    const result = publicSchema.safeParse({
+      ...valid,
+      NEXT_PUBLIC_SUPABASE_URL: String.raw`https://abc.supabase.co\r\n`,
+    });
+    expect(result.success).toBe(true);
+    if (result.success) {
+      expect(result.data.NEXT_PUBLIC_SUPABASE_URL).toBe("https://abc.supabase.co");
+    }
+  });
+});
+
+describe("sanitizeEnv", () => {
+  it("passes a clean value through unchanged", () => {
+    expect(sanitizeEnv("https://abc.supabase.co")).toBe("https://abc.supabase.co");
+  });
+
+  it("returns undefined untouched", () => {
+    expect(sanitizeEnv(undefined)).toBeUndefined();
+  });
+
+  it("removes surrounding quotes and whitespace", () => {
+    expect(sanitizeEnv('  "value"  ')).toBe("value");
   });
 });
 
