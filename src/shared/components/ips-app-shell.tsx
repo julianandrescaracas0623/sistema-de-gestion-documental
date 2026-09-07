@@ -10,6 +10,7 @@ import {
   Shield,
   ShieldCheck,
   Tag,
+  Trash2,
   Upload,
   Users,
 } from "lucide-react";
@@ -41,14 +42,27 @@ export interface IpsAppShellProps {
 function useNavActive(pathname: string) {
   const isHome = pathname === "/";
   const isUpload = pathname.startsWith("/documents/new");
+  const isPapelera = pathname.startsWith("/documents/papelera");
   const isDocuments =
-    pathname.startsWith("/documents") && !pathname.startsWith("/documents/new");
+    pathname.startsWith("/documents") &&
+    !pathname.startsWith("/documents/new") &&
+    !pathname.startsWith("/documents/papelera");
   const isUsers = pathname.startsWith("/admin/users");
   const isRoles = pathname.startsWith("/admin/roles");
   const isCategories = pathname.startsWith("/admin/categories");
   const isTags = pathname.startsWith("/admin/tags");
   const isActivity = pathname.startsWith("/admin/actividad");
-  return { isHome, isUpload, isDocuments, isUsers, isRoles, isCategories, isTags, isActivity };
+  return {
+    isHome,
+    isUpload,
+    isPapelera,
+    isDocuments,
+    isUsers,
+    isRoles,
+    isCategories,
+    isTags,
+    isActivity,
+  };
 }
 
 function navClick(onNavigate: (() => void) | undefined): { onClick: () => void } | Record<string, never> {
@@ -73,8 +87,17 @@ function SidebarNavLinks({
   onNavigate?: () => void;
   className?: string;
 }) {
-  const { isHome, isUpload, isDocuments, isUsers, isRoles, isCategories, isTags, isActivity } =
-    useNavActive(pathname);
+  const {
+    isHome,
+    isUpload,
+    isPapelera,
+    isDocuments,
+    isUsers,
+    isRoles,
+    isCategories,
+    isTags,
+    isActivity,
+  } = useNavActive(pathname);
   const showAdminSection = hasAnyAdminNavPermission(permissions);
 
   const linkClass = (active: boolean) =>
@@ -102,6 +125,12 @@ function SidebarNavLinks({
         <Link href="/documents/new" className={linkClass(isUpload)} {...navClick(onNavigate)}>
           <Upload className="size-4 shrink-0 opacity-90" aria-hidden />
           Subir documento
+        </Link>
+      ) : null}
+      {hasPermission(permissions, "documents.read") ? (
+        <Link href="/documents/papelera" className={linkClass(isPapelera)} {...navClick(onNavigate)}>
+          <Trash2 className="size-4 shrink-0 opacity-90" aria-hidden />
+          Papelera
         </Link>
       ) : null}
 

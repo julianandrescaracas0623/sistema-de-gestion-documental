@@ -109,12 +109,17 @@ export interface TrashedDocumentRow {
   uploader: { email: string } | null;
 }
 
+export const TRASH_SORT_KEYS = ["title", "size_bytes", "deleted_at"] as const;
+export type TrashSortKey = (typeof TRASH_SORT_KEYS)[number];
+
 export async function listTrashedDocuments(
   supabase: SupabaseServer,
-  params: { page: number; pageSize: number }
+  params: { page: number; pageSize: number; sort?: TrashSortKey; dir?: "asc" | "desc" }
 ): Promise<{ data: TrashedDocumentRow[]; count: number; error: Error | null }> {
   const from = (params.page - 1) * params.pageSize;
   const to = from + params.pageSize - 1;
+  const sortColumn: TrashSortKey = params.sort ?? "deleted_at";
+  const ascending = (params.dir ?? (params.sort === undefined ? "desc" : "asc")) === "asc";
 
   const { data, error, count } = await supabase
     .from("documents")
@@ -123,7 +128,7 @@ export async function listTrashedDocuments(
       { count: "exact" }
     )
     .not("deleted_at", "is", null)
-    .order("deleted_at", { ascending: false })
+    .order(sortColumn, { ascending })
     .range(from, to);
 
   if (error !== null) {
