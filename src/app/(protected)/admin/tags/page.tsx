@@ -3,6 +3,7 @@ import { redirect } from "next/navigation";
 
 import { CreateTagForm } from "@/features/tags/components/CreateTagForm";
 import { TagTable } from "@/features/tags/components/TagTable";
+import { PageBreadcrumb } from "@/shared/components/page-breadcrumb";
 import { Badge } from "@/shared/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/shared/components/ui/card";
 import { getSession } from "@/shared/lib/auth/get-session";
@@ -19,9 +20,7 @@ export default async function AdminTagsPage() {
   return (
     <div className="flex min-h-0 flex-1 flex-col">
       <header className="bg-card shrink-0 border-b px-4 py-4 sm:px-6 lg:px-7">
-        <p className="text-muted-foreground text-xs tracking-wide">
-          Inicio <span className="opacity-50">/</span> Administración <span className="opacity-50">/</span> Etiquetas
-        </p>
+        <PageBreadcrumb items={[{ label: "Inicio", href: "/" }, { label: "Etiquetas" }]} />
         <h1 className="text-lg font-semibold tracking-tight text-foreground">Etiquetas</h1>
         <p className="text-muted-foreground mt-0.5 text-sm">Gestiona las etiquetas disponibles para clasificar documentos.</p>
       </header>

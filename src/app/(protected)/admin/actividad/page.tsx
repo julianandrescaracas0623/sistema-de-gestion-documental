@@ -5,6 +5,7 @@ import { AuditFilters } from "@/features/audit/components/audit-filters";
 import { AuditTable } from "@/features/audit/components/audit-table";
 import { parseAuditSearchParams, buildAuditQuery } from "@/features/audit/lib/audit-search-params";
 import { listAuditActions, listAuditLog } from "@/features/audit/queries/audit.queries";
+import { PageBreadcrumb } from "@/shared/components/page-breadcrumb";
 import { getSession } from "@/shared/lib/auth/get-session";
 import { canAccessModule } from "@/shared/lib/auth/permissions";
 import { createClient } from "@/shared/lib/supabase/server";
@@ -40,10 +41,7 @@ export default async function AdminActividadPage({
   return (
     <div className="flex min-h-0 flex-1 flex-col">
       <header className="bg-card shrink-0 border-b px-4 py-4 sm:px-6 lg:px-7">
-        <p className="text-muted-foreground text-xs tracking-wide">
-          Inicio <span className="opacity-50">/</span> Administración{" "}
-          <span className="opacity-50">/</span> Actividad
-        </p>
+        <PageBreadcrumb items={[{ label: "Inicio", href: "/" }, { label: "Actividad" }]} />
         <h1 className="text-foreground flex items-center gap-2 text-lg font-semibold tracking-tight">
           <History className="text-primary size-5" aria-hidden />
           Actividad
