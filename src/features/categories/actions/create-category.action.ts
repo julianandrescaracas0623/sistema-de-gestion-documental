@@ -67,6 +67,9 @@ export async function createCategoryAction(
     .single();
 
   if (error !== null) {
+    if (error.code === "23505") {
+      return { status: "error", message: "Ya existe una categoría con ese nombre." };
+    }
     return { status: "error", message: "No se pudo crear la categoría." };
   }
 

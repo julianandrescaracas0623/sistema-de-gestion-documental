@@ -70,6 +70,9 @@ export async function updateCategoryAction(
     .select("id");
 
   if (error !== null) {
+    if (error.code === "23505") {
+      return { status: "error", message: "Ya existe otra categoría con ese nombre." };
+    }
     return { status: "error", message: "No se pudo actualizar la categoría." };
   }
   if (updated.length === 0) {

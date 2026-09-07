@@ -12,8 +12,6 @@ import { hasModulePermission } from "@/shared/lib/auth/permissions";
 import { formFieldText } from "@/shared/lib/form-utils";
 import { createClient } from "@/shared/lib/supabase/server";
 
-const rowWithIdSchema = z.object({ id: z.string().uuid() });
-
 const existingDocSchema = z.object({
   id: z.string().uuid(),
   deleted_at: z.string().nullable(),
@@ -132,48 +130,13 @@ export async function updateDocumentMetadataAction(_prev: unknown, formData: For
     return { status: "error", message: "No se pudo actualizar el documento (sin permiso)." };
   }
 
-  const { error: delTagsErr } = await supabase.from("document_tags").delete().eq("document_id", documentId);
-  if (delTagsErr !== null) {
-    return { status: "error", message: "No se pudieron actualizar las etiquetas." };
-  }
-
   const labels = parseTagInput(tagsRaw);
-  for (const name of labels) {
-    const { data: tagRow, error: tagSelErr } = await supabase.from("tags").select("id").eq("name", name).maybeSingle();
-    if (tagSelErr !== null) {
-      return { status: "error", message: "Error al leer etiquetas." };
-    }
-
-    let tagId: string | undefined;
-    if (tagRow !== null) {
-      const parsedExisting = rowWithIdSchema.safeParse(tagRow);
-      if (parsedExisting.success) {
-        tagId = parsedExisting.data.id;
-      }
-    }
-    if (tagId === undefined) {
-      const { data: createdTag, error: tagInsErr } = await supabase
-        .from("tags")
-        .insert({ name })
-        .select("id")
-        .single();
-      if (tagInsErr !== null) {
-        return { status: "error", message: "No se pudo crear una etiqueta." };
-      }
-      const createdParsed = rowWithIdSchema.safeParse(createdTag);
-      if (!createdParsed.success) {
-        return { status: "error", message: "Respuesta inválida al crear etiqueta." };
-      }
-      tagId = createdParsed.data.id;
-    }
-
-    const { error: linkErr } = await supabase.from("document_tags").insert({
-      document_id: documentId,
-      tag_id: tagId,
-    });
-    if (linkErr !== null) {
-      return { status: "error", message: "No se pudo vincular una etiqueta." };
-    }
+  const { error: tagsErr } = await supabase.rpc("sync_document_tags", {
+    p_document_id: documentId,
+    p_tag_names: labels,
+  });
+  if (tagsErr !== null) {
+    return { status: "error", message: "No se pudieron actualizar las etiquetas." };
   }
 
   await recordAudit(supabase, {

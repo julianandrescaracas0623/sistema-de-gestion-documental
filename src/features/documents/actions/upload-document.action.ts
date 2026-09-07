@@ -17,8 +17,6 @@ import { formFieldText } from "@/shared/lib/form-utils";
 import { createClient } from "@/shared/lib/supabase/server";
 import { isFileSizeValid, isFileTypeAllowed, readUploadFileBuffer, getFileTypeErrorMessage } from "@/shared/lib/upload-utils";
 
-const rowWithIdSchema = z.object({ id: z.string().uuid() });
-
 const uploadDocumentSchema = z.object({
   title: z.string().trim().min(1, "El título es obligatorio.").max(500, "El título es demasiado largo."),
   description: z
@@ -131,50 +129,15 @@ export async function uploadDocumentAction(_prev: unknown, formData: FormData): 
     };
   }
   const labels = parseTagInput(parsed.data.tagsRaw);
-  for (const name of labels) {
-    const { data: tagRow, error: tagSelErr } = await supabase.from("tags").select("id").eq("name", name).maybeSingle();
-
-    if (tagSelErr !== null) {
+  if (labels.length > 0) {
+    const { error: tagsErr } = await supabase.rpc("sync_document_tags", {
+      p_document_id: documentId,
+      p_tag_names: labels,
+    });
+    if (tagsErr !== null) {
       await supabase.from("documents").delete().eq("id", documentId);
       await supabase.storage.from(DOCUMENTS_STORAGE_BUCKET).remove([storagePath]);
       return { status: "error", message: "No se pudieron guardar las etiquetas." };
-    }
-
-    let tagId: string | undefined;
-    if (tagRow !== null) {
-      const parsedExisting = rowWithIdSchema.safeParse(tagRow);
-      if (parsedExisting.success) {
-        tagId = parsedExisting.data.id;
-      }
-    }
-    if (tagId === undefined) {
-      const { data: createdTag, error: tagInsErr } = await supabase
-        .from("tags")
-        .insert({ name })
-        .select("id")
-        .single();
-      if (tagInsErr !== null) {
-        await supabase.from("documents").delete().eq("id", documentId);
-        await supabase.storage.from(DOCUMENTS_STORAGE_BUCKET).remove([storagePath]);
-        return { status: "error", message: "No se pudieron crear las etiquetas." };
-      }
-      const createdParsed = rowWithIdSchema.safeParse(createdTag);
-      if (!createdParsed.success) {
-        await supabase.from("documents").delete().eq("id", documentId);
-        await supabase.storage.from(DOCUMENTS_STORAGE_BUCKET).remove([storagePath]);
-        return { status: "error", message: "Respuesta inválida al crear etiqueta." };
-      }
-      tagId = createdParsed.data.id;
-    }
-
-    const { error: linkErr } = await supabase.from("document_tags").insert({
-      document_id: documentId,
-      tag_id: tagId,
-    });
-    if (linkErr !== null) {
-      await supabase.from("documents").delete().eq("id", documentId);
-      await supabase.storage.from(DOCUMENTS_STORAGE_BUCKET).remove([storagePath]);
-      return { status: "error", message: "No se pudo vincular una etiqueta." };
     }
   }
 

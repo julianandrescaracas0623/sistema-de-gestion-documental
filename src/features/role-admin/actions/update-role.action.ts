@@ -14,8 +14,6 @@ import {
 } from "@/shared/lib/auth/permissions";
 import { createClient } from "@/shared/lib/supabase/server";
 
-const rowWithIdSchema = z.object({ id: z.string().uuid() });
-
 function parsePermissionKeys(raw: string): PermissionKey[] {
   const keys = raw
     .split(",")
@@ -82,60 +80,21 @@ export async function updateRoleAction(_prev: unknown, formData: FormData): Prom
     return { status: "error", message: "El rol no existe." };
   }
 
-  const updatePayload: { name: string; description: string | null; updated_at: string } = {
-    name: parsed.data.name,
-    description: parsed.data.description ?? null,
-    updated_at: new Date().toISOString(),
-  };
+  const { data: updated, error: rpcError } = (await supabase.rpc("update_role_with_permissions", {
+    p_role_id: parsed.data.id,
+    p_name: parsed.data.name,
+    p_description: parsed.data.description ?? null,
+    p_permission_keys: permissionKeys,
+  })) as { data: boolean | null; error: { message: string } | null };
 
-  const { data: updatedRole, error: updateError } = await supabase
-    .from("roles")
-    .update(updatePayload)
-    .eq("id", parsed.data.id)
-    .select("id");
-
-  if (updateError !== null) {
+  if (rpcError !== null) {
+    if (rpcError.message.includes("invalid_permission_keys")) {
+      return { status: "error", message: "Uno o más permisos no son válidos." };
+    }
     return { status: "error", message: "No se pudo actualizar el rol." };
   }
-  if (updatedRole.length === 0) {
+  if (updated !== true) {
     return { status: "error", message: "No tienes permiso para editar este rol." };
-  }
-
-  const { error: deleteLinksError } = await supabase
-    .from("role_permissions")
-    .delete()
-    .eq("role_id", parsed.data.id);
-
-  if (deleteLinksError !== null) {
-    return { status: "error", message: "No se pudieron actualizar los permisos." };
-  }
-
-  const { data: perms, error: permsError } = await supabase
-    .from("permissions")
-    .select("id, key")
-    .in("key", permissionKeys);
-
-  if (permsError !== null || perms.length !== permissionKeys.length) {
-    return { status: "error", message: "Uno o más permisos no son válidos." };
-  }
-
-  const parsedPerms = perms
-    .map((row) => rowWithIdSchema.safeParse(row))
-    .filter((r) => r.success);
-
-  if (parsedPerms.length !== permissionKeys.length) {
-    return { status: "error", message: "Uno o más permisos no son válidos." };
-  }
-
-  const { error: linkError } = await supabase.from("role_permissions").insert(
-    parsedPerms.map((p) => ({
-      role_id: parsed.data.id,
-      permission_id: p.data.id,
-    }))
-  );
-
-  if (linkError !== null) {
-    return { status: "error", message: "No se pudieron asignar los permisos al rol." };
   }
 
   await recordAudit(supabase, {

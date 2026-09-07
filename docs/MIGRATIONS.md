@@ -27,7 +27,8 @@ pnpm db:setup -- --seed    # + usuario admin semilla + categorías
 | 5 | `scripts/apply-storage-policies.mjs` | Bucket privado `documents` + políticas RLS de `storage.objects` (usan `has_permission`) | Aborta |
 | 6 | `scripts/apply-audit-log.mjs` | Tabla `audit_log` (append-only), RPC `record_audit()` `SECURITY DEFINER`, permiso `audit.read`, `profiles.last_login_at` | Aborta |
 | 7 | `scripts/apply-document-lifecycle.mjs` | `documents.retention_until` (fecha) + índice parcial | Aborta |
-| 8 | seeds (solo `--seed`) | `docs/sql/seed-generic-admin.sql` + `docs/sql/seed-categories.sql` | Marca error, no aborta |
+| 8 | `scripts/apply-data-integrity.mjs` | Únicos `categories.name` (case-insensitive) y `user_roles.user_id`; RPCs transaccionales `create_role_with_permissions`, `update_role_with_permissions`, `sync_document_tags` | Aborta (revisa nombres de categoría duplicados antes) |
+| 9 | seeds (solo `--seed`) | `docs/sql/seed-generic-admin.sql` + `docs/sql/seed-categories.sql` | Marca error, no aborta |
 
 Cada runner es **idempotente**: detecta si su cambio ya está aplicado y no lo
 repite. Se puede correr las veces que haga falta.
@@ -43,6 +44,7 @@ docs/sql/rbac-granular-permissions.sql
 docs/sql/storage-documents-bucket.sql
 docs/sql/audit-log.sql
 docs/sql/document-lifecycle.sql
+docs/sql/data-integrity.sql
 docs/sql/seed-generic-admin.sql      (opcional)
 docs/sql/seed-categories.sql         (opcional)
 ```
