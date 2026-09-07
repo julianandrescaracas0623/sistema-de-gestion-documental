@@ -43,3 +43,5 @@ drizzle/
 .github/agents/
 .github/hooks/
 .impeccable/live/
+.vercel
+.env*
