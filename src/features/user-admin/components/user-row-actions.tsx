@@ -5,18 +5,22 @@ import { useRouter } from "next/navigation";
 import { useState, useTransition } from "react";
 import { toast } from "sonner";
 
-import { deleteCategoryAction } from "@/features/categories/actions/delete-category.action";
-import { CategoryForm } from "@/features/categories/components/CategoryForm";
-import type { CategoryAdminRow } from "@/features/categories/queries/categories.queries";
+import { deleteUserByAdminAction } from "@/features/user-admin/actions/delete-user.action";
+import { EditUserForm } from "@/features/user-admin/components/edit-user-form";
+import type { RoleOption, UserAdminRow } from "@/features/user-admin/queries/users.queries";
 import { ConfirmDestructiveDialog } from "@/shared/components/confirm-destructive-dialog";
 import { RowActions, type RowActionItem } from "@/shared/components/row-actions";
 
-export function CategoryRowActions({
-  category,
+export function UserRowActions({
+  user,
+  roles,
+  currentAdminId,
   canUpdate = true,
   canDelete = true,
 }: {
-  category: CategoryAdminRow;
+  user: UserAdminRow;
+  roles: RoleOption[];
+  currentAdminId: string;
   canUpdate?: boolean;
   canDelete?: boolean;
 }) {
@@ -25,14 +29,19 @@ export function CategoryRowActions({
   const [deleteOpen, setDeleteOpen] = useState(false);
   const [isPending, startTransition] = useTransition();
 
+  if (user.id === currentAdminId) {
+    return <span className="text-muted-foreground text-xs">Tu cuenta</span>;
+  }
+
   const handleDelete = () => {
     startTransition(async () => {
       const formData = new FormData();
-      formData.set("id", category.id);
-      const result = await deleteCategoryAction(null, formData);
+      formData.set("userId", user.id);
+      const result = await deleteUserByAdminAction(null, formData);
 
       if (result.status === "error") {
         toast.error(result.message);
+        setDeleteOpen(false);
         return;
       }
 
@@ -43,9 +52,9 @@ export function CategoryRowActions({
   };
 
   const items: RowActionItem[] = [];
-  if (canUpdate) {
+  if (canUpdate && roles.length > 0) {
     items.push({
-      label: `Editar categoría ${category.name}`,
+      label: `Editar usuario ${user.email}`,
       icon: Pencil,
       onSelect: () => {
         setEditOpen(true);
@@ -54,7 +63,7 @@ export function CategoryRowActions({
   }
   if (canDelete) {
     items.push({
-      label: `Eliminar categoría ${category.name}`,
+      label: `Eliminar usuario ${user.email}`,
       icon: Trash2,
       destructive: true,
       onSelect: () => {
@@ -66,26 +75,28 @@ export function CategoryRowActions({
   return (
     <>
       <RowActions items={items} />
-      <CategoryForm
-        mode="edit"
-        category={{ id: category.id, name: category.name, description: category.description }}
-        open={editOpen}
-        onOpenChange={setEditOpen}
-        onSuccess={() => {
-          router.refresh();
-        }}
-      />
+      {canUpdate && roles.length > 0 ? (
+        <EditUserForm
+          user={user}
+          roles={roles}
+          open={editOpen}
+          onOpenChange={setEditOpen}
+          onSuccess={() => {
+            router.refresh();
+          }}
+        />
+      ) : null}
       <ConfirmDestructiveDialog
         open={deleteOpen}
         onOpenChange={setDeleteOpen}
-        title="Eliminar categoría"
+        title="Eliminar usuario"
         description={
           <>
-            ¿Estás seguro que deseas eliminar la categoría <strong>{category.name}</strong>? Esta
-            acción no se puede deshacer.
+            ¿Eliminar la cuenta <strong>{user.email}</strong>? El usuario perderá acceso al sistema.
+            Sus documentos permanecerán en el repositorio.
           </>
         }
-        confirmLabel={isPending ? "Eliminando…" : "Eliminar"}
+        confirmLabel={isPending ? "Eliminando…" : "Eliminar usuario"}
         isPending={isPending}
         onConfirm={handleDelete}
       />

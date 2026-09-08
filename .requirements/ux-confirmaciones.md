@@ -1,6 +1,6 @@
 # Requisitos UX — Confirmaciones y menús de acción
 
-Complementa [casos de uso](use-cases.md) (CU10, CU11) y [RNF3 Usabilidad](non-functional.md). Define el comportamiento observable de diálogos destructivos y menús ⋯ en tablas.
+Complementa [casos de uso](use-cases.md) (CU10, CU11) y [RNF3 Usabilidad](non-functional.md). Define el comportamiento observable de diálogos destructivos y de los iconos de acción en tablas.
 
 ---
 
@@ -14,7 +14,7 @@ Complementa [casos de uso](use-cases.md) (CU10, CU11) y [RNF3 Usabilidad](non-fu
 
 **Flujo principal**
 
-1. El actor abre el menú de acciones (⋯) o pulsa una acción destructiva.
+1. El actor pulsa el icono de acción de la fila (✏️ editar, 🗑️ eliminar) o una acción destructiva.
 2. El sistema muestra un **AlertDialog centrado** con título, descripción contextual y dos acciones: **Cancelar** (secundaria) y **Confirmar** (destructiva).
 3. Al confirmar, el sistema ejecuta la acción, muestra toast de éxito o error y actualiza la vista.
 
@@ -35,31 +35,36 @@ Complementa [casos de uso](use-cases.md) (CU10, CU11) y [RNF3 Usabilidad](non-fu
 
 ---
 
-## CU11 — Menú de acciones en tablas
+## CU11 — Iconos de acción en tablas
 
 | Campo | Contenido |
 | --- | --- |
 | **Actores** | Usuario, Administrador |
-| **Objetivo** | Acceder a acciones de fila desde un menú compacto y consistente |
+| **Objetivo** | Acceder a las acciones de fila con iconos directos y consistentes |
 
-**Acciones por tabla**
+**Acciones por tabla** (👁 solo donde hay ficha de detalle)
 
-| Tabla | Menú ⋯ |
+| Tabla | Iconos |
 | --- | --- |
-| Documentos | Ver · Eliminar |
-| Usuarios | Eliminar (no en fila propia) |
-| Categorías | Editar · Eliminar |
-| Etiquetas | Editar · Eliminar |
+| Documentos | 👁 Ver · 🗑️ Eliminar |
+| Usuarios | ✏️ Editar · 🗑️ Eliminar (texto "Tu cuenta" en la fila propia) |
+| Categorías | ✏️ Editar · 🗑️ Eliminar |
+| Etiquetas | ✏️ Editar · 🗑️ Eliminar |
+| Roles | 👁 Configurar · 🗑️ Eliminar (solo si no es del sistema y sin usuarios) |
+| Papelera | ♻️ Restaurar · 🗑️ Eliminar permanentemente |
 
 **Criterios de aceptación**
 
 | ID | Criterio |
 | --- | --- |
-| AC1 | Icono `MoreHorizontal` con `aria-label="Abrir menú de acciones"`. |
-| AC2 | Cada ítem ejecuta su acción (navegación, sheet de edición o AlertDialog). |
-| AC3 | Ítems destructivos con estilo `text-destructive`. |
+| AC1 | Cada acción es un botón-icono `ghost` con `aria-label` descriptivo (no hay texto visible). |
+| AC2 | Cada botón ejecuta su acción (navegación por `<Link>`, modal de edición o AlertDialog). |
+| AC3 | Botones destructivos con estilo `text-destructive`. |
+| AC4 | El icono de editar/eliminar se oculta si el usuario no tiene el permiso `<módulo>.update` / `.delete`. |
+| AC5 | Al cerrarse el modal/diálogo, el foco vuelve al botón que lo abrió. |
 
 **Implementación**
 
-- Componente compartido: `TableRowActionsMenu` en `src/shared/components/`.
-- `Sheet` reservado solo para formularios de edición o creación.
+- Componente compartido: `RowActions` en `src/shared/components/` (recibe `items: RowActionItem[]`).
+- Los modales de edición usan `Dialog` centrado (`src/shared/components/ui/dialog.tsx`), no `Sheet` lateral.
+- La página server calcula `canUpdate` / `canDelete` (`hasModulePermission`) y los pasa a la fila.

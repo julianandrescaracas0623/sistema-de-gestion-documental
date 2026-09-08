@@ -1,7 +1,6 @@
 import { History } from "lucide-react";
 import { redirect } from "next/navigation";
 
-import { AuditFilters } from "@/features/audit/components/audit-filters";
 import { AuditTable } from "@/features/audit/components/audit-table";
 import { parseAuditSearchParams, buildAuditQuery } from "@/features/audit/lib/audit-search-params";
 import { listAuditActions, listAuditLog } from "@/features/audit/queries/audit.queries";
@@ -57,10 +56,13 @@ export default async function AdminActividadPage({
             No se pudo cargar la actividad: {error.message}
           </p>
         ) : (
-          <>
-            <AuditFilters params={params} actions={actions} />
-            <AuditTable rows={rows} total={count} params={params} exportQuery={exportQuery} />
-          </>
+          <AuditTable
+            rows={rows}
+            total={count}
+            params={params}
+            actions={actions}
+            exportQuery={exportQuery}
+          />
         )}
       </div>
     </div>

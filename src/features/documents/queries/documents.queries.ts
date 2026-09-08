@@ -48,12 +48,16 @@ export async function listDocuments(
     dateTo?: string;
     page: number;
     pageSize: number;
+    sort?: "title" | "size_bytes" | "created_at";
+    dir?: "asc" | "desc";
   }
 ): Promise<{ data: DocumentListRow[] | null; count: number | null; error: Error | null }> {
   const { q, categoryId, tagId, dateFrom: rawFrom, dateTo: rawTo, page, pageSize } = params;
   const { dateFrom, dateTo } = normalizeDateRange(rawFrom ?? "", rawTo ?? "");
   const from = page * pageSize;
   const to = from + pageSize - 1;
+  const sortColumn = params.sort ?? "created_at";
+  const ascending = (params.dir ?? (params.sort === undefined ? "desc" : "asc")) === "asc";
 
   const safeQ = q !== undefined && q !== "" ? sanitizeDocumentSearchQuery(q) : "";
 
@@ -66,7 +70,7 @@ export async function listDocuments(
     .from("documents")
     .select(selectBody, { count: "exact" })
     .is("deleted_at", null)
-    .order("created_at", { ascending: false })
+    .order(sortColumn, { ascending })
     .range(from, to);
 
   if (tagId !== undefined && tagId !== "") {
@@ -109,12 +113,19 @@ export interface TrashedDocumentRow {
   uploader: { email: string } | null;
 }
 
+export const TRASH_SORT_KEYS = ["title", "size_bytes", "deleted_at"] as const;
+export type TrashSortKey = (typeof TRASH_SORT_KEYS)[number];
+
+export const TRASH_PAGE_SIZE_OPTIONS = [25, 50, 100] as const;
+
 export async function listTrashedDocuments(
   supabase: SupabaseServer,
-  params: { page: number; pageSize: number }
+  params: { page: number; pageSize: number; sort?: TrashSortKey; dir?: "asc" | "desc" }
 ): Promise<{ data: TrashedDocumentRow[]; count: number; error: Error | null }> {
   const from = (params.page - 1) * params.pageSize;
   const to = from + params.pageSize - 1;
+  const sortColumn: TrashSortKey = params.sort ?? "deleted_at";
+  const ascending = (params.dir ?? (params.sort === undefined ? "desc" : "asc")) === "asc";
 
   const { data, error, count } = await supabase
     .from("documents")
@@ -123,7 +134,7 @@ export async function listTrashedDocuments(
       { count: "exact" }
     )
     .not("deleted_at", "is", null)
-    .order("deleted_at", { ascending: false })
+    .order(sortColumn, { ascending })
     .range(from, to);
 
   if (error !== null) {

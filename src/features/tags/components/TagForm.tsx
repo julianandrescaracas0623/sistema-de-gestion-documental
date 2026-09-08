@@ -3,8 +3,8 @@
 import { useActionState, useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 
-import { createCategoryAction } from "@/features/categories/actions/create-category.action";
-import { updateCategoryAction } from "@/features/categories/actions/update-category.action";
+import { createTagAction } from "@/features/tags/actions/create-tag.action";
+import { updateTagAction } from "@/features/tags/actions/update-tag.action";
 import { Button } from "@/shared/components/ui/button";
 import {
   Dialog,
@@ -17,26 +17,25 @@ import {
 } from "@/shared/components/ui/dialog";
 import { Input } from "@/shared/components/ui/input";
 import { Label } from "@/shared/components/ui/label";
-import { Textarea } from "@/shared/components/ui/textarea";
 
-interface CategoryFormProps {
+interface TagFormProps {
   mode: "create" | "edit";
-  category?: { id: string; name: string; description: string | null };
+  tag?: { id: string; name: string };
   trigger?: React.ReactNode;
   open?: boolean;
   onOpenChange?: (open: boolean) => void;
   onSuccess?: () => void;
 }
 
-export function CategoryForm({
+export function TagForm({
   mode,
-  category,
+  tag,
   trigger,
   open: controlledOpen,
   onOpenChange: controlledOnOpenChange,
   onSuccess,
-}: CategoryFormProps) {
-  const action = mode === "create" ? createCategoryAction : updateCategoryAction;
+}: TagFormProps) {
+  const action = mode === "create" ? createTagAction : updateTagAction;
   const [state, formAction, isPending] = useActionState(action, null);
   const formRef = useRef<HTMLFormElement>(null);
   const [internalOpen, setInternalOpen] = useState(false);
@@ -76,44 +75,31 @@ export function CategoryForm({
       {trigger !== undefined ? <DialogTrigger asChild>{trigger}</DialogTrigger> : null}
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>{mode === "create" ? "Nueva categoría" : "Editar categoría"}</DialogTitle>
+          <DialogTitle>{mode === "create" ? "Nueva etiqueta" : "Editar etiqueta"}</DialogTitle>
           <DialogDescription>
             {mode === "create"
-              ? "Completa los campos para crear una nueva categoría."
-              : "Modifica los campos y guarda los cambios."}
+              ? "Las etiquetas permiten clasificar documentos con múltiples criterios."
+              : "Modifica el nombre y guarda los cambios."}
           </DialogDescription>
         </DialogHeader>
 
         <form ref={formRef} action={formAction} className="space-y-4">
-          {mode === "edit" && category !== undefined ? (
-            <input type="hidden" name="id" value={category.id} />
+          {mode === "edit" && tag !== undefined ? (
+            <input type="hidden" name="id" value={tag.id} />
           ) : null}
 
           <div className="space-y-2">
-            <Label htmlFor="cat-name">
+            <Label htmlFor="tag-form-name">
               Nombre <span className="text-destructive">*</span>
             </Label>
             <Input
-              id="cat-name"
+              id="tag-form-name"
               name="name"
               required
               maxLength={120}
               disabled={isPending}
-              defaultValue={mode === "edit" ? (category?.name ?? "") : ""}
-              placeholder="Ej. Órdenes médicas"
-            />
-          </div>
-
-          <div className="space-y-2">
-            <Label htmlFor="cat-description">Descripción</Label>
-            <Textarea
-              id="cat-description"
-              name="description"
-              rows={3}
-              maxLength={500}
-              disabled={isPending}
-              defaultValue={mode === "edit" ? (category?.description ?? "") : ""}
-              placeholder="Descripción opcional"
+              defaultValue={mode === "edit" ? (tag?.name ?? "") : ""}
+              placeholder="Ej. urgente, 2024, factura"
             />
           </div>
 

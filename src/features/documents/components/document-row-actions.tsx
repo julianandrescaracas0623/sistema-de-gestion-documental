@@ -1,22 +1,23 @@
 "use client";
 
 import { Eye, Trash2 } from "lucide-react";
-import { useRouter } from "next/navigation";
+import type { Route } from "next";
 import { useState, useTransition } from "react";
 import { toast } from "sonner";
 
 import { softDeleteDocumentAction } from "@/features/documents/actions/soft-delete-document.action";
 import { ConfirmDestructiveDialog } from "@/shared/components/confirm-destructive-dialog";
-import { TableRowActionsMenu } from "@/shared/components/table-row-actions-menu";
+import { RowActions, type RowActionItem } from "@/shared/components/row-actions";
 
 export function DocumentRowActions({
   documentId,
   title,
+  canDelete = true,
 }: {
   documentId: string;
   title: string;
+  canDelete?: boolean;
 }) {
-  const router = useRouter();
   const [deleteOpen, setDeleteOpen] = useState(false);
   const [isPending, startTransition] = useTransition();
 
@@ -33,27 +34,27 @@ export function DocumentRowActions({
     });
   };
 
+  const items: RowActionItem[] = [
+    {
+      label: `Ver ${title}`,
+      icon: Eye,
+      href: `/documents/${documentId}` as Route,
+    },
+  ];
+  if (canDelete) {
+    items.push({
+      label: `Eliminar ${title}`,
+      icon: Trash2,
+      destructive: true,
+      onSelect: () => {
+        setDeleteOpen(true);
+      },
+    });
+  }
+
   return (
     <>
-      <TableRowActionsMenu
-        items={[
-          {
-            label: "Ver",
-            icon: Eye,
-            onSelect: () => {
-              router.push(`/documents/${documentId}`);
-            },
-          },
-          {
-            label: "Eliminar",
-            icon: Trash2,
-            destructive: true,
-            onSelect: () => {
-              setDeleteOpen(true);
-            },
-          },
-        ]}
-      />
+      <RowActions items={items} />
       <ConfirmDestructiveDialog
         open={deleteOpen}
         onOpenChange={setDeleteOpen}

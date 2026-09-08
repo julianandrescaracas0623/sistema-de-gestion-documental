@@ -1,28 +1,30 @@
 "use client";
 
 import type { Route } from "next";
-import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useMemo, useState, useTransition } from "react";
 import { toast } from "sonner";
 
 import { bulkSoftDeleteDocumentsAction } from "@/features/documents/actions/bulk-soft-delete-documents.action";
-import {
-  DocumentTableRow,
-  DocumentsTableHeaderActions,
-  DocumentsTableShell,
-} from "@/features/documents/components/documents-table-parts";
+import { DocumentTableRow } from "@/features/documents/components/documents-table-parts";
+import { DocumentsToolbar } from "@/features/documents/components/documents-toolbar";
 import type { DocumentSearchParams } from "@/features/documents/lib/documents-search-params";
-import {
-  buildDocumentsQueryPath,
-  buildPageLink,
-  PAGE_SIZE_OPTIONS,
-} from "@/features/documents/lib/documents-search-params";
+import { buildDocumentsQueryPath, buildPageLink } from "@/features/documents/lib/documents-search-params";
 import type { DocumentListRow } from "@/features/documents/queries/documents.queries";
 import { ConfirmDestructiveDialog } from "@/shared/components/confirm-destructive-dialog";
+import { DataTableFooter } from "@/shared/components/data-table-shell";
+import { ServerSortHeader } from "@/shared/components/server-sort-header";
 import { Button } from "@/shared/components/ui/button";
-import { CardContent, CardFooter } from "@/shared/components/ui/card";
-import { Select } from "@/shared/components/ui/select";
+import { Card } from "@/shared/components/ui/card";
+import {
+  Table,
+  TableBody,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/shared/components/ui/table";
+
+const PAGE_SIZE_OPTIONS = [10, 25, 50] as const;
 
 interface DocumentsTableClientProps {
   rows: DocumentListRow[];
@@ -33,6 +35,9 @@ interface DocumentsTableClientProps {
   fromItem: number;
   toItem: number;
   exportQuery: string;
+  canDelete: boolean;
+  categories: { id: string; name: string }[];
+  tags: { id: string; name: string }[];
 }
 
 export function DocumentsTableClient({
@@ -44,6 +49,9 @@ export function DocumentsTableClient({
   fromItem,
   toItem,
   exportQuery,
+  canDelete,
+  categories,
+  tags,
 }: DocumentsTableClientProps) {
   const router = useRouter();
   const [selected, setSelected] = useState<Set<string>>(new Set());
@@ -70,19 +78,12 @@ export function DocumentsTableClient({
   };
 
   const toggleAllPage = () => {
-    if (allPageSelected) {
-      setSelected((prev) => {
-        const next = new Set(prev);
-        for (const row of rows) next.delete(row.id);
-        return next;
-      });
-    } else {
-      setSelected((prev) => {
-        const next = new Set(prev);
-        for (const row of rows) next.add(row.id);
-        return next;
-      });
-    }
+    setSelected((prev) => {
+      const next = new Set(prev);
+      if (allPageSelected) for (const row of rows) next.delete(row.id);
+      else for (const row of rows) next.add(row.id);
+      return next;
+    });
   };
 
   const handleBulkDelete = () => {
@@ -101,140 +102,130 @@ export function DocumentsTableClient({
     });
   };
 
-  const handlePageSizeChange = (size: number) => {
-    router.push(buildDocumentsQueryPath({ ...params, pageSize: size, page: 1 }) as Route);
-  };
+  const buildSortHref = (sort: string, dir: "asc" | "desc") =>
+    buildDocumentsQueryPath({
+      ...params,
+      sort: sort as DocumentSearchParams["sort"],
+      dir,
+      page: 1,
+    });
 
   return (
-    <DocumentsTableShell>
-      <div className="flex flex-wrap items-center justify-end gap-2 border-b px-6 py-3">
-        <DocumentsTableHeaderActions total={total} exportQuery={exportQuery} />
-      </div>
+    <Card className="gap-0 py-0">
+      <DocumentsToolbar
+        q={params.q}
+        categoryId={params.categoryId}
+        tagId={params.tagId}
+        dateFrom={params.dateFrom}
+        dateTo={params.dateTo}
+        categories={categories}
+        tags={tags}
+        total={total}
+        exportQuery={exportQuery}
+      />
 
       {selectedCount > 0 ? (
-        <div className="bg-muted/60 flex flex-wrap items-center gap-2 border-b px-6 py-2 text-sm">
+        <div className="bg-muted/60 flex flex-wrap items-center gap-2 border-b border-border px-4 py-2 text-sm sm:px-6">
           <span>{String(selectedCount)} seleccionado(s)</span>
+          <Button type="button" variant="ghost" size="sm" onClick={toggleAllPage}>
+            {allPageSelected ? "Quitar selección" : `Seleccionar todo (${String(rows.length)})`}
+          </Button>
           {selectedExportUrl !== "" ? (
             <Button variant="outline" size="sm" asChild>
               <a href={selectedExportUrl}>Descargar seleccionados</a>
             </Button>
           ) : null}
-          <Button
-            type="button"
-            size="sm"
-            variant="destructive"
-            onClick={() => {
-              setDeleteOpen(true);
-            }}
-          >
-            Eliminar seleccionados
-          </Button>
+          {canDelete ? (
+            <Button
+              type="button"
+              size="sm"
+              variant="destructive"
+              onClick={() => {
+                setDeleteOpen(true);
+              }}
+            >
+              Eliminar seleccionados
+            </Button>
+          ) : null}
         </div>
       ) : null}
 
-      <CardContent className="px-0">
-        <div className="overflow-x-auto">
-          <table className="w-full text-left text-sm">
-            <thead>
-              <tr className="border-b">
-                <th className="text-muted-foreground w-10 px-4 py-2.5">
-                  <input
-                    type="checkbox"
-                    checked={allPageSelected}
-                    aria-label="Seleccionar todos en esta página"
-                    onChange={toggleAllPage}
-                    className="border-input size-[18px] rounded"
-                  />
-                </th>
-                <th className="text-muted-foreground px-6 py-2.5 text-left text-[11.5px] font-semibold tracking-wide uppercase">
-                  Título
-                </th>
-                <th className="text-muted-foreground px-6 py-2.5 text-left text-[11.5px] font-semibold tracking-wide uppercase">
-                  Categoría
-                </th>
-                <th className="text-muted-foreground px-6 py-2.5 text-left text-[11.5px] font-semibold tracking-wide uppercase">
-                  Autor
-                </th>
-                <th className="text-muted-foreground px-6 py-2.5 text-left text-[11.5px] font-semibold tracking-wide uppercase">
-                  Tamaño
-                </th>
-                <th className="text-muted-foreground px-6 py-2.5 text-left text-[11.5px] font-semibold tracking-wide uppercase">
-                  Fecha
-                </th>
-                <th className="text-muted-foreground w-16 px-6 py-2.5 text-right text-[11.5px] font-semibold tracking-wide uppercase">
-                  Acciones
-                </th>
-              </tr>
-            </thead>
-            <tbody>
-              {rows.length === 0 ? (
-                <tr>
-                  <td colSpan={7} className="p-10 text-center">
-                    <p className="text-sm font-medium text-foreground">No hay resultados</p>
-                    <p className="mt-1 text-sm text-muted-foreground">
-                      Ajusta los filtros o sube un documento nuevo.
-                    </p>
-                  </td>
-                </tr>
-              ) : (
-                rows.map((row) => {
-                  const roleLabel =
-                    row.uploaded_by !== null ? roleMap[row.uploaded_by] : undefined;
-                  return (
-                    <DocumentTableRow
-                      key={row.id}
-                      row={row}
-                      {...(roleLabel !== undefined ? { role: roleLabel } : {})}
-                      showCheckbox
-                      selected={selected.has(row.id)}
-                      onToggle={toggleOne}
-                    />
-                  );
-                })
-              )}
-            </tbody>
-          </table>
+      {rows.length === 0 ? (
+        <div className="p-10 text-center">
+          <p className="text-foreground text-sm font-medium">No hay resultados</p>
+          <p className="text-muted-foreground mt-1 text-sm">
+            Ajusta los filtros o sube un documento nuevo.
+          </p>
         </div>
-      </CardContent>
+      ) : (
+        <Table>
+          <TableHeader>
+            <TableRow className="hover:bg-transparent">
+              <TableHead className="w-10" aria-label="Selección" />
+              <TableHead>
+                <ServerSortHeader
+                  columnKey="title"
+                  label="Título"
+                  activeKey={params.sort}
+                  activeDir={params.dir}
+                  buildHref={buildSortHref}
+                />
+              </TableHead>
+              <TableHead>Categoría</TableHead>
+              <TableHead>Autor</TableHead>
+              <TableHead>
+                <ServerSortHeader
+                  columnKey="size_bytes"
+                  label="Tamaño"
+                  activeKey={params.sort}
+                  activeDir={params.dir}
+                  buildHref={buildSortHref}
+                />
+              </TableHead>
+              <TableHead>
+                <ServerSortHeader
+                  columnKey="created_at"
+                  label="Fecha"
+                  activeKey={params.sort}
+                  activeDir={params.dir}
+                  buildHref={buildSortHref}
+                />
+              </TableHead>
+              <TableHead className="w-24 text-right">Acciones</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {rows.map((row) => {
+              const roleLabel = row.uploaded_by !== null ? roleMap[row.uploaded_by] : undefined;
+              return (
+                <DocumentTableRow
+                  key={row.id}
+                  row={row}
+                  {...(roleLabel !== undefined ? { role: roleLabel } : {})}
+                  showCheckbox
+                  canDelete={canDelete}
+                  selected={selected.has(row.id)}
+                  onToggle={toggleOne}
+                />
+              );
+            })}
+          </TableBody>
+        </Table>
+      )}
 
-      <CardFooter className="flex flex-wrap items-center justify-between gap-3 border-t py-4 text-sm">
-        <div className="text-muted-foreground flex flex-wrap items-center gap-3">
-          <span>
-            Mostrando {String(fromItem)}–{String(toItem)} de {String(total)}
-          </span>
-          <label className="flex items-center gap-2">
-            <span>Por página</span>
-            <Select
-              value={params.pageSize}
-              onChange={(e) => {
-                handlePageSizeChange(Number.parseInt(e.target.value, 10));
-              }}
-              className="h-8 w-auto"
-            >
-              {PAGE_SIZE_OPTIONS.map((n) => (
-                <option key={n} value={n}>
-                  {String(n)}
-                </option>
-              ))}
-            </Select>
-          </label>
-        </div>
-        <div className="flex items-center gap-2">
-          <span className="text-muted-foreground">
-            Página {String(params.page)} de {String(totalPages)}
-          </span>
-          {params.page > 1 ? (
-            <Button variant="outline" size="sm" asChild>
-              <Link href={buildPageLink(params, params.page - 1) as Route}>Anterior</Link>
-            </Button>
-          ) : null}
-          {params.page < totalPages ? (
-            <Button variant="outline" size="sm" asChild>
-              <Link href={buildPageLink(params, params.page + 1) as Route}>Siguiente</Link>
-            </Button>
-          ) : null}
-        </div>
-      </CardFooter>
+      <DataTableFooter
+        page={params.page}
+        totalPages={totalPages}
+        total={total}
+        fromItem={fromItem}
+        toItem={toItem}
+        pageSize={params.pageSize}
+        pageSizeOptions={PAGE_SIZE_OPTIONS}
+        onPageSizeChange={(size) => {
+          router.push(buildDocumentsQueryPath({ ...params, pageSize: size, page: 1 }) as Route);
+        }}
+        buildHref={(p) => buildPageLink(params, p)}
+      />
 
       <ConfirmDestructiveDialog
         open={deleteOpen}
@@ -250,6 +241,6 @@ export function DocumentsTableClient({
         isPending={isPending}
         onConfirm={handleBulkDelete}
       />
-    </DocumentsTableShell>
+    </Card>
   );
 }

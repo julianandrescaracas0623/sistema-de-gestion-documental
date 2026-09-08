@@ -8,7 +8,7 @@ import { toast } from "sonner";
 import { purgeDocumentAction } from "@/features/documents/actions/purge-document.action";
 import { restoreDocumentAction } from "@/features/documents/actions/restore-document.action";
 import { ConfirmDestructiveDialog } from "@/shared/components/confirm-destructive-dialog";
-import { Button } from "@/shared/components/ui/button";
+import { RowActions, type RowActionItem } from "@/shared/components/row-actions";
 
 export function TrashRowActions({
   documentId,
@@ -48,42 +48,43 @@ export function TrashRowActions({
     run(fd, purgeDocumentAction);
   };
 
+  const items: RowActionItem[] = [
+    {
+      label: `Restaurar ${title}`,
+      icon: RotateCcw,
+      onSelect: restore,
+      disabled: isPending,
+    },
+  ];
+  if (canPurge) {
+    items.push({
+      label: `Eliminar permanentemente ${title}`,
+      icon: Trash2,
+      destructive: true,
+      disabled: isPending,
+      onSelect: () => {
+        setPurgeOpen(true);
+      },
+    });
+  }
+
   return (
-    <div className="flex items-center justify-end gap-2">
-      <Button variant="outline" size="sm" disabled={isPending} onClick={restore}>
-        <RotateCcw className="size-3.5" />
-        Restaurar
-      </Button>
-      {canPurge ? (
-        <>
-          <Button
-            variant="ghost"
-            size="sm"
-            className="text-destructive hover:text-destructive"
-            disabled={isPending}
-            onClick={() => {
-              setPurgeOpen(true);
-            }}
-          >
-            <Trash2 className="size-3.5" />
-            Eliminar
-          </Button>
-          <ConfirmDestructiveDialog
-            open={purgeOpen}
-            onOpenChange={setPurgeOpen}
-            title="Eliminar permanentemente"
-            description={
-              <>
-                ¿Eliminar <strong>{title}</strong> de forma permanente? Se borra el registro y el
-                archivo. Esta acción no se puede deshacer.
-              </>
-            }
-            confirmLabel={isPending ? "Eliminando…" : "Eliminar permanentemente"}
-            isPending={isPending}
-            onConfirm={purge}
-          />
-        </>
-      ) : null}
-    </div>
+    <>
+      <RowActions items={items} />
+      <ConfirmDestructiveDialog
+        open={purgeOpen}
+        onOpenChange={setPurgeOpen}
+        title="Eliminar permanentemente"
+        description={
+          <>
+            ¿Eliminar <strong>{title}</strong> de forma permanente? Se borra el registro y el
+            archivo. Esta acción no se puede deshacer.
+          </>
+        }
+        confirmLabel={isPending ? "Eliminando…" : "Eliminar permanentemente"}
+        isPending={isPending}
+        onConfirm={purge}
+      />
+    </>
   );
 }

@@ -39,10 +39,24 @@ export async function listRoles(): Promise<{ data: RoleOption[] | null; error: E
   return { data, error: null };
 }
 
+export const USER_SORT_KEYS = ["fullName", "email", "created_at"] as const;
+export type UserSortKey = (typeof USER_SORT_KEYS)[number];
+
+export const USER_PAGE_SIZE_OPTIONS = [20, 50, 100] as const;
+
+const USER_SORT_COLUMNS: Record<UserSortKey, string> = {
+  fullName: "full_name",
+  email: "email",
+  created_at: "created_at",
+};
+
 export async function listUsersWithRoles(params: {
   roleSlugFilter?: string;
+  q?: string;
   page: number;
   pageSize: number;
+  sort?: UserSortKey;
+  dir?: "asc" | "desc";
 }): Promise<{ data: UserAdminRow[] | null; count: number | null; error: Error | null }> {
   let adminClient;
   try {
@@ -58,6 +72,8 @@ export async function listUsersWithRoles(params: {
   const { roleSlugFilter, page, pageSize } = params;
   const from = page * pageSize;
   const to = from + pageSize - 1;
+  const sortColumn = USER_SORT_COLUMNS[params.sort ?? "created_at"];
+  const ascending = (params.dir ?? (params.sort === undefined ? "desc" : "asc")) === "asc";
 
   let query = adminClient
     .from("profiles")
@@ -65,11 +81,17 @@ export async function listUsersWithRoles(params: {
       "id, email, full_name, created_at, user_roles!inner(role_id, roles!inner(slug, name))",
       { count: "exact" }
     )
-    .order("created_at", { ascending: false })
+    .order(sortColumn, { ascending })
     .range(from, to);
 
   if (roleSlugFilter !== undefined && roleSlugFilter !== "") {
     query = query.eq("user_roles.roles.slug", roleSlugFilter);
+  }
+
+  const q = params.q?.trim() ?? "";
+  if (q !== "") {
+    const pattern = `%${q.replace(/[%_]/g, "")}%`;
+    query = query.or(`full_name.ilike.${pattern},email.ilike.${pattern}`);
   }
 
   const { data, error, count } = await query;
