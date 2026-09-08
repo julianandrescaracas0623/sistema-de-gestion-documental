@@ -165,6 +165,9 @@ export function TrashTableClient({
       {someSelected ? (
         <div className="bg-muted/60 flex flex-wrap items-center gap-2 border-b px-4 py-2 text-sm sm:px-6">
           <span>{String(selected.size)} seleccionado(s)</span>
+          <Button type="button" variant="ghost" size="sm" onClick={toggleAllPage}>
+            {allPageSelected ? "Quitar selección" : `Seleccionar todo (${String(rows.length)})`}
+          </Button>
           <Button
             variant="outline"
             size="sm"
@@ -200,13 +203,7 @@ export function TrashTableClient({
           <Table>
             <TableHeader>
               <TableRow className="hover:bg-transparent">
-                <TableHead className="w-10">
-                  <Checkbox
-                    checked={allPageSelected}
-                    onCheckedChange={toggleAllPage}
-                    aria-label="Seleccionar todos en esta página"
-                  />
-                </TableHead>
+                <TableHead className="w-10" aria-label="Selección" />
                 <TableHead>
                   <ServerSortHeader
                     columnKey="title"

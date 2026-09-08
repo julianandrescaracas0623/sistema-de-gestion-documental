@@ -16,7 +16,6 @@ import { DataTableFooter } from "@/shared/components/data-table-shell";
 import { ServerSortHeader } from "@/shared/components/server-sort-header";
 import { Button } from "@/shared/components/ui/button";
 import { Card } from "@/shared/components/ui/card";
-import { Checkbox } from "@/shared/components/ui/checkbox";
 import {
   Table,
   TableBody,
@@ -128,6 +127,9 @@ export function DocumentsTableClient({
       {selectedCount > 0 ? (
         <div className="bg-muted/60 flex flex-wrap items-center gap-2 border-b border-border px-4 py-2 text-sm sm:px-6">
           <span>{String(selectedCount)} seleccionado(s)</span>
+          <Button type="button" variant="ghost" size="sm" onClick={toggleAllPage}>
+            {allPageSelected ? "Quitar selección" : `Seleccionar todo (${String(rows.length)})`}
+          </Button>
           {selectedExportUrl !== "" ? (
             <Button variant="outline" size="sm" asChild>
               <a href={selectedExportUrl}>Descargar seleccionados</a>
@@ -159,13 +161,7 @@ export function DocumentsTableClient({
         <Table>
           <TableHeader>
             <TableRow className="hover:bg-transparent">
-              <TableHead className="w-10">
-                <Checkbox
-                  checked={allPageSelected}
-                  aria-label="Seleccionar todos en esta página"
-                  onCheckedChange={toggleAllPage}
-                />
-              </TableHead>
+              <TableHead className="w-10" aria-label="Selección" />
               <TableHead>
                 <ServerSortHeader
                   columnKey="title"
