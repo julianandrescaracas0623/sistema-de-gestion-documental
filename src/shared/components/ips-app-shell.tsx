@@ -274,7 +274,10 @@ export function IpsAppShell({
                 <Menu className="size-5" />
               </Button>
             </SheetTrigger>
-            <SheetContent side="left" className="p-0">
+            <SheetContent
+              side="left"
+              className="bg-sidebar text-sidebar-foreground border-sidebar-border p-0"
+            >
               <SheetTitle className="sr-only">Navegación</SheetTitle>
               <SheetDescription className="sr-only">Menú principal de la aplicación</SheetDescription>
               <div className="flex h-full flex-col">{renderSidebar(true)}</div>
