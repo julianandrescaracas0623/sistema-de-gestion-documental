@@ -20,6 +20,8 @@ export async function DocumentsTable({ params }: { params: DocumentSearchParams 
   ]);
   const canDelete =
     session !== null && hasModulePermission(session.permissions, "documents", "delete");
+  const canDownload =
+    session !== null && hasModulePermission(session.permissions, "documents", "download");
 
   const { data: rows, count, error: listErr } = await listDocuments(supabase, {
     q: params.q,
@@ -73,6 +75,7 @@ export async function DocumentsTable({ params }: { params: DocumentSearchParams 
       toItem={toItem}
       exportQuery={exportParams.toString()}
       canDelete={canDelete}
+      canDownload={canDownload}
       categories={categories}
       tags={tags}
     />

@@ -11,6 +11,7 @@ export const PERMISSION_KEYS = [
   "documents.create",
   "documents.update",
   "documents.delete",
+  "documents.download",
   "categories.read",
   "categories.create",
   "categories.update",
@@ -29,7 +30,13 @@ export type PermissionModule = "users" | "roles" | "documents" | "categories" | 
 export const MODULE_PERMISSIONS: Record<PermissionModule, PermissionKey[]> = {
   users: ["users.read", "users.create", "users.update", "users.delete"],
   roles: ["roles.read", "roles.create", "roles.update", "roles.delete"],
-  documents: ["documents.read", "documents.create", "documents.update", "documents.delete"],
+  documents: [
+    "documents.read",
+    "documents.create",
+    "documents.update",
+    "documents.delete",
+    "documents.download",
+  ],
   categories: ["categories.read", "categories.create", "categories.update", "categories.delete"],
   tags: ["tags.read", "tags.create", "tags.update", "tags.delete"],
   audit: ["audit.read"],
@@ -84,7 +91,7 @@ export function canAccessModule(permissions: readonly string[], module: Permissi
 export function hasModulePermission(
   permissions: readonly string[],
   module: PermissionModule,
-  action: "read" | "create" | "update" | "delete"
+  action: "read" | "create" | "update" | "delete" | "download"
 ): boolean {
   const key = `${module}.${action}`;
   if (hasPermission(permissions, key as PermissionKey)) return true;

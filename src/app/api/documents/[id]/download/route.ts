@@ -3,6 +3,8 @@ import { z } from "zod";
 
 import { createSignedDocumentUrl } from "@/features/documents/lib/signed-url";
 import { recordAudit } from "@/shared/lib/audit/record-audit";
+import { getSession } from "@/shared/lib/auth/get-session";
+import { hasModulePermission } from "@/shared/lib/auth/permissions";
 import { createClient } from "@/shared/lib/supabase/server";
 
 const rowSchema = z.object({
@@ -32,6 +34,11 @@ export async function GET(
   } = await supabase.auth.getUser();
   if (user === null) {
     return NextResponse.json({ error: "No autorizado" }, { status: 401 });
+  }
+
+  const session = await getSession();
+  if (session === null || !hasModulePermission(session.permissions, "documents", "download")) {
+    return NextResponse.json({ error: "Sin permiso para descargar documentos" }, { status: 403 });
   }
 
   const { data: doc } = await supabase

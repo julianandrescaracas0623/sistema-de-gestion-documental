@@ -19,7 +19,11 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
   }
 
   const session = await getSession();
-  if (session === null || !hasModulePermission(session.permissions, "documents", "read")) {
+  if (
+    session === null ||
+    !hasModulePermission(session.permissions, "documents", "read") ||
+    !hasModulePermission(session.permissions, "documents", "download")
+  ) {
     return NextResponse.json({ error: "Sin permiso para exportar documentos" }, { status: 403 });
   }
 
