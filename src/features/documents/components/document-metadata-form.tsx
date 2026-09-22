@@ -73,14 +73,19 @@ export function DocumentMetadataForm({
         />
       </div>
       <div className="space-y-2">
-        <Label htmlFor="categoryId">Categoría</Label>
+        <Label htmlFor="categoryId">
+          Categoría <span className="text-destructive">*</span>
+        </Label>
         <Select
           id="categoryId"
           name="categoryId"
+          required
           disabled={isPending}
           defaultValue={document.category !== null ? document.category.id : ""}
         >
-          <option value="">Sin categoría</option>
+          <option value="" disabled>
+            Selecciona una categoría
+          </option>
           {categories.map((c) => (
             <option key={c.id} value={c.id}>
               {c.name}

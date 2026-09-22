@@ -1,10 +1,18 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 
-function readProfileName(profile: { id: unknown; full_name: unknown }): { id: string; fullName: string } | null {
-  if (typeof profile.id !== "string" || typeof profile.full_name !== "string") {
+function readProfileName(profile: {
+  id: unknown;
+  first_name: unknown;
+  last_name: unknown;
+}): { id: string; fullName: string } | null {
+  if (
+    typeof profile.id !== "string" ||
+    typeof profile.first_name !== "string" ||
+    typeof profile.last_name !== "string"
+  ) {
     return null;
   }
-  const fullName = profile.full_name.trim();
+  const fullName = `${profile.first_name} ${profile.last_name}`.trim();
   if (fullName === "") {
     return null;
   }
@@ -21,7 +29,7 @@ export async function syncProfileNameToAuthMetadata(
 ): Promise<void> {
   const { data: profile, error: profileError } = await adminClient
     .from("profiles")
-    .select("id, full_name")
+    .select("id, first_name, last_name")
     .eq("email", email)
     .maybeSingle();
 

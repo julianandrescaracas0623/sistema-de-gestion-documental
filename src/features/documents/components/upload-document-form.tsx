@@ -26,7 +26,7 @@ import {
 const formSchema = z.object({
   title: z.string().trim().min(1, "El título es obligatorio.").max(500),
   description: z.string().max(5000).optional(),
-  categoryId: z.string().optional(),
+  categoryId: z.string().min(1, "Debes seleccionar una categoría."),
 });
 
 type FormValues = z.infer<typeof formSchema>;
@@ -103,7 +103,7 @@ export function UploadDocumentForm({
     const fd = new FormData();
     fd.set("title", data.title);
     fd.set("description", data.description ?? "");
-    fd.set("categoryId", data.categoryId ?? "");
+    fd.set("categoryId", data.categoryId);
     fd.set("tags", tagsValue);
     fd.set("file", file);
 
@@ -170,10 +170,12 @@ export function UploadDocumentForm({
               />
             )}
           </FormField>
-          <FormField id="categoryId" label="Categoría (opcional)">
+          <FormField id="categoryId" label="Categoría" required error={errors.categoryId?.message}>
             {(field) => (
               <Select disabled={isPending} {...field} {...register("categoryId")}>
-                <option value="">Sin categoría</option>
+                <option value="" disabled>
+                  Selecciona una categoría
+                </option>
                 {categories.map((c) => (
                   <option key={c.id} value={c.id}>
                     {c.name}

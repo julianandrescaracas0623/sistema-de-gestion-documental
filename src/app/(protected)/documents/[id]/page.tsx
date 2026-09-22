@@ -28,6 +28,7 @@ import {
   CardTitle,
 } from "@/shared/components/ui/card";
 import { getSession } from "@/shared/lib/auth/get-session";
+import { hasModulePermission } from "@/shared/lib/auth/permissions";
 import { getCachedCategories, getCachedTagsForFilter } from "@/shared/lib/cache/cached-queries";
 import { createClient } from "@/shared/lib/supabase/server";
 
@@ -70,9 +71,14 @@ export default async function DocumentDetailPage({ params }: { params: Promise<{
   const { url: viewUrl } = isDeleted
     ? { url: null }
     : await createSignedDocumentUrl(supabase, doc.storage_object_path);
+  const canDownload = hasModulePermission(session.permissions, "documents", "download");
   // Download goes through an audited route (records the event, then redirects
   // to a signed URL) rather than exposing the signed URL directly.
-  const downloadUrl = isDeleted ? null : `/api/documents/${doc.id}/download`;
+  const downloadUrl = isDeleted || !canDownload ? null : `/api/documents/${doc.id}/download`;
+  // Without download rights, strip the PDF viewer's built-in toolbar so its native
+  // save/print icons don't leak a download path the user shouldn't have.
+  const pdfViewUrl: string | undefined =
+    viewUrl === null ? undefined : !canDownload ? `${viewUrl}#toolbar=0&navpanes=0` : viewUrl;
 
   const showInlinePreview = !isDeleted && canPreviewInline(doc.mime_type) && viewUrl !== null;
   const showOfficePreview = !isDeleted && isOffice && viewUrl !== null;
@@ -180,7 +186,7 @@ export default async function DocumentDetailPage({ params }: { params: Promise<{
                 ) : (
                   <iframe
                     title="Vista previa del documento"
-                    src={viewUrl}
+                    src={pdfViewUrl}
                     className="h-[70vh] min-h-[480px] w-full"
                   />
                 )}

@@ -13,11 +13,26 @@ import { createServiceRoleClient } from "@/shared/lib/supabase/service-role";
 
 const updateUserSchema = z.object({
   userId: z.string().uuid("Usuario inválido."),
-  fullName: z
+  firstName: z
     .string()
     .trim()
     .min(2, "El nombre debe tener al menos 2 caracteres")
-    .max(120, "El nombre es demasiado largo"),
+    .max(60, "El nombre es demasiado largo"),
+  lastName: z
+    .string()
+    .trim()
+    .min(2, "El apellido debe tener al menos 2 caracteres")
+    .max(60, "El apellido es demasiado largo"),
+  documentNumber: z
+    .string()
+    .trim()
+    .min(4, "El número de documento debe tener al menos 4 caracteres")
+    .max(20, "El número de documento es demasiado largo"),
+  phone: z
+    .string()
+    .trim()
+    .min(7, "El teléfono debe tener al menos 7 caracteres")
+    .max(20, "El teléfono es demasiado largo"),
   roleId: z.string().uuid("Rol inválido."),
 });
 
@@ -37,7 +52,10 @@ export async function updateUserByAdminAction(
 ): Promise<ActionResult> {
   const parsed = updateUserSchema.safeParse({
     userId: formFieldText(formData, "userId"),
-    fullName: formFieldText(formData, "fullName"),
+    firstName: formFieldText(formData, "firstName"),
+    lastName: formFieldText(formData, "lastName"),
+    documentNumber: formFieldText(formData, "documentNumber"),
+    phone: formFieldText(formData, "phone"),
     roleId: formFieldText(formData, "roleId"),
   });
 
@@ -53,7 +71,8 @@ export async function updateUserByAdminAction(
     return { status: "error", message: "No tienes permiso para editar usuarios." };
   }
 
-  const { userId, fullName, roleId } = parsed.data;
+  const { userId, firstName, lastName, documentNumber, phone, roleId } = parsed.data;
+  const fullName = `${firstName} ${lastName}`.trim();
   if (userId === session.userId) {
     return { status: "error", message: "No puedes editar tu propia cuenta desde aquí." };
   }
@@ -114,7 +133,12 @@ export async function updateUserByAdminAction(
 
   const { error: profileError } = await adminClient
     .from("profiles")
-    .update({ full_name: fullName })
+    .update({
+      first_name: firstName,
+      last_name: lastName,
+      document_number: documentNumber,
+      phone,
+    })
     .eq("id", userId);
   if (profileError !== null) {
     return { status: "error", message: "No se pudo actualizar el perfil. Intenta de nuevo." };

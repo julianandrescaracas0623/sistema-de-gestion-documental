@@ -3,6 +3,11 @@ import { createServiceRoleClient } from "@/shared/lib/supabase/service-role";
 export interface UserAdminRow {
   id: string;
   email: string;
+  firstName: string;
+  lastName: string;
+  documentNumber: string | null;
+  phone: string | null;
+  /** Derived from firstName + lastName; kept for list/table display. */
   fullName: string;
   roleId: string;
   roleSlug: string;
@@ -45,7 +50,7 @@ export type UserSortKey = (typeof USER_SORT_KEYS)[number];
 export const USER_PAGE_SIZE_OPTIONS = [20, 50, 100] as const;
 
 const USER_SORT_COLUMNS: Record<UserSortKey, string> = {
-  fullName: "full_name",
+  fullName: "first_name",
   email: "email",
   created_at: "created_at",
 };
@@ -78,7 +83,7 @@ export async function listUsersWithRoles(params: {
   let query = adminClient
     .from("profiles")
     .select(
-      "id, email, full_name, created_at, user_roles!inner(role_id, roles!inner(slug, name))",
+      "id, email, first_name, last_name, document_number, phone, created_at, user_roles!inner(role_id, roles!inner(slug, name))",
       { count: "exact" }
     )
     .order(sortColumn, { ascending })
@@ -91,7 +96,9 @@ export async function listUsersWithRoles(params: {
   const q = params.q?.trim() ?? "";
   if (q !== "") {
     const pattern = `%${q.replace(/[%_]/g, "")}%`;
-    query = query.or(`full_name.ilike.${pattern},email.ilike.${pattern}`);
+    query = query.or(
+      `first_name.ilike.${pattern},last_name.ilike.${pattern},email.ilike.${pattern}`
+    );
   }
 
   const { data, error, count } = await query;
@@ -103,7 +110,10 @@ export async function listUsersWithRoles(params: {
   interface RawRow {
     id: string;
     email: string;
-    full_name: string;
+    first_name: string;
+    last_name: string;
+    document_number: string | null;
+    phone: string | null;
     created_at: string;
     user_roles: {
       role_id: string;
@@ -117,7 +127,11 @@ export async function listUsersWithRoles(params: {
     return {
       id: row.id,
       email: row.email,
-      fullName: row.full_name,
+      firstName: row.first_name,
+      lastName: row.last_name,
+      documentNumber: row.document_number,
+      phone: row.phone,
+      fullName: `${row.first_name} ${row.last_name}`.trim(),
       roleId: ur?.role_id ?? "",
       roleSlug: role?.slug ?? "",
       roleName: role?.name ?? "",

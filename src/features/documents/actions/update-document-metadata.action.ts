@@ -22,10 +22,7 @@ const schema = z.object({
   documentId: z.string().uuid("Documento inválido."),
   title: z.string().trim().min(1, "El título es obligatorio.").max(500),
   description: z.string().max(5000).optional(),
-  categoryId: z.preprocess(
-    (v) => (v === "" || v === null || v === undefined ? undefined : v),
-    z.string().uuid().optional()
-  ),
+  categoryId: z.string().uuid("Debes seleccionar una categoría."),
   categoryName: z.string().trim().max(120, "La categoría es demasiado larga.").optional(),
   retentionUntil: z.preprocess(
     (v) => (v === "" || v === null || v === undefined ? undefined : v),

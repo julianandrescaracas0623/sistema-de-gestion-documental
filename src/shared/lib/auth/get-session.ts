@@ -33,12 +33,14 @@ export const getSession = cache(async (): Promise<SessionData | null> => {
   if (error !== null || user === null) return null;
 
   const [{ data: profile }, authContext] = await Promise.all([
-    supabase.from("profiles").select("full_name, email").eq("id", user.id).maybeSingle(),
+    supabase.from("profiles").select("first_name, last_name, email").eq("id", user.id).maybeSingle(),
     getUserAuthContext(supabase, user.id),
   ]);
 
   const profileFullName =
-    profile !== null && typeof profile.full_name === "string" ? profile.full_name : undefined;
+    profile !== null && typeof profile.first_name === "string" && typeof profile.last_name === "string"
+      ? `${profile.first_name} ${profile.last_name}`.trim()
+      : undefined;
   const profileEmail =
     profile !== null && typeof profile.email === "string" ? profile.email : undefined;
 

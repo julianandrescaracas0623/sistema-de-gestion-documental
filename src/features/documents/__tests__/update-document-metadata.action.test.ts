@@ -24,6 +24,7 @@ vi.mock("@/features/documents/lib/resolve-category-id", () => ({
 }));
 
 const DOCUMENT_ID = "aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa";
+const CATEGORY_ID = "cccccccc-cccc-cccc-cccc-cccccccccccc";
 
 function sessionWith(permissions: PermissionKey[], userId = "user-1") {
   return {
@@ -42,6 +43,7 @@ function form(tags = ""): FormData {
   const fd = new FormData();
   fd.set("documentId", DOCUMENT_ID);
   fd.set("title", "Doc actualizado");
+  fd.set("categoryId", CATEGORY_ID);
   fd.set("tags", tags);
   return fd;
 }
@@ -73,6 +75,18 @@ describe("updateDocumentMetadataAction", () => {
       return {};
     });
     mockRpc.mockResolvedValue({ error: null });
+  });
+
+  it("returns a validation error when no category is selected", async () => {
+    const { updateDocumentMetadataAction } = await import("../actions/update-document-metadata.action");
+    const fd = new FormData();
+    fd.set("documentId", DOCUMENT_ID);
+    fd.set("title", "Doc actualizado");
+    fd.set("tags", "");
+
+    const result = await updateDocumentMetadataAction(null, fd);
+
+    expect(result).toEqual({ status: "error", message: "Debes seleccionar una categoría." });
   });
 
   it("syncs tags via the sync_document_tags RPC (empty array clears tags)", async () => {

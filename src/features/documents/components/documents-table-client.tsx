@@ -36,6 +36,7 @@ interface DocumentsTableClientProps {
   toItem: number;
   exportQuery: string;
   canDelete: boolean;
+  canDownload: boolean;
   categories: { id: string; name: string }[];
   tags: { id: string; name: string }[];
 }
@@ -50,6 +51,7 @@ export function DocumentsTableClient({
   toItem,
   exportQuery,
   canDelete,
+  canDownload,
   categories,
   tags,
 }: DocumentsTableClientProps) {
@@ -62,11 +64,11 @@ export function DocumentsTableClient({
   const selectedCount = selected.size;
 
   const selectedExportUrl = useMemo(() => {
-    if (selectedCount === 0) return "";
+    if (selectedCount === 0 || !canDownload) return "";
     const p = new URLSearchParams(exportQuery);
     p.set("ids", [...selected].join(","));
     return `/api/documents/export?${p.toString()}`;
-  }, [exportQuery, selected, selectedCount]);
+  }, [canDownload, exportQuery, selected, selectedCount]);
 
   const toggleOne = (id: string) => {
     setSelected((prev) => {

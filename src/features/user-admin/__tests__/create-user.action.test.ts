@@ -94,7 +94,10 @@ describe("createUserByAdminAction", () => {
 
     const { createUserByAdminAction } = await import("../actions/create-user.action");
     const fd = new FormData();
-    fd.set("fullName", "Nuevo Usuario");
+    fd.set("firstName", "Nuevo");
+    fd.set("lastName", "Usuario");
+    fd.set("documentNumber", "1000000000");
+    fd.set("phone", "3001234567");
     fd.set("email", "new@example.com");
     fd.set("password", "password123");
     fd.set("roleId", ROLE_ID);
@@ -111,7 +114,10 @@ describe("createUserByAdminAction", () => {
 
     const { createUserByAdminAction } = await import("../actions/create-user.action");
     const fd = new FormData();
-    fd.set("fullName", "Nuevo Usuario");
+    fd.set("firstName", "Nuevo");
+    fd.set("lastName", "Usuario");
+    fd.set("documentNumber", "1000000000");
+    fd.set("phone", "3001234567");
     fd.set("email", "new@example.com");
     fd.set("password", "password123");
     fd.set("roleId", ROLE_ID);
@@ -124,7 +130,10 @@ describe("createUserByAdminAction", () => {
   it("returns validation error for short password", async () => {
     const { createUserByAdminAction } = await import("../actions/create-user.action");
     const fd = new FormData();
-    fd.set("fullName", "Nuevo Usuario");
+    fd.set("firstName", "Nuevo");
+    fd.set("lastName", "Usuario");
+    fd.set("documentNumber", "1000000000");
+    fd.set("phone", "3001234567");
     fd.set("email", "new@example.com");
     fd.set("password", "short");
     fd.set("roleId", ROLE_ID);
@@ -137,10 +146,13 @@ describe("createUserByAdminAction", () => {
     }
   });
 
-  it("requires fullName", async () => {
+  it("requires firstName", async () => {
     const { createUserByAdminAction } = await import("../actions/create-user.action");
     const fd = new FormData();
-    fd.set("fullName", "A");
+    fd.set("firstName", "A");
+    fd.set("lastName", "Usuario");
+    fd.set("documentNumber", "1000000000");
+    fd.set("phone", "3001234567");
     fd.set("email", "new@example.com");
     fd.set("password", "password123");
     fd.set("roleId", ROLE_ID);
@@ -153,7 +165,10 @@ describe("createUserByAdminAction", () => {
   it("creates user when admin and data valid", async () => {
     const { createUserByAdminAction } = await import("../actions/create-user.action");
     const fd = new FormData();
-    fd.set("fullName", "Nuevo Usuario");
+    fd.set("firstName", "Nuevo");
+    fd.set("lastName", "Usuario");
+    fd.set("documentNumber", "1000000000");
+    fd.set("phone", "3001234567");
     fd.set("email", "new@example.com");
     fd.set("password", "password123");
     fd.set("roleId", ROLE_ID);
@@ -177,7 +192,10 @@ describe("createUserByAdminAction", () => {
     mockUpsert.mockResolvedValue({ error: { message: "db error" } });
     const { createUserByAdminAction } = await import("../actions/create-user.action");
     const fd = new FormData();
-    fd.set("fullName", "Nuevo Usuario");
+    fd.set("firstName", "Nuevo");
+    fd.set("lastName", "Usuario");
+    fd.set("documentNumber", "1000000000");
+    fd.set("phone", "3001234567");
     fd.set("email", "new@example.com");
     fd.set("password", "password123");
     fd.set("roleId", ROLE_ID);

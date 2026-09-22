@@ -25,10 +25,7 @@ const uploadDocumentSchema = z.object({
     .max(5000, "La descripción es demasiado larga.")
     .optional()
     .transform((v) => (v === "" ? undefined : v)),
-  categoryId: z.preprocess(
-    (v) => (v === "" || v === null || v === undefined ? undefined : v),
-    z.string().uuid("Categoría inválida.").optional()
-  ),
+  categoryId: z.string().uuid("Debes seleccionar una categoría."),
   tagsRaw: z.string().max(2000).optional(),
 });
 
@@ -82,8 +79,6 @@ export async function uploadDocumentAction(_prev: unknown, formData: FormData): 
     return { status: "error", message: msg };
   }
 
-  const categoryId = parsed.data.categoryId ?? null;
-
   const documentId = randomUUID();
   const safeName = sanitizeStorageFilename(file.name);
   const storagePath = `${user.id}/${documentId}/${safeName}`;
@@ -115,7 +110,7 @@ export async function uploadDocumentAction(_prev: unknown, formData: FormData): 
       storage_object_path: storagePath,
       size_bytes: file.size,
       mime_type: file.type,
-      category_id: categoryId,
+      category_id: parsed.data.categoryId,
       uploaded_by: user.id,
     })
     .select("id")

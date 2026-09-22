@@ -3,7 +3,7 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 import { syncProfileNameToAuthMetadata } from "../lib/sync-profile-name-to-auth-metadata";
 
 function createMockAdminClient(options: {
-  profile?: { id: string; full_name: string | null } | null;
+  profile?: { id: string; first_name: string | null; last_name: string | null } | null;
   profileError?: { message: string } | null;
   userMetadata?: Record<string, unknown>;
   getUserError?: { message: string } | null;
@@ -54,7 +54,7 @@ describe("syncProfileNameToAuthMetadata", () => {
 
   it("updates user_metadata when profile has full_name and metadata is missing", async () => {
     const { client, updateUserById } = createMockAdminClient({
-      profile: { id: "11111111-1111-1111-1111-111111111111", full_name: "María López" },
+      profile: { id: "11111111-1111-1111-1111-111111111111", first_name: "María", last_name: "López" },
       userMetadata: {},
     });
 
@@ -67,7 +67,7 @@ describe("syncProfileNameToAuthMetadata", () => {
 
   it("skips update when full_name already matches metadata", async () => {
     const { client, updateUserById } = createMockAdminClient({
-      profile: { id: "11111111-1111-1111-1111-111111111111", full_name: "María López" },
+      profile: { id: "11111111-1111-1111-1111-111111111111", first_name: "María", last_name: "López" },
       userMetadata: { full_name: "María López" },
     });
 
@@ -86,7 +86,7 @@ describe("syncProfileNameToAuthMetadata", () => {
 
   it("does nothing when profile full_name is empty", async () => {
     const { client, updateUserById } = createMockAdminClient({
-      profile: { id: "11111111-1111-1111-1111-111111111111", full_name: "   " },
+      profile: { id: "11111111-1111-1111-1111-111111111111", first_name: "  ", last_name: "  " },
     });
 
     await syncProfileNameToAuthMetadata(client as never, "user@ips.com");
