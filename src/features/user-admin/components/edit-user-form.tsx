@@ -63,19 +63,67 @@ export function EditUserForm({
         <form ref={formRef} action={formAction} className="space-y-4">
           <input type="hidden" name="userId" value={user.id} />
 
-          <div className="space-y-2">
-            <Label htmlFor={`edit-user-name-${user.id}`}>
-              Nombre <span className="text-destructive">*</span>
-            </Label>
-            <Input
-              id={`edit-user-name-${user.id}`}
-              name="fullName"
-              required
-              minLength={2}
-              maxLength={120}
-              disabled={isPending}
-              defaultValue={user.fullName}
-            />
+          <div className="grid grid-cols-2 gap-3">
+            <div className="space-y-2">
+              <Label htmlFor={`edit-user-first-name-${user.id}`}>
+                Nombres <span className="text-destructive">*</span>
+              </Label>
+              <Input
+                id={`edit-user-first-name-${user.id}`}
+                name="firstName"
+                required
+                minLength={2}
+                maxLength={60}
+                disabled={isPending}
+                defaultValue={user.firstName}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor={`edit-user-last-name-${user.id}`}>
+                Apellidos <span className="text-destructive">*</span>
+              </Label>
+              <Input
+                id={`edit-user-last-name-${user.id}`}
+                name="lastName"
+                required
+                minLength={2}
+                maxLength={60}
+                disabled={isPending}
+                defaultValue={user.lastName}
+              />
+            </div>
+          </div>
+
+          <div className="grid grid-cols-2 gap-3">
+            <div className="space-y-2">
+              <Label htmlFor={`edit-user-document-${user.id}`}>
+                Número de documento <span className="text-destructive">*</span>
+              </Label>
+              <Input
+                id={`edit-user-document-${user.id}`}
+                name="documentNumber"
+                required
+                minLength={4}
+                maxLength={20}
+                disabled={isPending}
+                defaultValue={user.documentNumber ?? ""}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor={`edit-user-phone-${user.id}`}>
+                Teléfono <span className="text-destructive">*</span>
+              </Label>
+              <Input
+                id={`edit-user-phone-${user.id}`}
+                name="phone"
+                type="tel"
+                required
+                minLength={7}
+                maxLength={20}
+                disabled={isPending}
+                defaultValue={user.phone ?? ""}
+              />
+            </div>
           </div>
 
           <div className="space-y-2">

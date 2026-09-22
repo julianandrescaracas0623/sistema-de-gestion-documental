@@ -27,11 +27,26 @@ import { Input } from "@/shared/components/ui/input";
 import { Select } from "@/shared/components/ui/select";
 
 const schema = z.object({
-  fullName: z
+  firstName: z
     .string()
     .trim()
     .min(2, "El nombre debe tener al menos 2 caracteres")
-    .max(120, "El nombre es demasiado largo"),
+    .max(60, "El nombre es demasiado largo"),
+  lastName: z
+    .string()
+    .trim()
+    .min(2, "El apellido debe tener al menos 2 caracteres")
+    .max(60, "El apellido es demasiado largo"),
+  documentNumber: z
+    .string()
+    .trim()
+    .min(4, "El número de documento debe tener al menos 4 caracteres")
+    .max(20, "El número de documento es demasiado largo"),
+  phone: z
+    .string()
+    .trim()
+    .min(7, "El teléfono debe tener al menos 7 caracteres")
+    .max(20, "El teléfono es demasiado largo"),
   email: z.string().email("Correo electrónico inválido"),
   password: z.string().min(8, "La contraseña debe tener al menos 8 caracteres"),
   roleId: z.string().uuid("Selecciona un rol válido"),
@@ -94,7 +109,10 @@ export function CreateUserForm({
 
   const onSubmit = handleSubmit((data) => {
     const fd = new FormData();
-    fd.set("fullName", data.fullName);
+    fd.set("firstName", data.firstName);
+    fd.set("lastName", data.lastName);
+    fd.set("documentNumber", data.documentNumber);
+    fd.set("phone", data.phone);
     fd.set("email", data.email);
     fd.set("password", data.password);
     fd.set("roleId", data.roleId);
@@ -127,9 +145,30 @@ export function CreateUserForm({
             </p>
           )}
 
-          <FormField id="new-full-name" label="Nombre completo" required error={errors.fullName?.message}>
-            {(field) => <Input type="text" autoComplete="off" {...field} {...register("fullName")} />}
-          </FormField>
+          <div className="grid grid-cols-2 gap-3">
+            <FormField id="new-first-name" label="Nombres" required error={errors.firstName?.message}>
+              {(field) => <Input type="text" autoComplete="off" {...field} {...register("firstName")} />}
+            </FormField>
+            <FormField id="new-last-name" label="Apellidos" required error={errors.lastName?.message}>
+              {(field) => <Input type="text" autoComplete="off" {...field} {...register("lastName")} />}
+            </FormField>
+          </div>
+
+          <div className="grid grid-cols-2 gap-3">
+            <FormField
+              id="new-document-number"
+              label="Número de documento"
+              required
+              error={errors.documentNumber?.message}
+            >
+              {(field) => (
+                <Input type="text" autoComplete="off" {...field} {...register("documentNumber")} />
+              )}
+            </FormField>
+            <FormField id="new-phone" label="Teléfono" required error={errors.phone?.message}>
+              {(field) => <Input type="tel" autoComplete="off" {...field} {...register("phone")} />}
+            </FormField>
+          </div>
 
           <FormField id="new-email" label="Correo electrónico" required error={errors.email?.message}>
             {(field) => <Input type="email" autoComplete="off" {...field} {...register("email")} />}

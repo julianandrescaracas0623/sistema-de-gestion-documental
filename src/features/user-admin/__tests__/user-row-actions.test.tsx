@@ -24,6 +24,10 @@ vi.mock("@/features/user-admin/actions/update-user.action", () => ({
 const user: UserAdminRow = {
   id: "11111111-1111-1111-1111-111111111111",
   email: "user@test.local",
+  firstName: "Test",
+  lastName: "User",
+  documentNumber: "1000000000",
+  phone: "3001234567",
   fullName: "Test User",
   roleId: "33333333-3333-3333-3333-333333333333",
   roleSlug: "user",
@@ -64,7 +68,8 @@ describe("UserRowActions", () => {
     await account.click(screen.getByRole("button", { name: /editar usuario user@test\.local/i }));
 
     expect(screen.getByRole("dialog")).toBeInTheDocument();
-    expect(screen.getByDisplayValue("Test User")).toBeInTheDocument();
+    expect(screen.getByDisplayValue("Test")).toBeInTheDocument();
+    expect(screen.getByDisplayValue("User")).toBeInTheDocument();
   });
 
   it("hides both actions when the user lacks permissions", () => {

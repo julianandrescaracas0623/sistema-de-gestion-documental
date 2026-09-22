@@ -12,6 +12,7 @@ import {
   Tag,
   Trash2,
   Upload,
+  User,
   Users,
 } from "lucide-react";
 import Link from "next/link";
@@ -186,7 +187,10 @@ function SidebarFooter({
 }) {
   return (
     <div className="border-sidebar-border border-t px-2.5 py-3">
-      <div className="flex items-center gap-2.5 rounded-md px-2.5 py-2">
+      <Link
+        href="/perfil"
+        className="flex items-center gap-2.5 rounded-md px-2.5 py-2 transition-colors hover:bg-white/7"
+      >
         <div
           className="flex size-[30px] shrink-0 items-center justify-center rounded-full bg-primary text-[11px] font-bold text-primary-foreground"
           aria-hidden
@@ -197,7 +201,14 @@ function SidebarFooter({
           <p className="truncate text-xs font-medium text-sidebar-foreground/90">{displayName}</p>
           <p className="text-[11px] text-sidebar-muted">{roleLabel(roleName)}</p>
         </div>
-      </div>
+      </Link>
+      <Link
+        href="/perfil"
+        className="flex h-8 w-full items-center gap-2 rounded-md px-2.5 text-sm text-sidebar-foreground/70 transition-colors hover:bg-white/10 hover:text-sidebar-foreground"
+      >
+        <User className="size-3.5" aria-hidden />
+        Mi perfil
+      </Link>
       <form action={logoutAction} className="mt-1">
         <Button
           type="submit"

@@ -10,11 +10,26 @@ import { createClient } from "@/shared/lib/supabase/server";
 import { createServiceRoleClient } from "@/shared/lib/supabase/service-role";
 
 const createUserSchema = z.object({
-  fullName: z
+  firstName: z
     .string()
     .trim()
     .min(2, "El nombre debe tener al menos 2 caracteres")
-    .max(120, "El nombre es demasiado largo"),
+    .max(60, "El nombre es demasiado largo"),
+  lastName: z
+    .string()
+    .trim()
+    .min(2, "El apellido debe tener al menos 2 caracteres")
+    .max(60, "El apellido es demasiado largo"),
+  documentNumber: z
+    .string()
+    .trim()
+    .min(4, "El número de documento debe tener al menos 4 caracteres")
+    .max(20, "El número de documento es demasiado largo"),
+  phone: z
+    .string()
+    .trim()
+    .min(7, "El teléfono debe tener al menos 7 caracteres")
+    .max(20, "El teléfono es demasiado largo"),
   email: z.string().email("Correo electrónico inválido"),
   password: z.string().min(8, "La contraseña debe tener al menos 8 caracteres"),
   roleId: z.string().uuid("Rol inválido"),
@@ -41,7 +56,10 @@ export async function createUserByAdminAction(
   formData: FormData
 ): Promise<CreateUserActionState> {
   const parsed = createUserSchema.safeParse({
-    fullName: formData.get("fullName"),
+    firstName: formData.get("firstName"),
+    lastName: formData.get("lastName"),
+    documentNumber: formData.get("documentNumber"),
+    phone: formData.get("phone"),
     email: formData.get("email"),
     password: formData.get("password"),
     roleId: formData.get("roleId"),
@@ -72,7 +90,8 @@ export async function createUserByAdminAction(
     };
   }
 
-  const { fullName, email, password, roleId } = parsed.data;
+  const { firstName, lastName, documentNumber, phone, email, password, roleId } = parsed.data;
+  const fullName = `${firstName} ${lastName}`.trim();
 
   const { data: roleRow, error: roleLookupError } = await adminClient
     .from("roles")
@@ -100,7 +119,17 @@ export async function createUserByAdminAction(
 
   const { error: profileError } = await adminClient
     .from("profiles")
-    .upsert({ id: newId, email, full_name: fullName }, { onConflict: "id" });
+    .upsert(
+      {
+        id: newId,
+        email,
+        first_name: firstName,
+        last_name: lastName,
+        document_number: documentNumber,
+        phone,
+      },
+      { onConflict: "id" }
+    );
 
   if (profileError !== null) {
     await adminClient.auth.admin.deleteUser(newId);
