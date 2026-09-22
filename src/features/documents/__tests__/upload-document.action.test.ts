@@ -33,6 +33,8 @@ function makeUploadFile(name: string, type: string): File {
   return file;
 }
 
+const CATEGORY_ID = "cccccccc-cccc-cccc-cccc-cccccccccccc";
+
 function sessionWith(permissions: PermissionKey[]) {
   return {
     userId: "user-1",
@@ -109,11 +111,23 @@ describe("uploadDocumentAction", () => {
     expect(result).toEqual({ status: "error", message: "No tienes permiso para subir documentos." });
   });
 
+  it("returns a validation error when no category is selected", async () => {
+    const { uploadDocumentAction } = await import("../actions/upload-document.action");
+    const fd = new FormData();
+    fd.set("title", "Doc");
+    fd.set("file", makeUploadFile("a.pdf", "application/pdf"));
+
+    const result = await uploadDocumentAction(null, fd);
+
+    expect(result).toEqual({ status: "error", message: "Debes seleccionar una categoría." });
+  });
+
   it("syncs tags via the sync_document_tags RPC when tags are provided", async () => {
     const { uploadDocumentAction } = await import("../actions/upload-document.action");
     const fd = new FormData();
     fd.set("title", "Doc");
     fd.set("file", makeUploadFile("a.pdf", "application/pdf"));
+    fd.set("categoryId", CATEGORY_ID);
     fd.set("tags", "urgente, factura");
 
     await uploadDocumentAction(null, fd);
@@ -145,6 +159,7 @@ describe("uploadDocumentAction", () => {
     const fd = new FormData();
     fd.set("title", "Doc");
     fd.set("file", makeUploadFile("a.pdf", "application/pdf"));
+    fd.set("categoryId", CATEGORY_ID);
     fd.set("tags", "urgente");
 
     const result = await uploadDocumentAction(null, fd);
