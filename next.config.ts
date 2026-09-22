@@ -10,6 +10,13 @@ const nextConfig: NextConfig = {
   turbopack: {
     root: import.meta.dirname,
   },
+  experimental: {
+    serverActions: {
+      // Must stay above DOCUMENT_UPLOAD_MAX_MB (default 25MB, see documents-config.ts) —
+      // Next's own default of 1MB was silently rejecting real document uploads.
+      bodySizeLimit: "30mb",
+    },
+  },
   headers: () => Promise.resolve([
     {
       source: "/(.*)",
